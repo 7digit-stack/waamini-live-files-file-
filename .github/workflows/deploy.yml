@@ -1,0 +1,123 @@
+name: Deploy to Hostinger
+
+# Runs after CI passes on main, or manually from the Actions tab.
+# The "production" environment can require a reviewer's approval before anything is uploaded
+# (Settings > Environments > production > Required reviewers).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch, tag or commit to deploy
+        required: false
+        default: main
+      prune:
+        description: Delete server files that were removed from the repo (never touches .env, storage or uploads)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: ${{ vars.APP_URL }}
+    env:
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_PORT: ${{ secrets.SSH_PORT || '65002' }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      APP_URL: ${{ vars.APP_URL }}
+    steps:
+      - name: Check deployment settings
+        run: |
+          missing=""
+          for v in SSH_HOST SSH_USER DEPLOY_PATH; do [ -n "${!v}" ] || missing="$missing $v"; done
+          [ -n "${{ secrets.SSH_PRIVATE_KEY }}" ] || missing="$missing SSH_PRIVATE_KEY"
+          if [ -n "$missing" ]; then echo "::error::Missing repository secrets:$missing (see docs/CI_CD.md)"; exit 1; fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.event.workflow_run.head_sha }}
+
+      - name: Record the deployed commit
+        run: echo "DEPLOY_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Set up SSH
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          if [ -n "${{ secrets.SSH_KNOWN_HOSTS }}" ]; then
+            printf '%s\n' "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" > ~/.ssh/known_hosts 2>/dev/null
+          fi
+          chmod 644 ~/.ssh/known_hosts
+          echo "SSH_CMD=ssh -i $HOME/.ssh/deploy_key -p $SSH_PORT -o StrictHostKeyChecking=yes -o BatchMode=yes" >> "$GITHUB_ENV"
+
+      - name: Verify the server is ready
+        run: |
+          $SSH_CMD "$SSH_USER@$SSH_HOST" "test -d '$DEPLOY_PATH' && test -f '$DEPLOY_PATH/.env'" \
+            || { echo "::error::$DEPLOY_PATH or its .env is missing on the server"; exit 1; }
+
+      - name: Upload code (rsync, overwritten files kept for rollback)
+        run: |
+          release="$(date -u +%Y%m%d-%H%M%S)-${DEPLOY_SHA::7}"
+          echo "RELEASE=$release" >> "$GITHUB_ENV"
+          prune=""
+          if [ "${{ inputs.prune }}" = "true" ]; then prune="--delete-after"; fi
+          rsync -rlptz --checksum $prune \
+            --exclude-from=.deployignore \
+            --backup --backup-dir="../.deploy_backups/$release" \
+            --chmod=D755,F644 \
+            -e "$SSH_CMD" \
+            ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
+          $SSH_CMD "$SSH_USER@$SSH_HOST" "echo '$release ${DEPLOY_SHA}' > '$DEPLOY_PATH/../.deploy_backups/LAST_RELEASE' 2>/dev/null || true"
+
+      - name: Post-deploy housekeeping
+        run: |
+          $SSH_CMD "$SSH_USER@$SSH_HOST" "
+            cd '$DEPLOY_PATH' &&
+            mkdir -p storage/cache storage/page-cache storage/logs storage/sessions storage/ratelimit &&
+            find storage/page-cache -type f -name '*' -delete 2>/dev/null;
+            ls -1dt ../.deploy_backups/*/ 2>/dev/null | tail -n +11 | xargs -r rm -rf
+          "
+
+      - name: Smoke test
+        if: env.APP_URL != ''
+        run: |
+          for path in /login.php /; do
+            code=000
+            for i in 1 2 3 4 5; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "${APP_URL%/}$path" || true)
+              case "$code" in 200|301|302) break;; esac
+              sleep 6
+            done
+            echo "$path -> HTTP $code"
+            case "$code" in 200|301|302) ;; *) echo "::error::Smoke test failed for $path (HTTP $code). Roll back with the steps in docs/CI_CD.md"; exit 1;; esac
+          done
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Deploy ${{ job.status }}"
+            echo "- Commit: \`${DEPLOY_SHA}\`"
+            echo "- Release backup: \`.deploy_backups/${RELEASE:-n/a}\` (files this deploy overwrote)"
+            echo "- Site: ${APP_URL:-not set}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          rm -f ~/.ssh/deploy_key

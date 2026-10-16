@@ -1,0 +1,154 @@
+# ============================================
+# WAAMINI PRODUCTION .htaccess
+# ============================================
+
+Options -Indexes
+ServerSignature Off
+
+# ============================================
+# PERFORMANCE — COMPRESSION
+# ============================================
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css text/javascript application/javascript application/x-javascript application/json application/xml image/svg+xml font/ttf font/otf
+  DeflateCompressionLevel 9
+  SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|webp|woff2?|zip|gz|bz2|rar|7z)$ no-gzip dont-vary
+  <IfModule mod_headers.c>
+    Header append Vary Accept-Encoding
+  </IfModule>
+</IfModule>
+
+# ============================================
+# PERFORMANCE — BROWSER CACHING
+# ============================================
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 day"
+  ExpiresByType text/css                  "access plus 30 days"
+  ExpiresByType application/javascript    "access plus 30 days"
+  ExpiresByType text/javascript           "access plus 30 days"
+  ExpiresByType image/png                 "access plus 30 days"
+  ExpiresByType image/jpeg                "access plus 30 days"
+  ExpiresByType image/gif                 "access plus 30 days"
+  ExpiresByType image/webp                "access plus 30 days"
+  ExpiresByType image/svg+xml             "access plus 30 days"
+  ExpiresByType image/x-icon              "access plus 30 days"
+  ExpiresByType font/woff2                "access plus 180 days"
+  ExpiresByType font/woff                 "access plus 180 days"
+  ExpiresByType font/ttf                  "access plus 180 days"
+  ExpiresByType font/otf                  "access plus 180 days"
+  ExpiresByType text/html                 "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(css|js|png|jpg|jpeg|gif|webp|svg|woff2|woff|ttf|otf|ico)$">
+    Header set Cache-Control "public, max-age=2592000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.php$">
+    Header set Cache-Control "no-store, no-cache, must-revalidate, private"
+    Header set Pragma "no-cache"
+  </FilesMatch>
+</IfModule>
+
+# ============================================
+# SECURITY — BLOCK SENSITIVE FILES
+# ============================================
+
+# Block sensitive file extensions
+<FilesMatch "\.(env|sql|bak|log|ini|key|pem|md|lock|tmp|old)$">
+  Require all denied
+</FilesMatch>
+
+# Block hidden files
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+
+# Block debug/test/setup files
+<FilesMatch "^(setup_|backup_|db_check|db_test|sec_scan|create_|fix_|check_|debug_|migrate_|nexus_|test_|hello|diag|phpinfo|temp_)">
+  Require all denied
+</FilesMatch>
+
+# Block direct access to db config files
+<FilesMatch "^(db\.php|db_config\.php|db_config\.sample\.php)$">
+  Require all denied
+</FilesMatch>
+
+# Block other sensitive root files
+<FilesMatch "^(schema\.sql|state\.json|the_error\.txt|nginx\.conf|package\.json|package-lock\.json)$">
+  Require all denied
+</FilesMatch>
+
+# Allow robots.txt and sitemap.xml
+<Files "robots.txt">
+  Require all granted
+</Files>
+<Files "sitemap.xml">
+  Require all granted
+</Files>
+
+# ============================================
+# SECURITY — HEADERS
+# ============================================
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set X-XSS-Protection "1; mode=block"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(),microphone=(),camera=()"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://checkout.razorpay.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https: blob:; connect-src 'self' https://graph.facebook.com https://api.openai.com https://api.razorpay.com https://generativelanguage.googleapis.com https://openrouter.ai https://openrouter.ai/api; frame-src 'self' https://api.razorpay.com; frame-ancestors 'none'; form-action 'self'; base-uri 'self';"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+  Header always unset X-Powered-By
+</IfModule>
+
+# ============================================
+# SECURITY — REWRITE RULES
+# ============================================
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Block direct access to includes/, config/, services/, workers/, etc.
+  RewriteRule ^(includes|config|services|database|tests|logs|migrations|workers|queue|vendor)/ - [F,L]
+
+  # Allow public storage files (products, welcome images)
+  RewriteRule ^storage/(products|welcome)/ - [L]
+  # Block all other storage access
+  RewriteRule ^storage/ - [F,L]
+
+  # Block SQL injection in query strings
+  RewriteCond %{QUERY_STRING} (union.*select|select.*from|insert.*into|drop.*table|alter.*table) [NC]
+  RewriteRule .* - [F,L]
+
+  # Block XSS in query strings
+  RewriteCond %{QUERY_STRING} (<script|javascript:|onload=|onerror=|onclick=) [NC]
+  RewriteRule .* - [F,L]
+
+  # HTTPS redirect (uncomment for production on Hostinger)
+  # RewriteCond %{HTTPS} off
+  # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  # Meta webhook callback (no .php in the URL shown in Settings)
+  RewriteRule ^api/webhook/whatsapp/?$ api/webhook/whatsapp.php [QSA,L]
+
+  # Route API requests
+  RewriteRule ^api/(.*)$ api/$1 [QSA,L]
+</IfModule>
+
+# ============================================
+# PHP SECURITY SETTINGS
+# ============================================
+<IfModule mod_php.c>
+  php_flag display_errors Off
+  php_flag log_errors On
+  php_flag allow_url_include Off
+  php_value session.cookie_httponly 1
+  php_value session.use_strict_mode 1
+  php_value expose_php Off
+</IfModule>
+<IfModule mod_php8.c>
+  php_flag display_errors Off
+  php_flag log_errors On
+  php_flag allow_url_include Off
+  php_value session.cookie_httponly 1
+  php_value session.use_strict_mode 1
+  php_value expose_php Off
+</IfModule>

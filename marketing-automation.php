@@ -1,0 +1,40 @@
+<?php
+$fp = [
+    'slug' => 'marketing-automation.php',
+    'title' => 'WhatsApp Marketing Automation & Drip Campaigns | Waamini',
+    'meta_desc' => 'Automate follow-ups, drip sequences, missed-call replies, review requests and lead nurturing on WhatsApp.',
+    'meta_keywords' => 'WhatsApp automation, drip campaign WhatsApp, lead follow up automation, missed call WhatsApp',
+    'eyebrow' => 'Marketing Automation',
+    'h1' => 'Follow up automatically with *drip automation*',
+    'desc' => 'Set it once and let Waamini nurture every lead. Multi-step drips, timed follow-ups, missed-call replies and review requests run on their own.',
+    'bullets' => ['Multi-step drip campaigns', 'Lead follow-up rules', 'Missed call auto-reply', 'Google review requests'],
+    'chat_name' => 'Auto Follow-up',
+    'chat' => [
+        ['in', 'Hi Rahul, thanks for your enquiry! Here is our brochure.'],
+        ['in', 'Day 2: Want a quick demo of how it works?'],
+        ['out', 'Yes please'],
+        ['in', 'Day 5: Your free trial ends soon. Need help?'],
+    ],
+    'chips' => [['repeat', 'Drip step 3 sent'], ['clock', 'Next: tomorrow 10 AM']],
+    'stats' => [['3x', 'More replies from follow-ups'], ['0', 'Manual reminders'], ['Auto', 'Review requests'], ['24/7', 'Runs in background']],
+    'features_title' => 'Automation that never forgets a lead',
+    'features_sub' => 'Build sequences and triggers once, then let them work around the clock.',
+    'features' => [
+        ['repeat', 'Drip Campaigns', 'Create multi-step sequences with delays. The engine varies message wording to feel natural.'],
+        ['clock', 'Lead Follow-ups', 'First and second follow-ups plus a delayed thank-you go out automatically after a chat.'],
+        ['send', 'Missed Call Reply', 'Send a WhatsApp message the moment you miss a call so the lead never goes cold.'],
+        ['chat', 'Review Requests', 'Ask for a Google review after a delay and follow up if there is no response.'],
+        ['chart', 'A/B Testing', 'Split an audience between two variants and see which message performs better.'],
+        ['link', 'Zapier & Webhooks', 'Connect Facebook Lead Ads, IndiaMART, Google Sheets and thousands of apps.'],
+    ],
+    'steps_title' => 'Build a sequence in three steps',
+    'steps_sub' => 'Visual, quick and flexible.',
+    'steps' => [
+        ['Choose a trigger', 'Start on a new lead, a keyword, a missed call or a tag.'],
+        ['Add steps', 'Write messages and set the delay between each one.'],
+        ['Go live', 'Turn it on. Waamini sends, tracks and stops when the lead replies.'],
+    ],
+    'cta_title' => 'Stop chasing leads manually',
+    'cta_text' => 'Let automation follow up so your team can focus on conversations that matter.',
+];
+include __DIR__ . '/includes/feature_page.php';

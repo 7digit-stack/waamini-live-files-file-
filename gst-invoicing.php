@@ -1,0 +1,40 @@
+<?php
+$fp = [
+    'slug' => 'gst-invoicing.php',
+    'title' => 'GST Invoicing, Quotes & Payment Links on WhatsApp | Waamini',
+    'meta_desc' => 'Create GST invoices and PDF quotes, send payment links and share them on WhatsApp in one click.',
+    'meta_keywords' => 'GST invoice WhatsApp, PDF quote, payment link WhatsApp, UPI payment collection India',
+    'eyebrow' => 'GST Invoicing & Payments',
+    'h1' => 'Invoices, quotes and *payments* in one chat',
+    'desc' => 'Generate GST-ready invoices and branded PDF quotes, then send them with a payment link straight to your customer on WhatsApp.',
+    'bullets' => ['GST invoices', 'Branded PDF quotes', 'UPI & gateway links', 'Send on WhatsApp'],
+    'chat_name' => 'Your Business',
+    'chat' => [
+        ['in', 'Hi Meena, your quote Q-2031 is ready (PDF attached).'],
+        ['out', 'Looks good, please send the invoice.'],
+        ['in', 'GST invoice INV-5584 attached. Pay here: Rs. 12,400'],
+        ['in', 'Payment received. Thank you!'],
+    ],
+    'chips' => [['file', 'Invoice sent'], ['card', 'Paid Rs. 12,400']],
+    'stats' => [['1-click', 'Invoice to WhatsApp'], ['GST', 'Ready invoices'], ['UPI', 'Payment links'], ['0', 'Manual follow-ups']],
+    'features_title' => 'Billing that keeps up with your chats',
+    'features_sub' => 'Close the sale and collect payment without leaving the conversation.',
+    'features' => [
+        ['file', 'GST Invoices', 'Create, view and print GST invoices with your company details and tax settings.'],
+        ['upload', 'PDF Quotes', 'Send professional branded quotes with your logo and terms.'],
+        ['link', 'Payment Links', 'Share UPI or gateway payment links and mark payments as paid.'],
+        ['send', 'Send on WhatsApp', 'Deliver invoices and quotes to the customer\'s chat instantly.'],
+        ['chart', 'Revenue Insights', 'Track invoices, payments and revenue from your dashboard.'],
+        ['shield', 'Opt-out & Trust', 'Respect customer opt-outs and keep billing messages compliant.'],
+    ],
+    'steps_title' => 'Bill in three steps',
+    'steps_sub' => 'Fewer tabs, faster payments.',
+    'steps' => [
+        ['Set up GST', 'Add your business and tax details once.'],
+        ['Create the document', 'Build an invoice or quote from your product list.'],
+        ['Send & collect', 'Share it on WhatsApp with a payment link and get notified when paid.'],
+    ],
+    'cta_title' => 'Get paid faster, right in WhatsApp',
+    'cta_text' => 'Replace email attachments and chasing with one smooth billing flow.',
+];
+include __DIR__ . '/includes/feature_page.php';

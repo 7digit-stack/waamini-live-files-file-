@@ -1,0 +1,40 @@
+<?php
+$fp = [
+    'slug' => 'ai-chatbot.php',
+    'hub' => 'automation',
+    'title' => 'AI WhatsApp Chatbot & Smart Replies | Waamini',
+    'meta_desc' => 'Automate WhatsApp replies 24/7 with keyword bots, visual flows and an AI assistant powered by OpenAI or Gemini.',
+    'meta_keywords' => 'WhatsApp chatbot, AI chatbot India, WhatsApp auto reply, chatbot flow builder',
+    'eyebrow' => 'AI Chatbot',
+    'h1' => 'An *AI chatbot* that answers while you sleep',
+    'desc' => 'Reply instantly in your customer\'s language, qualify leads and book demos automatically. Start with keyword rules, grow into visual flows and an AI assistant that knows your business.',
+    'bullets' => ['Keyword & smart routing', 'Visual flow builder', 'OpenAI & Gemini support', 'Human handoff when needed'],
+    'chat_name' => 'Waamini AI Assistant',
+    'chat' => [
+        ['out', 'Do you have a demo slot tomorrow?'],
+        ['in', 'Yes! I have 11:00 AM and 4:30 PM open. Which works for you?'],
+        ['out', '4:30 PM'],
+        ['in', 'Booked. A calendar link is on its way.'],
+    ],
+    'chips' => [['bot', 'AI replied in 2s'], ['calendar', 'Demo booked']],
+    'stats' => [['24/7', 'Always-on replies'], ['<3s', 'Average response time'], ['70%', 'Queries handled by bot'], ['Multi', 'Language replies']],
+    'features_title' => 'Three layers of automation, one inbox',
+    'features_sub' => 'Use simple rules, drag-and-drop flows or full AI. Mix them as your business grows.',
+    'features' => [
+        ['filter', 'Keyword Bot Replies', 'Match exact, contains or starts-with keywords and reply with text, templates, media and up to three quick-reply buttons.'],
+        ['chat', 'Flow Builder', 'Build conversational flows visually with triggers and keywords. Or use the simple builder for quick setups.'],
+        ['bot', 'AI Assistant', 'Connect your own OpenAI or Gemini key, set the persona, tone and language, and let AI answer from your instructions.'],
+        ['calendar', 'Demo & Booking Bot', 'Capture bookings through chat and link them to Google Calendar and Meet.'],
+        ['users', 'Human Handoff', 'Alert your team on a chosen number and move the conversation to a live agent when the bot reaches its limit.'],
+    ],
+    'steps_title' => 'Set up your bot in minutes',
+    'steps_sub' => 'No code needed. Start simple and add intelligence anytime.',
+    'steps' => [
+        ['Add your rules', 'Create keyword replies for greetings, pricing and FAQs.'],
+        ['Turn on AI', 'Add your API key, write a short persona and choose the reply tone and language.'],
+        ['Monitor & improve', 'Review conversations in the inbox and refine replies as you learn.'],
+    ],
+    'cta_title' => 'Put your customer support on autopilot',
+    'cta_text' => 'Let Waamini handle the repetitive questions so your team focuses on closing deals.',
+];
+include __DIR__ . '/includes/feature_page.php';

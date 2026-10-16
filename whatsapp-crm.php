@@ -1,0 +1,40 @@
+<?php
+$fp = [
+    'slug' => 'whatsapp-crm.php',
+    'title' => 'WhatsApp CRM, Shared Inbox & Live Chat | Waamini',
+    'meta_desc' => 'Manage leads, contacts and conversations in one WhatsApp CRM with a shared team inbox, labels, notes, reminders and AI lead scoring.',
+    'meta_keywords' => 'WhatsApp CRM, shared inbox WhatsApp, WhatsApp live chat, lead management India',
+    'eyebrow' => 'WhatsApp CRM',
+    'h1' => 'A *WhatsApp CRM* your whole team can share',
+    'desc' => 'Every chat becomes a tracked lead. Assign conversations, add notes and reminders, score leads with AI and never lose track of a customer again.',
+    'bullets' => ['Shared team inbox', 'Labels, notes & reminders', 'AI lead scoring', 'Contact import & groups'],
+    'chat_name' => 'Shared Inbox',
+    'chat' => [
+        ['in', 'I want to know about the premium plan.'],
+        ['out', 'Sure, sharing the details. Assigned to Arun from sales.'],
+        ['in', 'Great, call me tomorrow at 11.'],
+        ['out', 'Reminder set. Talk tomorrow!'],
+    ],
+    'chips' => [['users', 'Assigned: Arun'], ['tag', 'Hot lead']],
+    'stats' => [['1', 'Inbox for the whole team'], ['100%', 'Chats linked to contacts'], ['AI', 'Lead scoring'], ['0', 'Leads missed']],
+    'features_title' => 'Know every customer, close every deal',
+    'features_sub' => 'Conversations, contacts and follow-ups live together so nothing slips through.',
+    'features' => [
+        ['chat', 'Team Inbox & Live Chat', 'Multiple agents reply from one number. Tickets move from Open to Pending to Resolved.'],
+        ['users', 'Agent Assignment', 'Assign chats to teammates and set access levels so everyone sees only what they should.'],
+        ['tag', 'Labels & Outcomes', 'Tag conversations and mark outcomes such as won or lost to understand your pipeline.'],
+        ['file', 'Notes & Reminders', 'Keep internal notes on each contact and schedule follow-up reminders.'],
+        ['spark', 'AI Lead Scores', 'Let AI rank your leads so your team calls the hottest ones first.'],
+        ['upload', 'Import & Export', 'Bring contacts in from CSV, group them, block opt-outs and export when you need to.'],
+    ],
+    'steps_title' => 'From first message to closed deal',
+    'steps_sub' => 'A simple loop that keeps every lead moving.',
+    'steps' => [
+        ['Capture', 'Leads arrive from chats, ads, forms and integrations and land in your contact list automatically.'],
+        ['Engage', 'Your team replies from the shared inbox with quick replies, quotes and payment links.'],
+        ['Follow up', 'Reminders and automations nudge leads until they convert.'],
+    ],
+    'cta_title' => 'Turn conversations into customers',
+    'cta_text' => 'Give your team one place to chat, track and close.',
+];
+include __DIR__ . '/includes/feature_page.php';

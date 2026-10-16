@@ -1,0 +1,41 @@
+<?php
+$fp = [
+    'slug' => 'whatsapp-broadcast.php',
+    'hub' => true,
+    'title' => 'WhatsApp Bulk Broadcasts & Campaigns | Waamini',
+    'meta_desc' => 'Send approved WhatsApp template campaigns to thousands of contacts with scheduling, smart throttling, personalisation and delivery reports.',
+    'meta_keywords' => 'WhatsApp bulk message, WhatsApp broadcast, WhatsApp campaigns India, WhatsApp marketing tool',
+    'eyebrow' => 'WhatsApp Broadcasts',
+    'h1' => 'Reach every customer with *WhatsApp broadcasts*',
+    'desc' => 'Send approved template campaigns to thousands of contacts in minutes. Personalise every message, schedule ahead and track delivery, reads and replies in real time.',
+    'bullets' => ['Approved Meta templates', 'Scheduling & quick broadcast', 'Smart send throttling', 'Delivery & read reports'],
+    'chat_name' => 'Your Business',
+    'chat' => [
+        ['in', 'Hi Priya, our festive sale starts today with up to 40% off!'],
+        ['in', 'Tap below to see the collection.'],
+        ['out', 'Show me the offers'],
+        ['in', 'Here you go. Offer valid till Sunday.'],
+    ],
+    'chips' => [['send', '1,000+ sent'], ['chart', '98% delivered']],
+    'stats' => [['98%', 'Open rate on WhatsApp'], ['5x', 'Higher engagement than SMS'], ['1000s', 'Messages per campaign'], ['24/7', 'Scheduled sending']],
+    'features_title' => 'Campaigns built for scale and trust',
+    'features_sub' => 'Everything you need to plan, send and measure WhatsApp marketing without risking your number.',
+    'features' => [
+        ['file', 'Approved Templates', 'Create templates with image, video or document headers, variables and buttons, then send them once Meta approves.'],
+        ['users', 'Groups & Segments', 'Send to all contacts or to a group. Import contacts by CSV and keep audiences tidy with tags.'],
+        ['spark', 'Personalisation', 'Insert first name, full name, mobile, email, tags or custom text into every message automatically.'],
+        ['clock', 'Scheduling', 'Pick a date and time, or use Quick Broadcast for an instant send. Queue messages and let Waamini deliver them.'],
+        ['shield', 'Number Protection', 'Min and max delay, batch size and batch rest keep your sending natural and protect your quality rating.'],
+        ['chart', 'Campaign Reports', 'See sent, delivered, read and replied counts for every campaign, with a full message log.'],
+    ],
+    'steps_title' => 'From idea to inbox in three steps',
+    'steps_sub' => 'No technical setup. Connect your number and send.',
+    'steps' => [
+        ['Pick a template', 'Choose an approved template or create a new one with media and buttons.'],
+        ['Choose your audience', 'Select a group or all contacts and map template variables to contact fields.'],
+        ['Send or schedule', 'Launch now or schedule it. Watch delivery and replies roll in live.'],
+    ],
+    'cta_title' => 'Ready to launch your first campaign?',
+    'cta_text' => 'Join businesses that turn WhatsApp into their best-performing marketing channel.',
+];
+include __DIR__ . '/includes/feature_page.php';

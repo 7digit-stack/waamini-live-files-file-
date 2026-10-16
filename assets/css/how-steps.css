@@ -1,0 +1,31 @@
+/* "Get started in 5 minutes": three illustrated step cards joined by dashed arrows */
+.hs-row{display:flex;align-items:stretch;justify-content:center;gap:0;max-width:1060px;margin:0 auto}
+.hs-card{flex:1 1 0;min-width:0;text-align:center;padding:26px 22px 30px;background:#fff;border:1px solid #DDEFE7;border-radius:24px;
+  transition:transform .3s,box-shadow .3s,border-color .3s;font-family:'Inter',system-ui,sans-serif}
+.hs-card:hover{transform:translateY(-6px);border-color:rgba(18,140,126,.35);box-shadow:0 26px 50px -20px rgba(18,140,126,.3)}
+.hs-art{height:150px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.hs-art img{width:auto;height:100%;max-width:100%;object-fit:contain;filter:drop-shadow(0 14px 18px rgba(18,140,126,.18))}
+.hs-n{display:inline-block;padding:5px 12px;border-radius:999px;background:#E3F7EE;color:#128C7E;font:700 11px/1 var(--font-mono,'JetBrains Mono',ui-monospace,monospace);letter-spacing:1.2px;margin-bottom:12px}
+.hs-card h3{font-size:20px;font-weight:800;letter-spacing:-.4px;color:#0F2622;margin:0 0 8px}
+.hs-card p{font-size:14.5px;line-height:1.6;color:#5F6F6A;margin:0 auto;max-width:240px}
+.hs-link{flex:0 0 76px;display:flex;align-items:center;justify-content:center}
+@media (max-width:860px){
+  .hs-row{flex-direction:column;align-items:center;gap:6px}
+  .hs-card{width:100%;max-width:380px}
+  .hs-link{flex:none;height:44px;transform:rotate(90deg)}
+}
+
+/* Flat: no boxes, no shadows, no hover lift */
+.hs-card{background:transparent;border:0;border-radius:0;box-shadow:none;padding:10px 18px 0}
+.hs-card:hover{transform:none;box-shadow:none;border-color:transparent}
+.hs-art img{filter:none}
+.hs-row{align-items:flex-start}
+.hs-link{align-self:flex-start;height:150px}
+.hs-card h3{min-height:2.5em;display:flex;align-items:flex-start;justify-content:center}
+@media (max-width:860px){.hs-link{height:44px;align-self:center}.hs-card h3{min-height:0}}
+
+/* Contact Sync: phone/image on the left, text on the right (desktop) */
+@media (min-width:901px){
+  .sync-section .sync-left{order:2}
+  .sync-section .sync-right{order:1}
+}

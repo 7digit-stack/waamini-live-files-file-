@@ -1,0 +1,15 @@
+/* Big two-row marquee under the hero: pale row scrolls one way, dark row the other */
+.mq-band{background:#fff;overflow:hidden;padding:56px 0 64px;font-family:'Inter',system-ui,sans-serif;user-select:none}
+.mq-row{display:flex;width:max-content;white-space:nowrap;font-weight:800;letter-spacing:-.045em;line-height:1.12;font-size:clamp(46px,8.2vw,118px)}
+.mq-row + .mq-row{margin-top:6px}
+.mq-track{display:flex;flex:none;align-items:center;animation:mqLeft 38s linear infinite}
+.mq-row.mq-rev .mq-track{animation:mqRight 44s linear infinite}
+.mq-row.mq-pale{color:#e0e0e0}
+.mq-row.mq-dark{color:#0F2622}
+.mq-track span{padding-right:.28em}
+.mq-track .mq-dot{padding:0 .28em 0 0;opacity:.9}
+.mq-hl{background:linear-gradient(180deg,transparent 12%,#BFEBD8 12%,#BFEBD8 96%,transparent 96%);padding:0 .06em;margin-right:.28em}
+@keyframes mqLeft{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+@keyframes mqRight{from{transform:translateX(-100%)}to{transform:translateX(0)}}
+@media (prefers-reduced-motion:reduce){.mq-track{animation:none!important}}
+@media (max-width:640px){.mq-band{padding:36px 0 44px}}

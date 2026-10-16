@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    name: Forbidden files guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      # Database dumps, archives, env files and debug scripts must never be committed.
+      - name: Fail if sensitive or debug files are tracked
+        run: |
+          bad=$(git ls-files | grep -E \
+            -e '(^|/)\.env$' -e '(^|/)\.env\.(local|production|staging)$' \
+            -e '\.(zip|tar|tar\.gz|dump|pem|key|p12|pfx|sqlite)$' \
+            -e '^storage/(backups|products|ad_media|schema_flags|sessions|cache|logs)/' \
+            -e '^scratch/' -e '^audit-output/' \
+            | grep -vE '\.gitkeep$' || true)
+          sql=$(git ls-files '*.sql' | grep -vE '^migrations/|^setup_ai_tables\.sql$' || true)
+          if [ -n "$bad$sql" ]; then
+            echo "::error::These files must not be in the repository:"
+            printf '%s\n' $bad $sql
+            exit 1
+          fi
+          echo "No forbidden files tracked."
+
+  secrets:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run gitleaks over the full history
+        run: |
+          docker run --rm -v "$PWD:/repo" -w /repo zricethezav/gitleaks:v8.18.4 \
+            detect --source=/repo --config=/repo/.gitleaks.toml --redact --verbose --exit-code 1
+
+  lint:
+    name: PHP and JS syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mysqli, mbstring, curl, sodium, zip, gd, intl
+          coverage: none
+          tools: none
+
+      - name: php -l on every PHP file
+        run: |
+          set -o pipefail
+          git ls-files '*.php' | grep -v '^vendor/' \
+            | xargs -P 4 -n 40 sh -c 'for f; do php -l "$f" >/dev/null 2>lint.err.$$ || { echo "::error file=$f::$(cat lint.err.$$)"; echo "$f" >> lint.failed; }; rm -f lint.err.$$; done' _
+          if [ -s lint.failed ]; then echo "PHP syntax errors in $(wc -l < lint.failed) file(s)"; exit 1; fi
+          echo "All PHP files passed php -l."
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: node --check on app JavaScript
+        run: |
+          fail=0
+          for f in $(git ls-files 'assets/js/*.js' | grep -v '\.min\.js$'); do
+            node --check "$f" || { echo "::error file=$f::JavaScript syntax error"; fail=1; }
+          done
+          exit $fail
+
+  unit:
+    name: Unit tests (no database)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mysqli, mbstring, curl, sodium
+          coverage: none
+          tools: none
+      - name: Ads unit tests
+        run: php tests/ads_unit_test.php
+      - name: Cache layer self-test (file driver)
+        run: php .github/ci/cache_selftest.php

@@ -1,0 +1,97 @@
+# ============================================================
+# WAAMINI — .gitignore
+# ============================================================
+
+# ---- CREDENTIALS & SECRETS (NEVER COMMIT) -----------------
+.env
+.env.local
+.env.production
+.env.staging
+db_config.php
+smtp_config.php
+secrets.php
+
+# ---- RUNTIME: SESSIONS, CACHE, LOGS -----------------------
+storage/sessions/
+storage/cache/
+storage/ratelimit/
+storage/page-cache/
+storage/logs/
+
+# Keep directory structure (tracked empty dirs)
+!storage/sessions/.gitkeep
+!storage/cache/.gitkeep
+!storage/ratelimit/.gitkeep
+!storage/page-cache/.gitkeep
+!storage/logs/.gitkeep
+
+# ---- USER UPLOADS (runtime, could be sensitive) -----------
+uploads/campaigns/
+uploads/chat_media/
+uploads/logos/
+uploads/templates/
+uploads/flows/*/
+
+!uploads/campaigns/.gitkeep
+!uploads/chat_media/.gitkeep
+!uploads/logos/.gitkeep
+!uploads/templates/.gitkeep
+
+# ---- NODE / NPM -------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+
+# ---- PLAYWRIGHT TEST ARTIFACTS ----------------------------
+playwright-report/
+test-results/
+.playwright-mcp/
+
+# ---- PHP RUNTIME ------------------------------------------
+*.log
+error_log
+php_errors.log
+
+# ---- OS / IDE FILES ---------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# ---- TEMP / BUILD -----------------------------------------
+*.tmp
+*.bak
+*.cache
+nul
+
+# ---- LOCAL DEV ARTIFACTS -----------------------------------
+storage/*.lock
+scratch/cookies*.txt
+
+# ---- DATA EXPORTS, DUMPS & ARCHIVES (never commit) ---------
+# Database dumps and full-project archives can contain customer data and live credentials.
+*.sql
+!migrations/*.sql
+!setup_ai_tables.sql
+*.zip
+*.tar
+*.tar.gz
+*.dump
+storage/backups/
+
+# ---- RUNTIME DATA WRITTEN BY THE APP -----------------------
+storage/products/
+storage/ad_media/
+storage/schema_flags/
+storage/vendor_*/
+storage/welcome/
+storage/.initialized
+storage/.wa_chat_schema_v1
+
+# ---- ONE-OFF DEBUG / SCRATCH SCRIPTS -----------------------
+# Kept locally only; they must never reach the web server.
+scratch/
+audit-output/

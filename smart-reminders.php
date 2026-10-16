@@ -1,0 +1,40 @@
+<?php
+$fp = [
+    'slug' => 'smart-reminders.php',
+    'title' => 'Smart WhatsApp Reminders: Birthday, Fees, Medicine & More | Waamini',
+    'meta_desc' => 'Automate birthday wishes, festival greetings, school fee, medicine and vehicle service reminders on WhatsApp.',
+    'meta_keywords' => 'WhatsApp reminder, school fee reminder, medicine reminder, birthday wishes WhatsApp, festival greetings',
+    'eyebrow' => 'Smart Reminders',
+    'h1' => '*Reminders* that bring customers back',
+    'desc' => 'Never miss a birthday, due date or service. Waamini sends the right reminder at the right time, so customers pay on time and keep coming back.',
+    'bullets' => ['Birthday & festival wishes', 'School fee reminders', 'Medicine reminders', 'Vehicle service alerts'],
+    'chat_name' => 'Auto Reminders',
+    'chat' => [
+        ['in', 'Happy Birthday Anita! Enjoy 15% off today.'],
+        ['in', 'Reminder: Term 2 fees of Rs. 8,500 are due on the 10th.'],
+        ['in', 'Time for your evening medicine. Get well soon!'],
+        ['in', 'Your vehicle service is due. Book a slot?'],
+    ],
+    'chips' => [['gift', 'Birthday sent'], ['calendar', 'Due in 3 days']],
+    'stats' => [['100%', 'On-time reminders'], ['4+', 'Reminder packs'], ['Auto', 'Festival greetings'], ['Zero', 'Manual effort']],
+    'features_title' => 'One platform, many reminder packs',
+    'features_sub' => 'Pick the packs that fit your business and switch them on.',
+    'features' => [
+        ['gift', 'Birthday Wishes', 'Send personal greetings and offers on every customer\'s birthday.'],
+        ['calendar', 'Festival Campaigns', 'Use the festival calendar to schedule greetings for every occasion.'],
+        ['file', 'School Fee Reminders', 'Remind parents about upcoming and overdue fees with polite, timely messages.'],
+        ['clock', 'Medicine Reminders', 'Help patients stick to treatment with scheduled medication nudges.'],
+        ['repeat', 'Vehicle Service', 'Alert customers when service, insurance or renewals are due.'],
+        ['chat', 'Review Requests', 'Follow up after a visit and collect feedback and Google reviews.'],
+    ],
+    'steps_title' => 'Set reminders in minutes',
+    'steps_sub' => 'Upload dates once. Waamini does the rest.',
+    'steps' => [
+        ['Import dates', 'Add contacts with birthdays, due dates or service dates.'],
+        ['Pick a message', 'Choose or customise an approved template for each reminder.'],
+        ['Sit back', 'Reminders send automatically at the scheduled time.'],
+    ],
+    'cta_title' => 'Never miss an important date again',
+    'cta_text' => 'Build loyalty and collect on time with reminders that run themselves.',
+];
+include __DIR__ . '/includes/feature_page.php';

@@ -1,0 +1,1044 @@
+/* =========================================================================
+   WAAMINI Landing Page — 7digit design system port
+   Ground-truth: same token names/values as the reference (--bg, --bg2, --fg,
+   --accent1..4, --glass, --glass-border). No hard offset shadows, no thick
+   "brutalist" borders, no glow orbs, no WebGL/canvas — the reference system
+   achieves depth with fluid type + glass surfaces + CSS transforms only.
+   Scoped entirely under body.lp-neo so it never leaks onto other public
+   pages (features.php, pricing.php, blogs.php, ...) that share the same
+   includes/header.php + includes/footer.php shell.
+
+   Font note: the reference uses self-hosted commercial fonts (PP Rader,
+   PP Formula, PP Supply Mono) with no CDN license. Substituted with the
+   closest free equivalents in the same three roles (display / body / mono)
+   — swap the @font-face block below for the real files if licensed.
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:ital,wght@0,600;0,700;0,800;1,700;1,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+body.lp-neo {
+    --bg:      #F7FCFA;
+    --bg2:     #E6FCF2;
+    --fg:      #0B3D36;
+
+    --accent1: #128C7E;
+    --accent2: #25D366;
+    --accent3: #7DF0BC;
+    --accent4: #0D6B5F;
+
+    --glass:        rgba(255, 255, 255, 0.15);
+    --glass-border:  rgba(30, 27, 75, 0.15);
+
+    /* font roles: display (rader) / body (formula-narrow) / mono (supply-mono) */
+    --font-display: 'Sora', 'Inter', sans-serif;
+    --font-body:    'Inter', sans-serif;
+    --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+    background: var(--bg) !important;
+    color: var(--fg);
+    font-family: var(--font-body);
+}
+
+/* ── Fluid type scale (clamp-based, matches the reference exactly) ─────── */
+body.lp-neo main#main-content h1,
+body.lp-neo .hero h1,
+body.lp-neo .index-hero h1 { font-size: clamp(2.9rem, 10.5vw, 9.5rem); line-height: 0.92; }
+
+/* Hero: single full-width column like the 7digit reference — the headline
+   dominates on its own (no squeezed side column stealing its width); the
+   product mockup drops below it instead, smaller and left-aligned, so the
+   demo panel is still present without competing with the headline. */
+body.lp-neo .index-hero .hero-grid { grid-template-columns: 1fr !important; }
+
+/* Stacked hero headline (7digit pattern): huge static "Waamini" wordmark,
+   a much smaller looping typewriter line directly under it cycling through
+   the product names — not the same fluid scale as the reference (which
+   sizes both lines together), by explicit request: brand goes tall, the
+   typed line stays minimum/small so it doesn't compete with it. */
+body.lp-neo .index-hero .hero-header-wrapper { margin-bottom: 20px; }
+body.lp-neo .index-hero .hero-header h1 {
+    font-family: var(--font-display) !important;
+    font-weight: 800 !important;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+    margin: 0;
+}
+body.lp-neo .index-hero .hero-header-1 h1 {
+    font-size: clamp(3.5rem, 14vw, 10.5rem) !important;
+    line-height: 0.88 !important;
+    color: var(--fg) !important;
+    -webkit-text-fill-color: var(--fg) !important;
+}
+body.lp-neo .index-hero .hero-header-2 { margin-top: 2px; }
+body.lp-neo .index-hero .hero-header-2 h1#hero-typed {
+    font-size: clamp(1.15rem, 3vw, 2.1rem) !important;
+    line-height: 1.15 !important;
+    color: var(--accent1) !important;
+    -webkit-text-fill-color: var(--accent1) !important;
+    display: inline-block;
+    min-height: 1.15em;
+    white-space: nowrap;
+}
+body.lp-neo .index-hero #hero-typed::after {
+    content: "|";
+    display: inline-block;
+    margin-left: .06em;
+    color: var(--accent1);
+    animation: waTypedBlink .7s step-end infinite;
+}
+@keyframes waTypedBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@media (max-width: 768px) {
+    body.lp-neo .index-hero .hero-header-2 h1#hero-typed { white-space: normal; }
+}
+body.lp-neo .index-hero .hero-visual-row {
+    display: flex;
+    align-items: stretch;
+    gap: 32px;
+    margin: 56px 0 0;
+}
+body.lp-neo .index-hero .hero-visual-wrap { max-width: 560px; flex: 1 1 560px; }
+body.lp-neo .index-hero .hero-side-highlights {
+    flex: 1 1 360px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+}
+body.lp-neo .index-hero .hero-highlight-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px;
+    background: rgba(255,255,255,.55);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(16px);
+    border-radius: 16px;
+}
+body.lp-neo .index-hero .hero-highlight-card .hhl-icon {
+    flex-shrink: 0;
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: var(--accent1);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+}
+body.lp-neo .index-hero .hero-highlight-card strong {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--fg);
+    margin-bottom: 4px;
+}
+body.lp-neo .index-hero .hero-highlight-card p {
+    font-size: .85rem;
+    line-height: 1.5;
+    color: var(--fg);
+    opacity: .68;
+    margin: 0;
+}
+@media (max-width: 1000px) {
+    body.lp-neo .index-hero .hero-visual-row { flex-direction: column; }
+    body.lp-neo .index-hero .hero-visual-wrap { max-width: 100%; }
+}
+body.lp-neo main#main-content h2,
+body.lp-neo .section-title { font-size: clamp(1.9rem, 4.4vw, 3.6rem); line-height: 1.05; }
+body.lp-neo main#main-content h3,
+body.lp-neo .spanel-title { font-size: clamp(1.3rem, 2.4vw, 1.9rem); line-height: 1.15; }
+body.lp-neo .section-subtitle,
+body.lp-neo .hero-desc,
+body.lp-neo main#main-content p { font-size: clamp(0.98rem, 1.1vw, 1.08rem); }
+
+/* Mono uppercase label — the site's ".mn" convention, reused everywhere
+   a small tag/eyebrow/metadata string appears. */
+.lp-neo .mn,
+body.lp-neo .hero-badge,
+body.lp-neo .hero-announce,
+body.lp-neo .hero-eyebrow,
+body.lp-neo .ai-sc-tag,
+body.lp-neo .sync-left .tag,
+body.lp-neo .vs-brand-tag,
+body.lp-neo .spanel-tag,
+body.lp-neo .cp-live,
+body.lp-neo .cpm-tag,
+body.lp-neo .acp-score-badge,
+body.lp-neo .ai-sc-badge,
+body.lp-neo .showcase-sub,
+body.lp-neo .itab-btn,
+body.lp-neo .stab,
+body.lp-neo .trust-stat-label,
+body.lp-neo .verified-badge,
+body.lp-neo .popular-badge {
+    font-family: var(--font-mono) !important;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+body.lp-neo main#main-content { position: relative; z-index: 1; }
+
+/* ── Custom cursor — simple GSAP tween-follow, dot instant + ring trails
+   (reference §6.8 option B; grown on hover purely via CSS, no JS class) ── */
+@media (hover:hover) and (pointer:fine) { body.lp-neo { cursor: none; } }
+.lp-cursor, .lp-cursor-dot { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 99999; margin: 0; will-change: transform; }
+.lp-cursor { width: 34px; height: 34px; margin: -17px 0 0 -17px; border: 1.5px solid var(--fg); border-radius: 50%; transition: width .25s, height .25s, margin .25s, background .25s; mix-blend-mode: multiply; }
+.lp-cursor-dot { width: 6px; height: 6px; margin: -3px 0 0 -3px; background: var(--accent1); border-radius: 50%; }
+body.lp-neo:has(a:hover, button:hover, .feat-card-modern:hover, .price-card:hover) .lp-cursor { width: 56px; height: 56px; margin: -28px 0 0 -28px; background: var(--glass); }
+@media (pointer: coarse) { .lp-cursor, .lp-cursor-dot { display: none !important; } }
+/* The nav overlay has its own hover-wipe language on every row/button —
+   the small default ring just reads as a stray circle glitch sitting on
+   top of the toggle/rows instead of a deliberate cursor state, so it's
+   hidden entirely while the menu is open rather than tuned to fit. */
+body.lp-neo:has(.wa-nav-overlay.wa-menu-is-open) .lp-cursor,
+body.lp-neo:has(.wa-nav-overlay.wa-menu-is-open) .lp-cursor-dot { display: none !important; }
+
+/* =========================================================================
+   TYPOGRAPHY
+   ========================================================================= */
+body.lp-neo main#main-content h1,
+body.lp-neo main#main-content h2,
+body.lp-neo .section-title,
+body.lp-neo .hero h1,
+body.lp-neo .index-hero h1,
+body.lp-neo .sync-left h2,
+body.lp-neo .auto-showcase-title,
+body.lp-neo .spanel-title,
+body.lp-neo .final-cta-inner h2 {
+    font-family: var(--font-display) !important;
+    font-weight: 800 !important;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: -0.025em;
+    color: var(--fg) !important;
+}
+
+body.lp-neo .gradient-text-wa,
+body.lp-neo .hero h1 .highlight,
+body.lp-neo .index-hero h1 .highlight,
+body.lp-neo .sync-left h2 em,
+body.lp-neo .highlight-green,
+body.lp-neo .vs-brand-name {
+    font-style: italic;
+    color: var(--accent1) !important;
+    -webkit-text-fill-color: var(--accent1) !important;
+}
+body.lp-neo .hero h1 .highlight::after,
+body.lp-neo .index-hero h1 .highlight::after { display: none; }
+
+body.lp-neo .section-subtitle,
+body.lp-neo .hero-desc,
+body.lp-neo main#main-content p {
+    font-family: var(--font-body);
+    font-weight: 500;
+    color: var(--fg);
+    opacity: .68;
+}
+
+body.lp-neo .hero-badge,
+body.lp-neo .ai-sc-tag,
+body.lp-neo .sync-left .tag,
+body.lp-neo .spanel-tag {
+    background: transparent !important;
+    color: var(--accent4) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 100px !important;
+    padding: 6px 14px !important;
+}
+body.lp-neo .hero-badge .pulse-dot,
+body.lp-neo .pulse-dot { background: var(--accent1) !important; }
+
+/* Masked headline reveal shell — CSS sets the hidden state, JS (GSAP)
+   only ever animates *to* visible (see the reveal script at the bottom
+   of index.php). No inline style="opacity:0" needed on load. */
+body.lp-neo .title-wrap { overflow: hidden; display: block; }
+body.lp-neo .title-wrap > * { transform: translateY(105%); will-change: transform; }
+
+/* =========================================================================
+   NAV — slim bar + full-screen numbered overlay menu (7digit nav pattern)
+   Pure CSS transitions + vanilla JS (lp-theme.js), no GSAP/deps. Scoped to
+   body.lp-neo only — auth pages and landing-admin keep the old simple nav.
+   ========================================================================= */
+body.lp-neo .main-nav {
+    background: rgba(30,27,75,.7) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border-bottom: 1px solid rgba(255,255,255,.08) !important;
+}
+body.lp-neo .logo-word,
+body.lp-neo .logo-wa { color: #F2FDF8 !important; -webkit-text-fill-color: #F2FDF8 !important; }
+body.lp-neo .logo-word { font-family: var(--font-display) !important; font-style: italic; text-transform: uppercase; }
+body.lp-neo .logo-mini { color: var(--accent2) !important; -webkit-text-fill-color: var(--accent2) !important; }
+body.lp-neo .logo .logo-icon { background: var(--accent1) !important; border-radius: 8px !important; box-shadow: none !important; }
+
+/* glassmorphic toggle pill — light-on-dark since .main-nav itself is a dark
+   glass bar here (the reference's var(--fg)/var(--bg) swap assumed a light
+   bar, so those tokens are inverted to fit our actual dark nav surface) */
+body.lp-neo .wa-menu-toggle {
+    display: flex; align-items: center; gap: .7em;
+    padding: .55em 1em; cursor: pointer; user-select: none;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 100px;
+    color: #F2FDF8;
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    transition: background .3s ease, color .3s ease, border-color .3s ease;
+}
+body.lp-neo .wa-menu-toggle:hover { border-color: rgba(255,255,255,.32); }
+body.lp-neo .wa-menu-toggle.wa-menu-open {
+    background: var(--accent1);
+    border-color: var(--accent1);
+    color: #fff;
+}
+body.lp-neo .wa-menu-toggle-wrapper {
+    position: relative; display: flex; flex-direction: column; align-items: flex-start;
+    height: 1em; overflow: hidden;
+}
+body.lp-neo .wa-open-label,
+body.lp-neo .wa-close-label { transition: transform .3s ease; line-height: 1; }
+body.lp-neo .wa-menu-toggle.wa-menu-open .wa-open-label,
+body.lp-neo .wa-menu-toggle.wa-menu-open .wa-close-label { transform: translateY(-1.4em); }
+body.lp-neo .wa-menu-icon {
+    position: relative; width: 16px; height: 11px; flex-shrink: 0;
+}
+body.lp-neo .wa-menu-icon span {
+    position: absolute; left: 0; width: 100%; height: 2px; border-radius: 2px;
+    background: currentColor;
+    transition: transform .3s cubic-bezier(.77,0,.18,1), opacity .2s ease, top .3s cubic-bezier(.77,0,.18,1);
+}
+body.lp-neo .wa-menu-icon span:nth-child(1) { top: 0; }
+body.lp-neo .wa-menu-icon span:nth-child(2) { top: 50%; margin-top: -1px; }
+body.lp-neo .wa-menu-icon span:nth-child(3) { top: 100%; margin-top: -2px; }
+body.lp-neo .wa-menu-toggle.wa-menu-open .wa-menu-icon span:nth-child(1) { top: 50%; margin-top: -1px; transform: rotate(45deg); }
+body.lp-neo .wa-menu-toggle.wa-menu-open .wa-menu-icon span:nth-child(2) { opacity: 0; }
+body.lp-neo .wa-menu-toggle.wa-menu-open .wa-menu-icon span:nth-child(3) { top: 50%; margin-top: -1px; transform: rotate(-45deg); }
+
+/* full-screen overlay shell — near-black per the reference (7digit's actual
+   overlay is rgba(10,10,15,.95), not a brand-color gradient), so the violet
+   hover-fill on each row reads as a real accent pop against it. */
+body.lp-neo .wa-nav-overlay {
+    position: fixed; inset: 0; width: 100%; height: 100svh;
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 999;
+    display: flex; flex-direction: column;
+    transition: opacity .35s ease;
+}
+body.lp-neo .wa-nav-overlay.wa-menu-is-open { opacity: 1; pointer-events: all; }
+
+/* Nav bar (logo + toggle) must stay visible ON TOP of the overlay once
+   open, like the reference's "7DIGIT" badge + "Close" pill — otherwise it
+   gets buried under the overlay's z-index:999. */
+body.lp-neo .main-nav { position: sticky; z-index: 1001; }
+/* ...and its own glass background must disappear while open, or its bar
+   shape shows as a visible seam over the "01 HOME" row behind it — the
+   reference has no bar at all here, just the logo/toggle floating loose
+   on the overlay. */
+body.lp-neo:has(.wa-nav-overlay.wa-menu-is-open) .main-nav {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-bottom-color: transparent !important;
+}
+
+body.lp-neo .wa-nav-items {
+    width: 100%;
+    flex: 1 1 auto;
+    display: flex; flex-direction: column;
+    /* clears the floating logo/toggle bar (~62px tall) sitting on top of
+       the overlay — without this the first row renders directly behind
+       it and the two overlap illegibly */
+    padding: 96px 2em 0;
+    max-width: 1200px; margin: 0 auto;
+}
+body.lp-neo .wa-nav-items .wa-nav-item {
+    flex: 1; position: relative; overflow: hidden; min-height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1em;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    text-decoration: none; color: inherit; cursor: pointer;
+    transform: translateY(60%);
+    opacity: 0;
+    will-change: transform, opacity;
+    transition: opacity .4s ease, transform .55s cubic-bezier(.16,1,.3,1);
+}
+body.lp-neo .wa-nav-overlay.wa-menu-is-open .wa-nav-items .wa-nav-item:nth-child(1) { transition-delay: .08s; }
+body.lp-neo .wa-nav-overlay.wa-menu-is-open .wa-nav-items .wa-nav-item:nth-child(2) { transition-delay: .14s; }
+body.lp-neo .wa-nav-overlay.wa-menu-is-open .wa-nav-items .wa-nav-item:nth-child(3) { transition-delay: .20s; }
+body.lp-neo .wa-nav-overlay.wa-menu-is-open .wa-nav-items .wa-nav-item:nth-child(4) { transition-delay: .26s; }
+body.lp-neo .wa-nav-overlay.wa-menu-is-open .wa-nav-items .wa-nav-item:nth-child(5) { transition-delay: .32s; }
+body.lp-neo .wa-nav-overlay.wa-menu-is-open .wa-nav-items .wa-nav-item:nth-child(6) { transition-delay: .38s; }
+body.lp-neo .wa-nav-overlay.wa-menu-is-open .wa-nav-items .wa-nav-item {
+    opacity: 1; transform: translateY(0);
+}
+body.lp-neo .wa-nav-items .wa-nav-item::before {
+    content: ""; position: absolute; inset: 0;
+    background: var(--accent1);
+    transform: scaleY(0); transform-origin: bottom;
+    transition: transform .45s cubic-bezier(.77,0,.18,1);
+    z-index: 0;
+}
+body.lp-neo .wa-nav-items .wa-nav-item:hover::before,
+body.lp-neo .wa-nav-items .wa-nav-item:focus-visible::before { transform: scaleY(1); }
+body.lp-neo .wa-si-left,
+body.lp-neo .wa-si-right { position: relative; z-index: 1; display: flex; align-items: center; }
+body.lp-neo .wa-si-left { gap: 1.2em; }
+body.lp-neo .wa-si-right { gap: .8em; }
+body.lp-neo .wa-si-num {
+    font-family: var(--font-mono); font-size: .72rem; min-width: 2em;
+    color: rgba(255,255,255,.4);
+    transition: color .4s, opacity .4s;
+}
+body.lp-neo .wa-si-title {
+    font-family: var(--font-display); font-style: italic; font-weight: 800;
+    font-size: clamp(1.6rem, 4.4vw, 3.2rem); line-height: 1; text-transform: uppercase;
+    color: rgba(255,255,255,.92);
+    transition: color .4s;
+}
+body.lp-neo .wa-si-tag {
+    font-family: var(--font-mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em;
+    color: rgba(255,255,255,.4);
+    transition: color .4s, opacity .4s;
+}
+body.lp-neo .wa-si-arrow {
+    font-size: 1.25rem; color: rgba(255,255,255,.5);
+    transition: transform .45s cubic-bezier(.77,0,.18,1), color .4s;
+}
+body.lp-neo .wa-nav-items .wa-nav-item:hover .wa-si-num,
+body.lp-neo .wa-nav-items .wa-nav-item:hover .wa-si-title,
+body.lp-neo .wa-nav-items .wa-nav-item:hover .wa-si-tag,
+body.lp-neo .wa-nav-items .wa-nav-item:hover .wa-si-arrow { color: #fff; }
+body.lp-neo .wa-nav-items .wa-nav-item:hover .wa-si-arrow { transform: rotate(45deg); }
+body.lp-neo .wa-nav-items .wa-nav-item.wa-active { background: rgba(255,255,255,.05); }
+body.lp-neo .wa-nav-items .wa-nav-item.wa-active .wa-si-num,
+body.lp-neo .wa-nav-items .wa-nav-item.wa-active .wa-si-tag { color: rgba(255,255,255,.7); }
+body.lp-neo .wa-nav-items .wa-nav-item.wa-active .wa-si-title { color: #fff; }
+
+body.lp-neo .wa-nav-footer {
+    flex: 0 0 auto;
+    width: 100%; max-width: 1200px; margin: 0 auto;
+    padding: 1.6em 2em 2.2em;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 1.5em;
+}
+body.lp-neo .wa-nav-footer-item { display: flex; flex-direction: column; gap: .4em; }
+body.lp-neo .wa-nav-footer-item-header,
+body.lp-neo .wa-nav-footer-item-copy {
+    transform: translateY(60%); opacity: 0;
+    transition: opacity .4s ease, transform .5s cubic-bezier(.16,1,.3,1);
+}
+body.lp-neo .wa-nav-overlay.wa-menu-is-open .wa-nav-footer-item-header { transition-delay: .42s; }
+body.lp-neo .wa-nav-overlay.wa-menu-is-open .wa-nav-footer-item-copy { transition-delay: .48s; }
+body.lp-neo .wa-nav-overlay.wa-menu-is-open .wa-nav-footer-item-header,
+body.lp-neo .wa-nav-overlay.wa-menu-is-open .wa-nav-footer-item-copy { opacity: 1; transform: translateY(0); }
+body.lp-neo .wa-nav-footer-item-header a {
+    font-family: var(--font-mono); font-size: .8rem; text-transform: uppercase; letter-spacing: .06em;
+    color: rgba(255,255,255,.55); text-decoration: none;
+}
+body.lp-neo .wa-nav-footer-item-copy,
+body.lp-neo .wa-nav-footer-item-copy a {
+    font-size: .9rem; color: rgba(255,255,255,.85); text-decoration: none;
+}
+body.lp-neo .wa-nav-cta {
+    display: inline-flex; align-items: center; gap: .4em;
+    background: #fff; color: var(--fg) !important;
+    padding: .6em 1.1em; border-radius: 100px;
+    font-family: var(--font-mono); font-weight: 700; font-size: .78rem;
+    text-transform: uppercase; letter-spacing: .04em;
+    transition: background .25s, transform .25s;
+}
+body.lp-neo .wa-nav-cta:hover { background: var(--accent2); transform: translateY(-2px); }
+
+@media (max-width: 1000px) {
+    body.lp-neo .wa-nav-footer-spacer { display: none; }
+}
+@media (max-width: 768px) {
+    body.lp-neo .wa-nav-items { padding: 0 1.25em; }
+    body.lp-neo .wa-nav-footer { padding: 1.4em 1.25em 1.8em; }
+    body.lp-neo .wa-si-tag { display: none; }
+}
+@media (max-width: 480px) {
+    body.lp-neo .wa-nav-items .wa-nav-item { min-height: 56px; }
+    body.lp-neo .wa-si-arrow { font-size: 1rem; }
+    body.lp-neo .wa-nav-footer { flex-direction: column; align-items: flex-start; gap: 1.1em; }
+}
+
+/* =========================================================================
+   BUTTONS — subtle border + fill-wipe hover, magnetic-hover ready
+   (JS adds the mouse-follow translate via gsap.to on mousemove; see §6.6)
+   ========================================================================= */
+body.lp-neo .btn-primary-glow,
+body.lp-neo .btn-buy,
+body.lp-neo .it-explore-btn,
+body.lp-neo .ai-sc-cta,
+body.lp-neo .spanel-cta a {
+    font-family: var(--font-mono) !important;
+    font-size: 0.8rem;
+    background: var(--accent1) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 100px !important;
+    box-shadow: none !important;
+    transition: background .25s ease, transform .25s ease !important;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+body.lp-neo .btn-primary-glow:hover,
+body.lp-neo .btn-buy:hover,
+body.lp-neo .it-explore-btn:hover,
+body.lp-neo .ai-sc-cta:hover,
+body.lp-neo .spanel-cta a:hover {
+    background: var(--accent4) !important;
+    box-shadow: none !important;
+}
+
+body.lp-neo .btn-secondary-glass {
+    background: var(--glass) !important;
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--glass-border) !important;
+    color: #fff !important;
+    border-radius: 100px !important;
+}
+body.lp-neo .btn-buy-outline {
+    background: transparent !important;
+    color: var(--accent1) !important;
+    border: 1px solid var(--accent1) !important;
+    border-radius: 100px !important;
+    box-shadow: none !important;
+}
+body.lp-neo .btn-buy-outline:hover { background: var(--accent1) !important; color: #fff !important; }
+
+/* =========================================================================
+   SECTION SHELLS — alternating surfaces, no ambient glow decoration
+   ========================================================================= */
+body.lp-neo .index-hero,
+body.lp-neo .features-section,
+body.lp-neo .sync-section,
+body.lp-neo .industry-tabs-section,
+body.lp-neo .showcase-section,
+body.lp-neo .pricing-section,
+body.lp-neo .faq-section,
+body.lp-neo section.section,
+body.lp-neo section[style*="background:var(--white)"] {
+    background: var(--bg) !important;
+    position: relative;
+}
+body.lp-neo .trust-strip,
+body.lp-neo .problem-solution,
+body.lp-neo .ai-showcase,
+body.lp-neo .why-premium-section,
+body.lp-neo .auto-showcase,
+body.lp-neo .testimonials-section,
+body.lp-neo .enterprise {
+    background: var(--bg2) !important;
+    position: relative;
+}
+
+/* =========================================================================
+   HERO
+   ========================================================================= */
+body.lp-neo .hero-mockup {
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 30px 80px -20px rgba(30,27,75,.18) !important;
+    background: rgba(255,255,255,.7) !important;
+    backdrop-filter: blur(14px);
+}
+body.lp-neo .bullet-check { background: var(--accent1) !important; }
+body.lp-neo .hero-bullet { font-family: var(--font-body); font-weight: 600; font-size: 13.5px !important; }
+body.lp-neo .cta-meta-inline svg { fill: var(--accent1) !important; }
+
+/* =========================================================================
+   TRUST STRIP
+   ========================================================================= */
+body.lp-neo .trust-stat-num { font-family: var(--font-mono) !important; color: var(--accent1) !important; -webkit-text-fill-color: var(--accent1) !important; font-weight: 700; }
+body.lp-neo .trust-divider { background: var(--glass-border) !important; }
+
+/* =========================================================================
+   GLASS CARDS (shared treatment — subtle, no offset shadow)
+   ========================================================================= */
+body.lp-neo .feat-card-modern,
+body.lp-neo .ps-col,
+body.lp-neo .price-card,
+body.lp-neo .cust-card,
+body.lp-neo .faq-item,
+body.lp-neo .cert-card,
+body.lp-neo .sync-kpi,
+body.lp-neo .ai-showcase-card,
+body.lp-neo .auto-visual-card,
+body.lp-neo .money-back,
+body.lp-neo .wa-phone-frame {
+    background: rgba(255,255,255,.55) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 1px 2px rgba(30,27,75,.04) !important;
+    transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s ease !important;
+}
+body.lp-neo .feat-card-modern:hover,
+body.lp-neo .price-card:hover,
+body.lp-neo .cust-card:hover,
+body.lp-neo .cert-card:hover,
+body.lp-neo .sync-kpi:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 20px 40px -16px rgba(30,27,75,.16) !important;
+    border-color: var(--accent2) !important;
+}
+body.lp-neo .icon-wrapper { background: var(--bg2) !important; border-radius: 10px !important; }
+body.lp-neo .icon-wrapper svg { stroke: var(--accent1) !important; }
+body.lp-neo .feat-card-modern h4 { font-family: var(--font-display); text-transform: none; font-style: normal; font-weight: 700; }
+
+/* Problem / Solution */
+body.lp-neo .ps-solution { border-color: var(--accent2) !important; }
+
+/* How it works */
+body.lp-neo .hiw-item { background: rgba(255,255,255,.5); border: 1px solid var(--glass-border); border-radius: 14px; padding: 14px 18px; }
+body.lp-neo .hiw-icon { background: var(--bg2) !important; border-radius: 10px !important; }
+body.lp-neo .hiw-icon svg { stroke: var(--accent1) !important; }
+body.lp-neo .hiw-sep { background: var(--glass-border) !important; }
+
+/* Industry tabs */
+body.lp-neo .itab-btn {
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 100px !important;
+    background: transparent !important;
+    color: var(--fg) !important;
+}
+body.lp-neo .itab-btn.active { background: var(--accent1) !important; color: #fff !important; border-color: var(--accent1) !important; }
+body.lp-neo .it-phone { border-color: var(--fg) !important; box-shadow: 0 0 0 2px var(--bg), 0 30px 70px -20px rgba(30,27,75,.25) !important; }
+
+/* Why Premium comparison */
+body.lp-neo .vs-waamini { background: linear-gradient(160deg, rgba(37,211,102,.08), rgba(37,211,102,.05)) !important; border-color: var(--accent1) !important; }
+
+/* Showcase tabs (campaigns / ai / gst / crm / festival / payments) */
+body.lp-neo .stab {
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 100px !important;
+    background: transparent !important;
+}
+body.lp-neo .stab.active { background: var(--accent1) !important; color: #fff !important; border-color: var(--accent1) !important; }
+body.lp-neo .campaign-preview,
+body.lp-neo .ai-chat-preview,
+body.lp-neo .invoice-showcase {
+    background: rgba(255,255,255,.55) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 18px !important;
+    backdrop-filter: blur(16px);
+}
+body.lp-neo .cps-num { font-family: var(--font-mono) !important; color: var(--accent1) !important; }
+body.lp-neo .sp-dot { background: var(--accent1) !important; }
+
+/* Pricing */
+body.lp-neo .price-card.popular {
+    background: linear-gradient(160deg, var(--accent4), var(--fg)) !important;
+    border-color: var(--fg) !important;
+    color: #F2FDF8 !important;
+}
+body.lp-neo .price-card.popular .plan-name,
+body.lp-neo .price-card.popular .price-amount,
+body.lp-neo .price-card.popular .price-meta,
+body.lp-neo .price-card.popular li { color: #F2FDF8 !important; }
+body.lp-neo .popular-badge { background: var(--accent1) !important; border: none; border-radius: 100px; }
+body.lp-neo .price-amount { font-family: var(--font-mono) !important; color: var(--accent1); }
+body.lp-neo .guarantee-seal { background: var(--accent1) !important; }
+
+/* Testimonials */
+body.lp-neo .verified-badge { background: var(--bg2) !important; border: 1px solid var(--glass-border) !important; color: var(--accent4) !important; border-radius: 100px; }
+
+/* FAQ — purple 3D-pop cards: gradient surface, real elevation shadow,
+   white text, generous/aligned padding, guaranteed gap between cards
+   (previously relied on adjacent borders touching with no real spacing). */
+body.lp-neo .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+body.lp-neo .faq-item {
+    background: linear-gradient(155deg, var(--accent1), var(--accent4)) !important;
+    border: none !important;
+    border-radius: 16px !important;
+    padding: 22px 26px !important;
+    box-shadow: 0 10px 24px -8px rgba(76,29,149,0.45), 0 2px 6px rgba(76,29,149,0.25) !important;
+    transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease !important;
+}
+body.lp-neo .faq-item:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 16px 32px -8px rgba(76,29,149,0.55), 0 4px 10px rgba(76,29,149,0.3) !important;
+}
+body.lp-neo .faq-item.active {
+    border-color: transparent !important;
+    box-shadow: 0 18px 36px -8px rgba(76,29,149,0.6), 0 4px 10px rgba(76,29,149,0.35) !important;
+}
+body.lp-neo .faq-q {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-style: normal;
+    text-transform: none;
+    align-items: center;
+}
+body.lp-neo .faq-q strong { color: #fff !important; }
+body.lp-neo .faq-toggle {
+    background: rgba(255,255,255,0.16) !important;
+    width: 32px !important;
+    height: 32px !important;
+}
+body.lp-neo .faq-toggle svg { fill: #fff !important; }
+body.lp-neo .faq-item.active .faq-toggle { background: #fff !important; }
+body.lp-neo .faq-item.active .faq-toggle svg { fill: var(--accent1) !important; }
+body.lp-neo .faq-a {
+    color: rgba(255,255,255,0.82) !important;
+    padding-right: 44px !important;
+    padding-top: 2px;
+}
+
+/* support.php's FAQ uses its own markup (.faq-question/.faq-answer/
+   .faq-arrow instead of .faq-q/.faq-a/.faq-toggle) but the same .faq-item
+   outer class, so it inherits the purple gradient card above — needs its
+   own matching text-color fix or it's dark-on-purple all over again. */
+body.lp-neo .faq-question { color: #fff !important; }
+body.lp-neo .faq-answer p { color: rgba(255,255,255,0.82) !important; }
+body.lp-neo .faq-arrow { background: rgba(255,255,255,0.16) !important; color: #fff !important; }
+body.lp-neo .faq-item.open .faq-arrow { background: #fff !important; color: var(--accent1) !important; }
+body.lp-neo .faq-item:hover { background: linear-gradient(155deg, var(--accent1), var(--accent4)) !important; border-color: transparent !important; }
+
+/* Final CTA — light surface, dark text (was dark-on-dark: the paragraph's
+   color was getting silently overridden by the main#main-content p rule
+   above, since that one carries !important and this one didn't — nearly
+   invisible text on the old dark-violet background). */
+body.lp-neo .final-cta {
+    background: #ffffff !important;
+    position: relative;
+}
+body.lp-neo .final-cta-inner h2 { color: var(--fg) !important; -webkit-text-fill-color: var(--fg) !important; }
+body.lp-neo .final-cta-inner p,
+body.lp-neo main#main-content .final-cta-inner p { color: var(--fg) !important; opacity: .68; }
+body.lp-neo .final-cta .cta-meta-inline,
+body.lp-neo main#main-content .final-cta .cta-meta-inline { color: var(--fg) !important; opacity: .68; }
+body.lp-neo .final-cta .btn-secondary-glass {
+    background: transparent !important;
+    border: 1.5px solid var(--glass-border) !important;
+    color: var(--fg) !important;
+}
+body.lp-neo .final-cta .btn-secondary-glass:hover { background: var(--bg2) !important; }
+
+body.lp-neo .wa-float-btn { box-shadow: 0 8px 24px -6px rgba(0,0,0,.35) !important; }
+
+body.lp-neo .sync-kpi strong { font-family: var(--font-mono) !important; color: var(--accent1) !important; }
+body.lp-neo .sync-feat-check { background: var(--accent1) !important; border-radius: 6px !important; }
+
+/* =========================================================================
+   REVEAL DEFAULTS — CSS sets the hidden state; JS only ever tweens *to*
+   visible via ScrollTrigger (see index.php). Keeps zero-JS / slow-network
+   loads from permanently hiding content: JS failing to run just leaves the
+   default `.is-visible`-free state, and these selectors only apply the
+   hidden transform when JS has already added `.lp-anim-ready` to <body> —
+   guaranteeing content is never invisible without a script to reveal it.
+   ========================================================================= */
+body.lp-neo.lp-anim-ready .feat-card-modern,
+body.lp-neo.lp-anim-ready .ps-col,
+body.lp-neo.lp-anim-ready .price-card,
+body.lp-neo.lp-anim-ready .cust-card,
+body.lp-neo.lp-anim-ready .faq-item,
+body.lp-neo.lp-anim-ready .cert-card,
+body.lp-neo.lp-anim-ready .sync-kpi,
+body.lp-neo.lp-anim-ready .hiw-item,
+body.lp-neo.lp-anim-ready .trust-stat,
+body.lp-neo.lp-anim-ready .ai-showcase-card,
+body.lp-neo.lp-anim-ready .auto-visual-card,
+body.lp-neo.lp-anim-ready .campaign-preview,
+body.lp-neo.lp-anim-ready .ai-chat-preview,
+body.lp-neo.lp-anim-ready .invoice-showcase,
+body.lp-neo.lp-anim-ready .wa-phone-frame {
+    opacity: 0;
+    transform: translateY(40px);
+}
+body.lp-neo.lp-anim-ready .section-label,
+body.lp-neo.lp-anim-ready .hero-badge {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+/* =========================================================================
+   RESPONSIVE — same 3-tier scale as the reference (1000 / 768 / 480)
+   ========================================================================= */
+@media (max-width: 1000px) {
+    body.lp-neo .title-wrap > * { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    body.lp-neo.lp-anim-ready * { opacity: 1 !important; transform: none !important; }
+}
+
+/* =========================================================================
+   SITE-WIDE PORT — same body.lp-neo theme applied to the rest of the
+   public marketing pages (features, pricing, support, the 4 industry
+   pages, blogs, legal). Each page ships its own dedicated stylesheet with
+   its own class vocabulary (verified: zero overlap with index.php's
+   classes beyond .container/.section-title/.btn-primary-glow), so this
+   section targets each page's actual selectors directly rather than
+   relying on the generic rules above to "just work" everywhere.
+   ========================================================================= */
+
+/* ── features.php ── */
+body.lp-neo .features-hero,
+body.lp-neo .showcase-section {
+    background: var(--bg) !important;
+}
+body.lp-neo .features-hero h1,
+body.lp-neo .features-hero .section-title {
+    font-family: var(--font-display) !important;
+    font-weight: 800 !important;
+    font-style: italic;
+    text-transform: uppercase;
+    color: var(--fg) !important;
+}
+body.lp-neo .f-list-card,
+body.lp-neo .bb-step,
+body.lp-neo .api-table-wrapper {
+    background: rgba(255,255,255,.55) !important;
+    border: 1px solid var(--glass-border) !important;
+    backdrop-filter: blur(16px);
+    border-radius: 18px !important;
+    box-shadow: none !important;
+}
+body.lp-neo .bb-chip { background: var(--bg2) !important; color: var(--accent4) !important; border: 1px solid var(--glass-border) !important; border-radius: 100px !important; }
+body.lp-neo .btn-cta {
+    font-family: var(--font-mono) !important;
+    background: var(--accent1) !important;
+    border-radius: 100px !important;
+    box-shadow: none !important;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+body.lp-neo .btn-cta:hover { background: var(--accent4) !important; }
+
+/* ── pricing.php ── */
+body.lp-neo .pricing-hero {
+    background: linear-gradient(160deg, var(--fg), var(--accent4)) !important;
+}
+body.lp-neo .pricing-hero .badge-label {
+    font-family: var(--font-mono) !important;
+    background: rgba(255,255,255,.1) !important;
+    border: 1px solid rgba(255,255,255,.2) !important;
+    color: #fff !important;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+body.lp-neo .pricing-hero h1 {
+    font-family: var(--font-display) !important;
+    font-weight: 800 !important;
+    font-style: italic;
+    text-transform: uppercase;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+}
+body.lp-neo .pricing-hero p { color: rgba(255,255,255,.75) !important; }
+body.lp-neo .pricing-card {
+    background: rgba(255,255,255,.6) !important;
+    border: 1px solid var(--glass-border) !important;
+    backdrop-filter: blur(16px);
+    border-radius: 18px !important;
+    box-shadow: none !important;
+    padding: 34px 30px 36px !important;
+    transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s ease !important;
+}
+body.lp-neo .pricing-card:hover { transform: translateY(-4px) !important; box-shadow: 0 20px 40px -16px rgba(30,27,75,.16) !important; }
+/* Growth/featured plan — the actual class on both the hardcoded and
+   admin-driven "popular" card is .featured (the earlier .recommended
+   selector here never matched anything), lifted + glowing so it visibly
+   reads as the recommended choice instead of blending into the row. */
+body.lp-neo .pricing-card.featured {
+    border: 2px solid var(--accent1) !important;
+    background: rgba(255,255,255,.78) !important;
+    box-shadow: 0 24px 56px -20px rgba(37,211,102,.45) !important;
+    transform: translateY(-10px) scale(1.03);
+    z-index: 1;
+}
+body.lp-neo .pricing-card.featured:hover { transform: translateY(-14px) scale(1.03) !important; }
+body.lp-neo .recommended-badge {
+    background: var(--accent1) !important;
+    border-color: var(--accent1) !important;
+    font-family: var(--font-mono);
+    border-radius: 100px;
+    letter-spacing: .06em;
+}
+body.lp-neo .plan-name { font-family: var(--font-display); font-weight: 700; font-style: normal; }
+body.lp-neo .plan-price,
+body.lp-neo .current-price { font-family: var(--font-mono) !important; color: var(--accent1) !important; }
+body.lp-neo .plan-cta {
+    font-family: var(--font-mono) !important;
+    background: var(--accent1) !important;
+    color: #fff !important;
+    border-color: var(--accent1) !important;
+    border-radius: 100px !important;
+    box-shadow: none !important;
+    text-transform: uppercase;
+    padding: 15px 24px !important;
+    margin-top: 8px;
+}
+body.lp-neo .plan-cta:hover { background: var(--accent4) !important; border-color: var(--accent4) !important; }
+body.lp-neo .toggle-switch { background: var(--bg2) !important; }
+/* .faq-item styling lives in the shared FAQ block above — same purple
+   3D-pop cards apply consistently on both index.php and pricing.php. */
+
+/* ── support.php ── */
+body.lp-neo .support-hero { background: linear-gradient(160deg, var(--fg), var(--accent4)) !important; }
+body.lp-neo .support-hero .badge-label {
+    font-family: var(--font-mono) !important;
+    background: rgba(255,255,255,.1) !important;
+    border: 1px solid rgba(255,255,255,.2) !important;
+    color: #fff !important;
+}
+body.lp-neo .support-hero h1 {
+    font-family: var(--font-display) !important;
+    font-weight: 800 !important;
+    font-style: italic;
+    text-transform: uppercase;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+}
+body.lp-neo .support-hero p { color: rgba(255,255,255,.75) !important; }
+body.lp-neo .contact-card {
+    background: rgba(255,255,255,.55) !important;
+    border: 1px solid var(--glass-border) !important;
+    backdrop-filter: blur(16px);
+    border-radius: 18px !important;
+    box-shadow: none !important;
+}
+body.lp-neo .submit-btn {
+    font-family: var(--font-mono) !important;
+    background: var(--accent1) !important;
+    border-radius: 100px !important;
+    text-transform: uppercase;
+}
+body.lp-neo .submit-btn:hover { background: var(--accent4) !important; }
+
+/* ── industry pages: ecommerce / education / healthcare / real-estate ──
+   Shared .ind-* base classes across all four; per-industry accent
+   suffixes (-eco/-ed/-hc/-re) unified to the one brand accent so every
+   page reads as the same system rather than four different hues. */
+body.lp-neo .ind-hero { background: var(--bg) !important; }
+body.lp-neo .ind-h1 {
+    font-family: var(--font-display) !important;
+    font-weight: 800 !important;
+    font-style: italic;
+    text-transform: uppercase;
+    color: var(--fg) !important;
+}
+body.lp-neo .ind-eyebrow,
+body.lp-neo [class^="eyebrow-"],
+body.lp-neo [class*=" eyebrow-"],
+body.lp-neo .ind-section-badge,
+body.lp-neo .ind-announce {
+    font-family: var(--font-mono) !important;
+    background: var(--bg2) !important;
+    color: var(--accent4) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 100px !important;
+    text-transform: uppercase;
+}
+body.lp-neo [class^="hl-"],
+body.lp-neo [class*=" hl-"] { color: var(--accent1) !important; -webkit-text-fill-color: var(--accent1) !important; font-style: italic; }
+body.lp-neo .ind-bullet-check,
+body.lp-neo [class^="bc-"],
+body.lp-neo [class*=" bc-"] { background: var(--accent1) !important; }
+body.lp-neo [class^="btn-"][class$="-eco"],
+body.lp-neo [class^="btn-"][class$="-ed"],
+body.lp-neo [class^="btn-"][class$="-hc"],
+body.lp-neo [class^="btn-"][class$="-re"],
+body.lp-neo .ind-btn-primary {
+    font-family: var(--font-mono) !important;
+    background: var(--accent1) !important;
+    border-radius: 100px !important;
+    box-shadow: none !important;
+    text-transform: uppercase;
+}
+body.lp-neo .ind-btn-ghost { border: 1px solid var(--glass-border) !important; border-radius: 100px !important; background: transparent !important; }
+body.lp-neo .ind-feat-card,
+body.lp-neo .ind-step-card,
+body.lp-neo .ind-mockup {
+    background: rgba(255,255,255,.55) !important;
+    border: 1px solid var(--glass-border) !important;
+    backdrop-filter: blur(16px);
+    border-radius: 18px !important;
+    box-shadow: none !important;
+}
+/* Solid white (not translucent glass) — sits on the dark cta-bg-* gradient
+   below, so its dark text (unmodified from industries.css) stays legible. */
+body.lp-neo .ind-cta-card {
+    background: #ffffff !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 20px 50px -20px rgba(0,0,0,.35) !important;
+}
+body.lp-neo .ind-feat-icon,
+body.lp-neo [class^="fi-"],
+body.lp-neo [class*=" fi-"] { background: var(--bg2) !important; }
+body.lp-neo .ind-feat-icon svg,
+body.lp-neo [class^="fi-"] svg,
+body.lp-neo [class*=" fi-"] svg { stroke: var(--accent1) !important; }
+body.lp-neo .ind-trust-strip { background: var(--bg2) !important; }
+body.lp-neo .ind-trust-num,
+body.lp-neo [class^="tnum-"],
+body.lp-neo [class*=" tnum-"] { font-family: var(--font-mono) !important; color: var(--accent1) !important; }
+body.lp-neo .ind-section-title { font-family: var(--font-display) !important; font-weight: 800 !important; font-style: italic; text-transform: uppercase; }
+body.lp-neo .ind-cta-section,
+body.lp-neo [class^="cta-bg-"],
+body.lp-neo [class*=" cta-bg-"] { background: linear-gradient(160deg, var(--fg), var(--accent4)) !important; }
+
+/* ── blogs.php ── */
+body.lp-neo .blog-hero { background: var(--bg) !important; }
+body.lp-neo .hero-pill {
+    font-family: var(--font-mono) !important;
+    background: var(--bg2) !important;
+    color: var(--accent4) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 100px !important;
+    text-transform: uppercase;
+}
+body.lp-neo .blog-cat-btn { border-radius: 100px !important; border: 1px solid var(--glass-border) !important; font-family: var(--font-mono); text-transform: uppercase; font-size: .72rem; }
+body.lp-neo .blog-cat-btn.active { background: var(--accent1) !important; color: #fff !important; border-color: var(--accent1) !important; }
+body.lp-neo .blog-card {
+    background: rgba(255,255,255,.6) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 18px !important;
+    box-shadow: none !important;
+    transition: transform .3s cubic-bezier(.16,1,.3,1) !important;
+}
+body.lp-neo .blog-card:hover { transform: translateY(-4px) !important; box-shadow: 0 20px 40px -16px rgba(30,27,75,.16) !important; }
+body.lp-neo .bcard-cat { font-family: var(--font-mono); background: var(--bg2) !important; color: var(--accent4) !important; border-radius: 100px; text-transform: uppercase; }
+body.lp-neo .bcard-title { font-family: var(--font-display); font-weight: 700; font-style: normal; }
+body.lp-neo .bcard-read { color: var(--accent1) !important; }
+
+/* ── Legal pages: privacy-policy / terms-of-service / data-deletion ──
+   Deliberately restrained — these are read-heavy compliance documents,
+   not marketing surfaces, so only the hero + tokens carry over. */
+body.lp-neo .legal-hero .legal-badge {
+    font-family: var(--font-mono) !important;
+    background: var(--bg2) !important;
+    color: var(--accent4) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 100px !important;
+    text-transform: uppercase;
+}
+body.lp-neo .legal-hero h1 {
+    font-family: var(--font-display) !important;
+    font-weight: 800 !important;
+    font-style: italic;
+    text-transform: uppercase;
+    color: var(--fg) !important;
+}
+body.lp-neo .legal-card { background: rgba(255,255,255,.6) !important; border: 1px solid var(--glass-border) !important; box-shadow: none !important; }
+body.lp-neo .h2-num { background: var(--accent1) !important; }
+body.lp-neo .legal-highlight { border-color: var(--accent1) !important; }
+
+/* Blog hero headline — the second line's <span> gets its color from the
+   page's own inline stylesheet; unify it to the brand accent. */
+body.lp-neo .blog-hero h1 span { color: var(--accent1) !important; -webkit-text-fill-color: var(--accent1) !important; font-style: italic; }

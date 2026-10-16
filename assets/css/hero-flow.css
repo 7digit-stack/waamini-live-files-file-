@@ -1,0 +1,47 @@
+/* Landing hero — WhatsApp lead conversation (open layout: no phone frame, no tails, no background) */
+.hero-flow{display:flex;flex-direction:column;gap:14px;width:100%;max-width:400px;margin-left:auto;font-family:'Inter',system-ui,sans-serif}
+
+.hf-m{display:flex}
+.hero-flow.js{min-height:400px;justify-content:flex-end}
+.hero-flow.js .hf-m{display:none}
+.hero-flow.js .hf-m.show{display:flex;animation:chatSlideIn .55s cubic-bezier(.21,.98,.35,1) both}
+.hf-dot-ok{background:#25D366;box-shadow:0 0 0 3px rgba(37,211,102,.2)}
+
+.hf-top.hf-m{justify-content:center}
+.hf-pill{display:inline-flex;align-items:center;gap:9px;background:#fff;border-radius:999px;padding:7px 14px;box-shadow:0 6px 18px -8px rgba(18,140,126,.28);
+  font-family:var(--font-mono,'JetBrains Mono',ui-monospace,monospace);font-size:10px;font-weight:600;letter-spacing:.6px;color:#128C7E}
+.hf-dot{width:8px;height:8px;border-radius:50%;background:#ef4468;box-shadow:0 0 0 3px rgba(239,68,104,.18);display:inline-block}
+
+.hf-row.hf-m{flex-direction:column;gap:5px}
+.hf-in{align-items:flex-start}
+.hf-out{align-items:flex-end}
+
+.hf-bubble{max-width:88%;padding:10px 15px;border-radius:16px;font-size:13.5px;line-height:1.45;color:#0F2622;box-shadow:0 12px 30px -14px rgba(18,140,126,.32)}
+.hf-in .hf-bubble{background:#fff}
+.hf-out .hf-bubble{background:#dcf8e3;box-shadow:0 12px 30px -14px rgba(47,184,114,.45)}
+.hf-short{padding:10px 15px}
+
+.hf-meta{display:flex;align-items:center;gap:9px;padding:0 4px;
+  font-family:var(--font-mono,'JetBrains Mono',ui-monospace,monospace);font-size:9.5px;font-weight:600;letter-spacing:.6px;color:#5F6F6A;text-transform:uppercase}
+.hf-av{width:20px;height:20px;border-radius:50%;background:#8b6f55;color:#fff;font-family:'Inter',sans-serif;font-size:9.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.hf-badge{width:22px;height:22px;border-radius:50%;background:#128C7E;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #fff}
+
+@media (max-width:968px){.hero-flow{max-width:100%;margin:0}.hero-flow.js{min-height:360px}.hf-bubble{max-width:94%}}
+
+/* Layout: scene at top-right of the hero on desktop */
+@media (min-width:1025px){
+  body.lp-neo .index-hero .hero-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr)!important;gap:48px;align-items:start}
+  body.lp-neo .index-hero .hero-visual-row{display:block;margin:0;grid-column:2;grid-row:1;align-self:start}
+  body.lp-neo .index-hero .hero-visual-wrap{max-width:none;flex:none;margin-bottom:26px}
+  body.lp-neo .index-hero .hero-side-highlights{gap:12px}
+  body.lp-neo .index-hero .hero-header-1 h1{font-size:clamp(3rem,8vw,6.5rem)!important}
+}
+
+/* Three-dot typing indicator shown before each message */
+.hf-typing{display:inline-flex;align-items:center;gap:5px;padding:12px 15px;border-radius:16px}
+.hf-typing span{width:6px;height:6px;border-radius:50%;background:#9a98b3;animation:hfDot 1.2s infinite ease-in-out}
+.hf-typing span:nth-child(2){animation-delay:.18s}
+.hf-typing span:nth-child(3){animation-delay:.36s}
+.hf-out .hf-typing{background:#dcf8e3}
+.hf-out .hf-typing span{background:#4cae78}
+@keyframes hfDot{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-6px);opacity:1}}

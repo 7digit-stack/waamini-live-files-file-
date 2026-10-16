@@ -1,0 +1,6 @@
+# uploaded media only: never execute anything here
+Options -Indexes -ExecCGI
+php_flag engine off
+<FilesMatch "\.(php|phtml|phar|cgi|pl|py)$">
+  Require all denied
+</FilesMatch>

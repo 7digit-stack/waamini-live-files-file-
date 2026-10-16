@@ -1,0 +1,48 @@
+/* Public navbar (lp-neo pages): logo | centred links with dropdowns | Login + Book a demo + Try for free */
+body.lp-neo .main-nav.nav-pro{
+  background:linear-gradient(90deg,#F1FBF6 0%,#E9F8F0 55%,#F4FBF8 100%)!important;
+  backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;
+  border-bottom:1px solid rgba(18,140,126,.08)!important;
+}
+.nav-pro .nav-inner{display:grid!important;grid-template-columns:auto 1fr auto;align-items:center;gap:24px;padding:12px 0!important;max-width:1280px}
+
+/* logo on a light bar */
+body.lp-neo .nav-pro .logo-word,
+body.lp-neo .nav-pro .logo-wa,
+body.lp-neo .nav-pro .logo-mini{color:#0B3D36!important;-webkit-text-fill-color:#0B3D36!important}
+body.lp-neo .nav-pro .logo .logo-icon{background:#128C7E!important;border-radius:10px!important}
+
+/* centred links */
+.np-links{display:flex;align-items:center;justify-content:center;gap:6px;font-family:'Inter',system-ui,sans-serif}
+.np-item{position:relative}
+.np-link{display:inline-flex;align-items:center;gap:5px;padding:9px 14px;border:0;background:none;border-radius:10px;
+  font:600 15px/1 'Inter',system-ui,sans-serif;color:#0F2622;text-decoration:none;cursor:pointer;transition:background .2s,color .2s}
+.np-link:hover,.np-item:focus-within>.np-link,.np-item:hover>.np-link{background:rgba(18,140,126,.08);color:#128C7E}
+.np-chev{opacity:.6;transition:transform .2s}
+.np-item:hover .np-chev,.np-item:focus-within .np-chev{transform:rotate(180deg)}
+
+.np-drop{position:absolute;left:50%;top:100%;transform:translate(-50%,8px);min-width:220px;padding:8px;background:#fff;border:1px solid #DDEFE7;border-radius:16px;
+  box-shadow:0 24px 50px -16px rgba(18,140,126,.32);opacity:0;visibility:hidden;transition:opacity .18s,transform .18s,visibility .18s;z-index:1100}
+.np-item::after{content:'';position:absolute;left:0;right:0;top:100%;height:12px}
+.np-item:hover .np-drop,.np-item:focus-within .np-drop{opacity:1;visibility:visible;transform:translate(-50%,2px)}
+.np-drop a{display:block;padding:10px 14px;border-radius:10px;font:500 14px/1.3 'Inter',system-ui,sans-serif;color:#0F2622;text-decoration:none;transition:background .15s,color .15s}
+.np-drop a:hover{background:#F3FBF7;color:#128C7E}
+
+/* right actions */
+.np-actions{display:flex;align-items:center;gap:12px;font-family:'Inter',system-ui,sans-serif}
+.np-login{font:600 15px/1 'Inter',system-ui,sans-serif;color:#0F2622;text-decoration:none;padding:9px 6px}
+.np-login:hover{color:#128C7E}
+.np-btn{display:inline-flex;align-items:center;justify-content:center;padding:13px 24px;border-radius:999px;font:700 14.5px/1 'Inter',system-ui,sans-serif;text-decoration:none;white-space:nowrap;transition:transform .2s,box-shadow .2s,background .2s}
+.np-btn-light{background:#fff;color:#0F2622;border:1px solid #CFE6DC}
+.np-btn-light:hover{box-shadow:0 8px 20px -8px rgba(18,140,126,.3);transform:translateY(-1px);color:#0F2622}
+.np-btn-dark{background:#128C7E;color:#fff;border:1px solid #128C7E}
+.np-btn-dark:hover{background:#0D6B5F;box-shadow:0 10px 24px -8px rgba(18,140,126,.5);transform:translateY(-1px);color:#fff}
+
+/* hamburger only below desktop (existing full-screen menu is reused) */
+body.lp-neo .nav-pro .wa-menu-toggle{display:none!important}
+@media (max-width:1024px){
+  .nav-pro .nav-inner{grid-template-columns:1fr auto}
+  .np-links,.np-actions{display:none}
+  body.lp-neo .nav-pro .wa-menu-toggle{display:inline-flex!important;background:#fff!important;color:#0F2622!important;border:1px solid #CFE6DC!important}
+  body.lp-neo .nav-pro .wa-menu-icon span{background:#0F2622!important}
+}

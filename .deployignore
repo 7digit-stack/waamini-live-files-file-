@@ -1,0 +1,60 @@
+# rsync exclude list for .github/workflows/deploy.yml
+# Anything listed here is never uploaded AND never touched on the server
+# (server-only files such as .env, uploads and runtime storage stay exactly as they are).
+
+# repository / tooling
+.git/
+.github/
+.claude/
+.kilo/
+.vscode/
+.idea/
+node_modules/
+.gitleaks.toml
+.deployignore
+.gitignore
+package.json
+package-lock.json
+playwright.config.*
+tsconfig*.json
+
+# documentation and tests
+docs/
+tests/
+*.md
+CHANGELOG*
+*.html.bak
+
+# secrets and server configuration that lives only on the server
+.env
+.env.*
+.user.ini
+php.ini
+
+# runtime data written by the app
+storage/
+uploads/
+assets/uploads/
+error_log
+*.log
+
+# data exports and archives
+*.sql
+!migrations/*.sql
+*.zip
+*.tar
+*.tar.gz
+
+# one-off debug, setup and repair scripts (never on a live server)
+scratch/
+audit-output/
+setup_db*.php
+debug_*.php
+check_*.php
+fix_*.php
+test_*.php
+process_queue_direct.php
+system_health_check_and_fix.php
+db_production_template.php
+api/debug_token.php
+admin/fix_*.php

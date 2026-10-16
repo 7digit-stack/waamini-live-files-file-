@@ -1,0 +1,167 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   E-Commerce panel skin — one dashboard look for every page in the section:
+   Order Analytics, Orders, Catalog, Catalog Reports, Cart Recovery,
+   Checkout Settings, PDF Settings.
+   Full width, soft white tiles, WhatsApp green, no borders or divider lines.
+   Loaded only on those pages (see includes/client_header.php) and scoped to
+   body.ecom-ui, with !important so it also wins over inline page styles.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body.ecom-ui {
+  --ec-g: #128C7E; --ec-gd: #0B6B5E; --ec-g2: #25D366;
+  --ec-ink: #0F2622; --ec-tx: #34453f; --ec-mu: #586a63;
+  --ec-soft: #F3FBF7; --ec-mint: #E6FCF2; --ec-field: #F3F7F5;
+  --ec-shadow: 0 12px 30px -22px rgba(15,38,34,.45);
+  --accent: #128C7E; --accent-light: #E6FCF2;
+}
+
+/* ── Full width ── */
+body.ecom-ui .om-wrap,
+body.ecom-ui .odash-wrap { max-width: none !important; width: 100% !important; margin: 0 !important; padding: 4px 0 28px !important; }
+body.ecom-ui .form-card { max-width: none; }
+
+/* ── Page header: white card ── */
+body.ecom-ui .page-header {
+  background: #fff; border-radius: 18px; padding: 20px 26px; margin-bottom: 18px !important;
+  box-shadow: var(--ec-shadow); align-items: center;
+}
+body.ecom-ui .page-header h2 { font-size: 22px; font-weight: 800; letter-spacing: -.3px; color: var(--ec-ink); gap: 12px; }
+body.ecom-ui .page-header h2 > svg { width: 38px !important; height: 38px !important; padding: 9px; border-radius: 11px; background: #E3F7EE; color: var(--ec-g); }
+body.ecom-ui .om-hdr { background: #fff !important; border: 0 !important; border-radius: 18px !important; padding: 22px 26px !important; box-shadow: var(--ec-shadow) !important; }
+body.ecom-ui .om-hdr::before { display: none !important; }
+body.ecom-ui .om-hdr-icon { width: 52px !important; height: 52px !important; border-radius: 14px !important; background: #E3F7EE !important; color: var(--ec-g) !important; }
+body.ecom-ui .om-hdr-icon svg { width: 24px !important; height: 24px !important; }
+body.ecom-ui .om-hdr-title { font-size: 24px !important; font-weight: 800 !important; letter-spacing: -.4px; color: var(--ec-ink) !important; }
+body.ecom-ui .om-hdr-sub { font-size: 14px !important; color: var(--ec-tx) !important; }
+
+/* ── Cards / tiles: no borders, soft shadow ── */
+body.ecom-ui .form-card,
+body.ecom-ui .card,
+body.ecom-ui .data-card,
+body.ecom-ui .chart-wrapper,
+body.ecom-ui .stat-card,
+body.ecom-ui .om-card,
+body.ecom-ui .om-stat,
+body.ecom-ui .waamini-ec-status {
+  background: #fff !important; border: 0 !important; border-radius: 18px !important; box-shadow: var(--ec-shadow) !important;
+}
+body.ecom-ui .form-card[style*="border-left"], body.ecom-ui .form-card[style*="border-top"] { border-left: 0 !important; border-top: 0 !important; }
+body.ecom-ui .form-card:not([style*="padding:0"]) { padding: 24px; }
+body.ecom-ui .stat-card:hover, body.ecom-ui .om-stat:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -22px rgba(15,38,34,.5) !important; border: 0 !important; }
+body.ecom-ui .om-stat::after { display: none !important; }
+body.ecom-ui .om-stat.active { background: var(--ec-mint) !important; box-shadow: inset 0 0 0 2px var(--s-col, var(--ec-g)) !important; }
+body.ecom-ui .om-stat-n { font-size: 28px !important; letter-spacing: -.03em; }
+body.ecom-ui .om-stat-l { font-size: 11.5px !important; letter-spacing: .04em !important; }
+body.ecom-ui .stat-number { color: var(--ec-ink); font-weight: 800; letter-spacing: -.03em; }
+body.ecom-ui .stat-label { color: var(--ec-mu); font-weight: 700; }
+
+body.ecom-ui .card-header,
+body.ecom-ui .om-card-hdr { border: 0 !important; background: transparent !important; padding: 20px 24px 0 !important; }
+body.ecom-ui .card-header h3, body.ecom-ui .om-card-title { font-size: 17px; font-weight: 800; color: var(--ec-ink); letter-spacing: -.2px; }
+body.ecom-ui .card-body, body.ecom-ui .om-card-body { padding: 18px 24px 24px !important; }
+
+/* ── Divider lines: none ── */
+body.ecom-ui [style*="border-bottom:2px solid var(--border)"],
+body.ecom-ui [style*="border-bottom: 2px solid var(--border)"] { border-bottom: 0 !important; }
+body.ecom-ui tr[style*="border-bottom"] { border-bottom: 0 !important; }
+body.ecom-ui [style*="border-top:1px solid"], body.ecom-ui [style*="border-top: 1px solid"] { border-top: 0 !important; }
+body.ecom-ui .om-cat-sep, body.ecom-ui hr { display: none !important; }
+body.ecom-ui .waamini-ec-status-saved { border-top: 0 !important; padding-top: 6px !important; }
+
+/* ── Tables: soft rows, no grid lines ── */
+body.ecom-ui .om-tbl th, body.ecom-ui .report-panel table th {
+  border: 0 !important; background: var(--ec-soft) !important; color: var(--ec-mu) !important; font-weight: 800 !important; letter-spacing: .04em;
+}
+body.ecom-ui .om-tbl th:first-child, body.ecom-ui .report-panel table th:first-child { border-radius: 10px 0 0 10px; }
+body.ecom-ui .om-tbl th:last-child, body.ecom-ui .report-panel table th:last-child { border-radius: 0 10px 10px 0; }
+body.ecom-ui .om-tbl td, body.ecom-ui .report-panel table td { border: 0 !important; }
+body.ecom-ui .om-tbl tbody tr:nth-child(even) td, body.ecom-ui .report-panel table tbody tr:nth-child(even) td { background: #F9FDFB; }
+body.ecom-ui .om-tbl tr:hover td, body.ecom-ui .report-panel table tbody tr:hover td { background: #EDFAF3 !important; }
+body.ecom-ui .om-tbl tbody tr td:first-child, body.ecom-ui .report-panel table tbody tr td:first-child { border-radius: 10px 0 0 10px; }
+body.ecom-ui .om-tbl tbody tr td:last-child, body.ecom-ui .report-panel table tbody tr td:last-child { border-radius: 0 10px 10px 0; }
+
+/* ── Buttons: mint secondary, solid green primary ── */
+body.ecom-ui .btn, body.ecom-ui .btn-edit, body.ecom-ui .om-btn, body.ecom-ui .om-btn-sec, body.ecom-ui .om-act, body.ecom-ui .om-cancel {
+  border: 0 !important; border-radius: 11px !important; background: var(--ec-mint) !important; color: var(--ec-gd) !important; font-weight: 700 !important; box-shadow: none !important;
+}
+body.ecom-ui .btn:hover, body.ecom-ui .btn-edit:hover, body.ecom-ui .om-btn:hover, body.ecom-ui .om-btn-sec:hover, body.ecom-ui .om-act:hover, body.ecom-ui .om-cancel:hover { background: #CDF5E3 !important; color: var(--ec-gd) !important; }
+body.ecom-ui .btn-primary, body.ecom-ui .om-btn-pri, body.ecom-ui .om-submit, body.ecom-ui .client-main .btn-primary {
+  background: var(--ec-g) !important; color: #fff !important;
+}
+body.ecom-ui .btn-primary:hover, body.ecom-ui .om-btn-pri:hover, body.ecom-ui .om-submit:hover { background: var(--ec-gd) !important; color: #fff !important; filter: none !important; }
+body.ecom-ui .btn-danger, body.ecom-ui .btn-remove-logo { background: #FEEDED !important; color: #c62828 !important; }
+body.ecom-ui .btn-danger:hover, body.ecom-ui .btn-remove-logo:hover { background: #FBD9D9 !important; color: #c62828 !important; }
+body.ecom-ui .om-act-ok:hover { background: #E3F7EE !important; }
+/* inline gradient buttons (Buy Now / Enquire) → solid brand colours */
+body.ecom-ui a[style*="linear-gradient"], body.ecom-ui button[style*="linear-gradient"] { background: var(--ec-g) !important; color: #fff !important; border: 0 !important; }
+body.ecom-ui a[style*="linear-gradient"]:hover, body.ecom-ui button[style*="linear-gradient"]:hover { background: var(--ec-gd) !important; }
+
+/* ── Fields ── */
+body.ecom-ui .form-control, body.ecom-ui select.form-control, body.ecom-ui textarea.form-control,
+body.ecom-ui .om-search, body.ecom-ui input[type="date"], body.ecom-ui select[style] {
+  border: 0 !important; background: var(--ec-field) !important; color: var(--ec-ink) !important; border-radius: 11px !important;
+}
+body.ecom-ui .form-control:focus, body.ecom-ui .om-search:focus-within, body.ecom-ui input[type="date"]:focus {
+  background: #fff !important; box-shadow: 0 0 0 2px rgba(18,140,126,.4) !important; outline: none !important;
+}
+body.ecom-ui .form-group label, body.ecom-ui .om-fld label, body.ecom-ui .om-cat-form label { color: var(--ec-mu); font-weight: 800; }
+body.ecom-ui .om-cat-form .form-control, body.ecom-ui .om-fld .form-control, body.ecom-ui .card .form-control { background: var(--ec-field) !important; }
+body.ecom-ui input[type="checkbox"], body.ecom-ui input[type="radio"] { accent-color: var(--ec-g); }
+
+/* ── Chips / badges / pills ── */
+body.ecom-ui .om-badge { border: 0 !important; border-radius: 999px !important; padding: 5px 12px !important; }
+body.ecom-ui .om-oid { background: #E3F7EE !important; color: var(--ec-gd) !important; border-radius: 8px !important; }
+body.ecom-ui .om-av { background: #E3F7EE !important; color: var(--ec-gd) !important; }
+body.ecom-ui .om-chip { border: 0 !important; background: var(--ec-soft) !important; border-radius: 14px !important; }
+body.ecom-ui .om-chip-price { color: var(--ec-gd) !important; }
+body.ecom-ui .badge, body.ecom-ui .badge-active { border: 0 !important; border-radius: 999px !important; }
+body.ecom-ui .om-src { border-radius: 999px !important; }
+body.ecom-ui .om-oid, body.ecom-ui .om-act { font-family: inherit; }
+
+/* ── Alerts / flash ── */
+body.ecom-ui .alert, body.ecom-ui .om-flash { border: 0 !important; border-radius: 14px !important; }
+body.ecom-ui .alert-success, body.ecom-ui .om-flash-ok { background: #E3F7EE !important; color: var(--ec-gd) !important; }
+body.ecom-ui .alert-danger, body.ecom-ui .om-flash-err { background: #FDE7E7 !important; color: #b3261e !important; }
+
+/* ── Tabs (Catalog, Reports): pill tabs ── */
+body.ecom-ui .ec-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+body.ecom-ui .ec-tabs a, body.ecom-ui .report-tab {
+  display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px !important; border-radius: 12px; border: 0 !important; margin: 0 !important;
+  background: #fff; color: var(--ec-tx) !important; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer;
+  box-shadow: 0 6px 16px -12px rgba(15,38,34,.5); font-family: inherit;
+}
+body.ecom-ui .ec-tabs a:hover, body.ecom-ui .report-tab:hover { background: var(--ec-mint); color: var(--ec-gd) !important; }
+body.ecom-ui .ec-tabs a.on, body.ecom-ui .report-tab.active { background: var(--ec-g); color: #fff !important; box-shadow: none; }
+body.ecom-ui .ec-tabs a svg, body.ecom-ui .report-tab svg { width: 16px; height: 16px; }
+body.ecom-ui .report-tab.active { border-bottom: 0 !important; }
+body.ecom-ui .ec-tabs .ec-dot { background: #ef4444; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 999px; }
+body.ecom-ui .report-tab { margin-bottom: 0 !important; }
+/* the old row that held the report tabs */
+body.ecom-ui .report-tab ~ .report-tab { margin-left: 0; }
+
+/* ── Modals ── */
+body.ecom-ui .om-overlay, body.ecom-ui .modal-overlay { background: rgba(15,38,34,.5) !important; backdrop-filter: blur(2px); }
+body.ecom-ui .om-modal { border: 0 !important; border-radius: 18px !important; }
+
+/* ── Settings pages ── */
+body.ecom-ui .gateway-option .option-content { border: 0 !important; background: var(--ec-soft) !important; border-radius: 14px !important; }
+body.ecom-ui .gateway-option:hover .option-content { background: #EDFAF3 !important; }
+body.ecom-ui .gateway-option input:checked + .option-content { background: #E3F7EE !important; box-shadow: inset 0 0 0 2px var(--ec-g) !important; }
+body.ecom-ui .waamini-ec-section-heading { color: var(--ec-gd) !important; }
+body.ecom-ui .waamini-ec-code-snippet, body.ecom-ui pre, body.ecom-ui code { border-radius: 8px; }
+body.ecom-ui .waamini-ec-layout { gap: 20px; }
+body.ecom-ui .waamini-ec-status { padding: 18px 22px !important; }
+
+/* ── Progress / cart-recovery tiles ── */
+body.ecom-ui .stats-grid { gap: 16px; }
+body.ecom-ui [style*="background:var(--bg-dark)"] { background: var(--ec-soft) !important; border: 0 !important; border-radius: 14px !important; }
+body.ecom-ui [style*="background:var(--bg-dark)"] input { color: var(--ec-ink) !important; }
+
+/* ── Product cards / grids ── */
+body.ecom-ui [style*="border-bottom:1px solid var(--border)"] { border-bottom: 0 !important; }
+body.ecom-ui .preview-frame:hover { transform: none; }
+
+@media (max-width: 640px) {
+  body.ecom-ui .page-header { padding: 16px 18px; }
+  body.ecom-ui .page-header h2 { font-size: 19px; }
+}

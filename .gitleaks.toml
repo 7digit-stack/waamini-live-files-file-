@@ -1,0 +1,22 @@
+# gitleaks configuration: default rules plus allowlists for known placeholders.
+title = "WAAMINI gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Placeholders, templates and third-party code"
+paths = [
+  '''^\.env\.example$''',
+  '''^\.env\.production\.template$''',
+  '''^vendor/''',
+  '''^tests/fixtures/''',
+  '''^docs/''',
+  '''\.md$''',
+]
+regexes = [
+  '''(?i)x{4,}''',
+  '''(?i)your[_-]?(api|secret|token|key|password)''',
+  '''(?i)change[_-]?me''',
+  '''rzp_(live|test)_x+''',
+]

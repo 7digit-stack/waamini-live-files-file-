@@ -1,0 +1,30 @@
+/* WAAMINI motion layer: only the hooks GSAP needs. No colours, fonts or layout changes. */
+
+/* Sidebar Flip pill: lives inside .sidebar-nav, invisible at rest. */
+#sidebar .sidebar-nav { position: relative; }
+#sidebar .sidebar-nav .nav-item { z-index: 1; }
+.wm-nav-pill {
+  position: absolute;
+  top: 0; left: 0; width: 0; height: 0;
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+/* While the pill travels, the old active item lends it its background. */
+#sidebar .sidebar-nav.wm-moving .nav-item.active { background: transparent !important; }
+
+/* Title split into characters (removed again when the animation ends). */
+.wm-split { display: inline; }
+.wm-w { display: inline-block; white-space: nowrap; }
+.wm-ch { display: inline-block; will-change: transform, opacity, filter; }
+
+/* Tab indicator ghost: sits behind the tab labels. */
+.wm-tab-ghost {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wm-ch { will-change: auto; }
+}

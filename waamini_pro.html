@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waamini CRM — WhatsApp Business API Automation for India</title>
+    <meta name="description" content="Scale your business with Waamini - India's most powerful WhatsApp CRM and automation platform.">
+    
+    <!-- GOOGLE FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* ─── BRAND & DESIGN SYSTEM ─────────────────────────────────── */
+        :root {
+            --bg-hero: #090b14;
+            --bg-section: #0d1117;
+            --primary: #7c3aed;
+            --primary-glow: rgba(124, 58, 237, 0.3);
+            --accent: #25D366; /* WhatsApp Green */
+            --white: #ffffff;
+            --body: #cbd5e1;
+            --muted: #94a3b8;
+            --glass: rgba(15, 23, 42, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --nav-bg: rgba(9, 11, 20, 0.8);
+            --container-w: 1200px;
+            --section-pad: clamp(60px, 8vw, 120px);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-section);
+            color: var(--body);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4, strong { color: var(--white); }
+
+        /* ─── TYPOGRAPHY ───────────────────────────────────────────── */
+        h1 {
+            font-size: clamp(36px, 7vw, 64px);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: clamp(-1px, -0.04em, -2.5px);
+            margin-bottom: 24px;
+        }
+        h2 {
+            font-size: clamp(28px, 4vw, 48px);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 20px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, #ffffff, #a78bfa, #60a5fa, #ffffff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: flowGradient 8s linear infinite;
+        }
+
+        @keyframes flowGradient {
+            0% { background-position: 0% center; }
+            50% { background-position: 100% center; }
+            100% { background-position: 0% center; }
+        }
+
+        /* ─── REVEAL ANIMATIONS ────────────────────────────────────── */
+        @media (prefers-reduced-motion: no-preference) {
+            .reveal {
+                opacity: 0;
+                transform: translateY(30px);
+                transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            .reveal.active {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ─── COMPONENTS ───────────────────────────────────────────── */
+        .container {
+            max-width: var(--container-w);
+            margin: 0 auto;
+            padding: 0 clamp(16px, 4vw, 60px);
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 14px;
+            transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 20px var(--primary-glow);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn-primary:hover { transform: scale(1.04); box-shadow: 0 0 40px var(--primary-glow); }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 32px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 14px;
+            backdrop-filter: blur(10px);
+            transition: 0.3s;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2); }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            transition: 0.3s;
+        }
+
+        /* ─── NAVIGATION ───────────────────────────────────────────── */
+        nav {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            background: var(--nav-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            z-index: 1000;
+            height: 80px;
+            display: flex;
+            align-items: center;
+        }
+        .nav-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: white;
+            text-decoration: none;
+            letter-spacing: -1px;
+        }
+        .logo span { color: var(--primary); }
+
+        .nav-links { display: flex; gap: 32px; align-items: center; }
+        .nav-links a { color: var(--muted); text-decoration: none; font-weight: 500; font-size: 15px; transition: 0.2s; }
+        .nav-links a:hover { color: white; }
+
+        .nav-cta { display: flex; gap: 15px; align-items: center; }
+
+        /* Mobile Nav Burger */
+        .nav-toggle { display: none; cursor: pointer; }
+        #nav-check { display: none; }
+
+        @media (max-width: 768px) {
+            .nav-toggle { display: block; }
+            .nav-links {
+                position: absolute; top: 80px; left: 0; width: 100%;
+                background: var(--bg-hero);
+                flex-direction: column;
+                padding: 40px;
+                gap: 20px;
+                transform: translateY(-100%);
+                opacity: 0;
+                transition: 0.3s;
+                pointer-events: none;
+            }
+            #nav-check:checked ~ .nav-links { transform: translateY(0); opacity: 1; pointer-events: all; }
+            .nav-cta { display: none; }
+        }
+
+        /* ─── SECTION 1: HERO ──────────────────────────────────────── */
+        .hero {
+            padding: 160px 0 100px;
+            background: radial-gradient(circle at 50% -20%, #1e1b4b 0%, var(--bg-hero) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        .hero-layout {
+            display: grid;
+            grid-template-columns: 55% 40%;
+            gap: 5%;
+            align-items: center;
+        }
+
+        .hero-content {
+            padding: clamp(24px, 5vw, 50px);
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 50px;
+            color: #c4b5fd;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+        .pulse-dot {
+            width: 8px; height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: pulseDot 2s infinite;
+        }
+        @keyframes pulseDot {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(167, 139, 250, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(167, 139, 250, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(167, 139, 250, 0); }
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: var(--muted);
+            max-width: 580px;
+            margin-bottom: 40px;
+        }
+
+        .hero-btns { display: flex; gap: 20px; }
+
+        .trust-bar {
+            margin-top: 60px;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+        .trust-item { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; }
+        .green-ring {
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--accent); font-weight: bold; font-size: 10px;
+        }
+        .live-dot { width: 6px; height: 6px; background: #ef4444; border-radius: 50%; box-shadow: 0 0 8px #ef4444; }
+
+        /* Neural Flow (Desktop Visual) */
+        .hero-visual { position: relative; }
+        .flow-svg { width: 100%; height: auto; overflow: visible; }
+        .pipe { fill: none; stroke: var(--primary); stroke-width: 1.5; opacity: 0.15; }
+        .comet { stroke-dasharray: 10, 100; stroke-linecap: round; }
+        .hub-core { fill: #5b21b6; stroke: var(--primary); stroke-width: 2; filter: drop-shadow(0 0 20px var(--primary)); }
+        .hub-ring { fill: none; stroke: var(--primary); stroke-width: 1; opacity: 0.1; transform-origin: center; animation: rotate 15s linear infinite; }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .tick-badge { opacity: 0; transform: scale(0); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .tick-badge.active { opacity: 1; transform: scale(1); }
+
+        /* Mobile Pill Bar Visual */
+        .mobile-flow { display: none; }
+
+        @media (max-width: 1024px) {
+            .hero-layout { grid-template-columns: 1fr; text-align: center; }
+            .hero-content { display: flex; flex-direction: column; align-items: center; }
+            .hero-btns { justify-content: center; width: 100%; }
+            .trust-bar { justify-content: center; }
+            .hero-visual { margin-top: 60px; width: 100%; max-width: 500px; margin-left: auto; margin-right: auto; }
+        }
+
+        @media (max-width: 768px) {
+            .hero-visual { display: none; }
+            .mobile-flow {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                width: 100%;
+                margin-top: 40px;
+            }
+            .mobile-pill {
+                background: var(--glass);
+                border: 1px solid var(--glass-border);
+                padding: 15px 25px;
+                border-radius: 50px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-weight: 700;
+                color: white;
+            }
+            .mobile-stat { text-align: center; color: var(--accent); font-weight: 800; margin-top: 15px; font-size: 14px; }
+        }
+
+        @media (max-width: 480px) {
+            .hero-btns { flex-direction: column; }
+            .btn-primary, .btn-secondary { width: 100%; }
+        }
+
+        /* ─── SECTION 2: HOW IT WORKS ─────────────────────────────── */
+        .section { padding: var(--section-pad) 0; position: relative; }
+        .section-header { text-align: center; margin-bottom: 60px; }
+        
+        .how-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            position: relative;
+        }
+        .how-card { text-align: center; padding: 20px; position: relative; z-index: 2; }
+        .how-num {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #a78bfa, #7c3aed);
+            color: white; font-weight: 800;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+        .how-icon { font-size: 48px; margin-bottom: 15px; display: block; }
+        .how-card h3 { font-size: 18px; margin-bottom: 10px; }
+        .how-card p { font-size: 14px; color: var(--muted); }
+
+        /* Desktop Connector Line */
+        .how-connector {
+            position: absolute;
+            top: 40px; left: 10%; width: 80%;
+            height: 2px;
+            border-top: 2px dashed rgba(255,255,255,0.1);
+            z-index: 1;
+        }
+        @media (max-width: 991px) {
+            .how-connector { display: none; }
+            .how-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* ─── SECTION 3: FEATURES GRID ────────────────────────────── */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+        .f-card {
+            border-radius: 24px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            transition: 0.4s;
+        }
+        .f-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(124, 58, 237, 0.4);
+            box-shadow: inset 0 2px 0 var(--primary);
+        }
+        .f-icon-wrap {
+            width: 60px; height: 60px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(124, 58, 237, 0.05));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px;
+            margin-bottom: 25px;
+        }
+        .f-card h3 { margin-bottom: 12px; font-size: 20px; }
+        .f-card p { color: var(--muted); font-size: 15px; }
+
+        @media (max-width: 991px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .features-grid { grid-template-columns: 1fr; } }
+
+        /* ─── SECTION 4: SHOWCASE TABS ────────────────────────────── */
+        .tabs-container { margin-top: 40px; }
+        .tab-bar {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+        }
+        .tab-btn {
+            background: none; border: none;
+            color: var(--muted);
+            font-size: 18px; font-weight: 600;
+            padding: 15px 0;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+        }
+        .tab-btn.active { color: white; }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute; bottom: -1px; left: 0; width: 100%;
+            height: 2px; background: var(--primary);
+        }
+
+        .panel { display: none; min-height: 500px; animation: fadeIn 0.5s ease; }
+        .panel.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+
+        /* AI Chat Panel */
+        .chat-simulation {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .bubble {
+            max-width: 80%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 15px;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .bubble.user { align-self: flex-end; background: #334155; border-bottom-right-radius: 4px; }
+        .bubble.bot { align-self: flex-start; background: #075e54; border-bottom-left-radius: 4px; }
+        .bubble.revealed { opacity: 1; transform: translateY(0); transition: 0.4s ease; }
+
+        /* Campaigns Panel */
+        .campaign-stat-box { text-align: center; padding: 50px; }
+        .stat-num { font-size: 64px; font-weight: 800; color: var(--primary); margin-bottom: 10px; }
+        .stat-label { font-size: 18px; color: var(--muted); }
+
+        /* CRM Kanban Panel */
+        .kanban { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .k-col { background: rgba(255,255,255,0.02); border-radius: 16px; padding: 15px; }
+        .k-col h4 { font-size: 14px; text-transform: uppercase; margin-bottom: 15px; color: var(--muted); }
+        .k-card { background: var(--glass); border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; margin-bottom: 10px; font-size: 13px; }
+        .k-card strong { display: block; margin-bottom: 4px; }
+
+        @media (max-width: 768px) { .kanban { grid-template-columns: 1fr; } }
+
+        /* ─── SECTION 5: INDUSTRIES ───────────────────────────────── */
+        .industry-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+        .ind-card {
+            display: flex; gap: 20px; align-items: flex-start;
+            padding: 30px;
+        }
+        .ind-icon { font-size: 40px; flex-shrink: 0; }
+        .ind-info h3 { font-size: 20px; margin-bottom: 8px; }
+        .ind-chat-preview {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+        .ind-msg { margin-bottom: 6px; padding-left: 10px; border-left: 2px solid var(--primary); }
+
+        @media (max-width: 768px) { .industry-grid { grid-template-columns: 1fr; } }
+
+        /* ─── SECTION 6: PRICING ──────────────────────────────────── */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            align-items: center;
+        }
+        .p-card {
+            padding: 50px 30px;
+            text-align: center;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+        }
+        .p-card.featured {
+            border: 1px solid rgba(124, 58, 237, 0.6);
+            box-shadow: 0 0 40px rgba(124, 58, 237, 0.2);
+            transform: scale(1.05);
+            z-index: 5;
+        }
+        .p-tag {
+            background: var(--primary);
+            color: white;
+            font-size: 11px; font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .p-price { font-size: 48px; font-weight: 800; margin: 20px 0; }
+        .p-price span { font-size: 16px; color: var(--muted); font-weight: 400; }
+        .p-features { list-style: none; text-align: left; margin: 30px 0; }
+        .p-features li { margin-bottom: 12px; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+        .p-check { color: var(--accent); font-weight: 800; }
+
+        @media (max-width: 991px) {
+            .pricing-grid { grid-template-columns: 1fr; max-width: 450px; margin: 0 auto; gap: 40px; }
+            .p-card.featured { order: -1; transform: none; }
+        }
+
+        /* ─── SECTION 7: TESTIMONIALS ─────────────────────────────── */
+        .testimonial-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; }
+        .t-card {
+            position: relative;
+            padding: 40px;
+        }
+        .t-card::before {
+            content: '\"';
+            position: absolute; top: 20px; left: 30px;
+            font-size: 120px; font-family: serif;
+            color: var(--primary);
+            opacity: 0.08;
+            line-height: 1;
+        }
+        .t-stars { color: #f59e0b; margin-bottom: 15px; }
+        .t-quote { font-style: italic; margin-bottom: 20px; font-size: 17px; position: relative; z-index: 1; }
+        .t-author { font-weight: 700; color: white; }
+        .t-biz { font-size: 13px; color: var(--muted); }
+
+        @media (max-width: 768px) { .testimonial-grid { grid-template-columns: 1fr; } }
+
+        /* ─── SECTION 8: FINAL CTA ────────────────────────────────── */
+        .final-cta {
+            background: radial-gradient(circle at center, #2e1065 0%, var(--bg-hero) 100%);
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .final-cta h2 { margin-bottom: 15px; }
+        .final-cta p { font-size: 20px; color: var(--body); margin-bottom: 40px; }
+
+        /* ══════════════════════════════════════════════════════════
+           BOT BUILDER — Professional Commercial Dark UI
+        ══════════════════════════════════════════════════════════ */
+        .bot-section {
+            background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124,58,237,0.08) 0%, transparent 70%),
+                        var(--bg-section);
+            position: relative; overflow: hidden;
+        }
+        .bot-section::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%237c3aed' fill-opacity='0.03'%3E%3Ccircle cx='40' cy='40' r='1'/%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        .bot-inner {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(40px, 6vw, 90px);
+            align-items: center;
+            position: relative; z-index: 1;
+        }
+
+        /* ── LEFT PANEL ── */
+        .bot-eyebrow {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(37,211,102,0.08);
+            border: 1px solid rgba(37,211,102,0.2);
+            color: var(--accent);
+            font-size: 11px; font-weight: 700; padding: 7px 18px; border-radius: 50px;
+            letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 22px;
+        }
+        .bot-eyebrow::before {
+            content: ''; width: 6px; height: 6px; border-radius: 50%;
+            background: var(--accent); box-shadow: 0 0 6px var(--accent);
+            animation: pulseDot 2s infinite;
+        }
+
+        .bot-heading {
+            font-size: clamp(26px, 3.5vw, 44px);
+            font-weight: 800; line-height: 1.1;
+            letter-spacing: -1px; margin-bottom: 18px;
+            color: var(--white);
+        }
+        .bot-heading .grad {
+            background: linear-gradient(90deg, #a78bfa, #25d366);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .bot-desc {
+            font-size: 15.5px; color: var(--muted);
+            line-height: 1.8; margin-bottom: 36px; max-width: 480px;
+        }
+
+        /* Timeline */
+        .b-timeline { position: relative; display: flex; flex-direction: column; gap: 0; }
+        .b-timeline::before {
+            content: '';
+            position: absolute; left: 21px; top: 21px;
+            bottom: 21px; width: 2px;
+            background: linear-gradient(to bottom,
+                rgba(124,58,237,0.8) 0%,
+                rgba(8,145,178,0.8) 50%,
+                rgba(37,211,102,0.8) 100%);
+            border-radius: 2px;
+        }
+
+        .b-step {
+            display: flex; gap: 18px; align-items: flex-start;
+            padding: 20px; border-radius: 16px;
+            background: rgba(255,255,255,0.0);
+            border: 1px solid transparent;
+            transition: all 0.4s ease;
+            opacity: 0; transform: translateX(-24px);
+            margin-bottom: 6px;
+        }
+        .b-step.in {
+            opacity: 1; transform: translateX(0);
+            background: rgba(255,255,255,0.03);
+            border-color: rgba(255,255,255,0.07);
+        }
+        .b-step:last-child { margin-bottom: 0; }
+
+        .b-icon {
+            width: 42px; height: 42px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; position: relative; z-index: 2;
+        }
+        .b-icon svg { width: 18px; height: 18px; stroke: white; fill: none;
+                      stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+        .b-icon-1 {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            box-shadow: 0 4px 20px rgba(124,58,237,0.5);
+        }
+        .b-icon-2 {
+            background: linear-gradient(135deg, #0891b2, #0e7490);
+            box-shadow: 0 4px 20px rgba(8,145,178,0.5);
+        }
+        .b-icon-3 {
+            background: linear-gradient(135deg, #16a34a, #25d366);
+            box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+        }
+
+        .b-text { flex: 1; }
+        .b-text h4 {
+            font-size: 15px; font-weight: 700; color: var(--white);
+            margin-bottom: 5px; letter-spacing: -0.2px;
+        }
+        .b-text p { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+        .b-text strong { color: #c4b5fd; font-weight: 600; }
+        .b-text em { color: var(--accent); font-style: normal; font-weight: 600; }
+
+        /* Chips */
+        .b-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+        .b-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(124,58,237,0.08);
+            border: 1px solid rgba(124,58,237,0.2);
+            color: #c4b5fd;
+            font-size: 11.5px; font-weight: 600;
+            padding: 7px 14px; border-radius: 8px;
+            transition: 0.2s;
+        }
+        .b-chip:hover { background: rgba(124,58,237,0.15); border-color: rgba(124,58,237,0.4); color: white; }
+        .b-chip::before {
+            content: ''; width: 5px; height: 5px; border-radius: 50%;
+            background: var(--accent); flex-shrink: 0;
+        }
+
+        /* ── RIGHT PANEL: WhatsApp Phone ── */
+        .bot-phone-col {
+            display: flex; justify-content: center; align-items: center;
+            position: relative;
+        }
+        .bot-phone-col::before {
+            content: '';
+            position: absolute; width: 280px; height: 280px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(37,211,102,0.12) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Phone shell */
+        .wa-phone {
+            width: 100%; max-width: 300px;
+            background: #0a0e1a;
+            border-radius: 38px;
+            border: 2px solid rgba(255,255,255,0.1);
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.04),
+                0 40px 80px -20px rgba(0,0,0,0.8),
+                0 0 60px rgba(37,211,102,0.06),
+                inset 0 1px 0 rgba(255,255,255,0.07);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Notch */
+        .wa-notch {
+            height: 24px; background: #060810;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .wa-notch-pill {
+            width: 60px; height: 10px; border-radius: 20px;
+            background: #111520;
+        }
+
+        /* WA Status Bar */
+        .wa-statusbar {
+            background: #075e54;
+            padding: 4px 14px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .wa-statusbar span { font-size: 9px; color: rgba(255,255,255,0.85); font-weight: 600; }
+
+        /* WA Header */
+        .wa-header {
+            background: #075e54;
+            padding: 9px 12px 10px;
+            display: flex; align-items: center; gap: 9px;
+            border-bottom: 1px solid rgba(0,0,0,0.15);
+        }
+        .wa-back { color: rgba(255,255,255,0.9); font-size: 20px; line-height: 1; }
+        .wa-av {
+            width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+            background: linear-gradient(135deg, #a78bfa, #7c3aed);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; border: 2px solid rgba(255,255,255,0.2);
+        }
+        .wa-contact { flex: 1; }
+        .wa-contact strong { display: block; font-size: 13px; font-weight: 700; color: #fff; line-height: 1.2; }
+        .wa-contact span {
+            font-size: 10px; color: rgba(255,255,255,0.75);
+            display: flex; align-items: center; gap: 4px;
+        }
+        .wa-green-dot {
+            width: 6px; height: 6px; border-radius: 50%; background: #4ade80;
+            box-shadow: 0 0 6px #4ade80; flex-shrink: 0;
+        }
+        .wa-menu-icon { color: rgba(255,255,255,0.7); font-size: 18px; }
+
+        /* Chat wallpaper */
+        .wa-chat {
+            min-height: 300px;
+            background: #0d1420;
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(37,211,102,0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(124,58,237,0.04) 0%, transparent 40%);
+            padding: 12px 10px;
+            display: flex; flex-direction: column; gap: 7px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Date separator */
+        .chat-date {
+            align-self: center;
+            background: rgba(255,255,255,0.07);
+            backdrop-filter: blur(4px);
+            color: rgba(255,255,255,0.5);
+            font-size: 9.5px; font-weight: 600;
+            padding: 3px 14px; border-radius: 20px; margin: 2px 0 4px;
+        }
+
+        /* Bubbles */
+        .chat-row { display: flex; flex-direction: column; }
+        .chat-row.out { align-items: flex-end; }
+        .chat-row.in  { align-items: flex-start; }
+
+        .chat-bubble {
+            max-width: 80%;
+            padding: 8px 11px;
+            border-radius: 14px;
+            font-size: 12px; line-height: 1.55; color: #e2e8f0;
+            position: relative; word-break: break-word;
+        }
+        .chat-row.out .chat-bubble {
+            background: #005c4b;
+            border-bottom-right-radius: 3px;
+        }
+        .chat-row.in .chat-bubble {
+            background: #1c2333;
+            border-bottom-left-radius: 3px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .chat-bubble .bot-name {
+            display: block; font-size: 10px; font-weight: 700;
+            color: #a78bfa; margin-bottom: 3px;
+        }
+        .chat-bubble .hi-green { color: #4ade80; font-weight: 700; }
+        .chat-bubble .hi-price { color: #fbbf24; font-weight: 700; }
+
+        /* Timestamp + ticks */
+        .chat-meta {
+            display: flex; align-items: center; gap: 3px;
+            font-size: 9.5px; color: rgba(255,255,255,0.35);
+            margin-top: 2px; padding: 0 3px;
+        }
+        .chat-row.out .chat-meta { justify-content: flex-end; }
+        .blue-ticks { color: #4fc3f7; font-size: 11px; letter-spacing: -2px; }
+
+        /* Quick reply buttons */
+        .chat-qr-wrap {
+            display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;
+        }
+        .chat-qr {
+            background: rgba(37,211,102,0.07);
+            border: 1px solid rgba(37,211,102,0.25);
+            color: var(--accent);
+            font-size: 10px; font-weight: 600;
+            padding: 5px 10px; border-radius: 16px;
+            white-space: nowrap; cursor: default;
+        }
+
+        /* List message card */
+        .chat-list-card {
+            background: #1c2333;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px 14px 3px 14px;
+            overflow: hidden; max-width: 82%;
+            align-self: flex-start;
+        }
+        .chat-list-head {
+            background: rgba(37,211,102,0.1);
+            border-bottom: 1px solid rgba(37,211,102,0.12);
+            padding: 7px 12px;
+            font-size: 10px; font-weight: 700;
+            color: var(--accent); letter-spacing: 0.5px; text-transform: uppercase;
+        }
+        .chat-list-row {
+            padding: 6px 12px;
+            font-size: 11.5px; color: #cbd5e1;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            display: flex; align-items: center; gap: 7px;
+        }
+        .chat-list-row:last-child { border-bottom: none; }
+        .chat-list-row::before {
+            content: ''; width: 5px; height: 5px; border-radius: 50%;
+            background: var(--accent); flex-shrink: 0; opacity: 0.8;
+        }
+        .chat-list-meta {
+            padding: 5px 12px 6px;
+            font-size: 10px; color: rgba(255,255,255,0.3);
+            border-top: 1px solid rgba(255,255,255,0.04);
+            display: flex; justify-content: flex-end; align-items: center; gap: 3px;
+        }
+
+        /* Typing indicator */
+        .chat-typing {
+            display: flex; align-items: center; gap: 4px;
+            align-self: flex-start;
+        }
+        .typing-bubble {
+            background: #1c2333;
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 9px 13px; border-radius: 14px 14px 14px 3px;
+            display: flex; gap: 3px; align-items: center;
+        }
+        .typing-bubble span {
+            width: 5px; height: 5px; border-radius: 50%; background: #475569;
+            animation: waTyping 1.3s ease-in-out infinite;
+        }
+        .typing-bubble span:nth-child(2) { animation-delay: 0.18s; }
+        .typing-bubble span:nth-child(3) { animation-delay: 0.36s; }
+
+        @keyframes waTyping {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+            30% { transform: translateY(-4px); opacity: 1; background: var(--accent); }
+        }
+
+        /* Input bar */
+        .wa-inputbar {
+            background: #090d16;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding: 8px 10px;
+            display: flex; align-items: center; gap: 7px;
+        }
+        .wa-inputbar-field {
+            flex: 1; background: #1c2333;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px; padding: 7px 14px;
+            font-size: 11.5px; color: rgba(255,255,255,0.3);
+            outline: none; font-family: inherit;
+        }
+        .wa-mic, .wa-send {
+            width: 30px; height: 30px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: none; cursor: pointer; flex-shrink: 0;
+        }
+        .wa-mic  { background: rgba(255,255,255,0.06); }
+        .wa-mic  svg { stroke: rgba(255,255,255,0.4); fill: none; width: 13px; height: 13px; stroke-width: 2; }
+        .wa-send { background: var(--accent); box-shadow: 0 2px 10px rgba(37,211,102,0.3); }
+        .wa-send svg { stroke: white; fill: none; width: 13px; height: 13px; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 900px) {
+            .bot-inner { grid-template-columns: 1fr; }
+            .bot-phone-col { order: -1; margin-bottom: 16px; }
+            .wa-phone { max-width: 290px; }
+        }
+        @media (max-width: 480px) {
+            .wa-phone { max-width: 100%; border-radius: 28px; }
+            .b-timeline::before { left: 21px; }
+        }
+
+        /* ── SHOWCASE SECTION (REUSABLE) ── */
+        .showcase-section { padding: var(--section-pad) 0; }
+
+        /* ─── STATS BAND ──────────────────────────────────────────────── */
+        .stats-band {
+            background: linear-gradient(90deg, #1e1b4b 0%, #0d1117 50%, #1e1b4b 100%);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 40px 0;
+        }
+        .stats-band-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 20px; text-align: center;
+        }
+        .stat-band-item strong { display: block; font-size: clamp(28px,4vw,48px); font-weight: 800; color: var(--accent); line-height: 1; }
+        .stat-band-item span { font-size: 13px; color: var(--muted); margin-top: 6px; display: block; }
+        @media (max-width: 768px) { .stats-band-grid { grid-template-columns: repeat(2,1fr); gap: 30px; } }
+        @media (max-width: 400px) { .stats-band-grid { grid-template-columns: 1fr; } }
+
+        /* ─── INTEGRATIONS STRIP ─────────────────────────────────────── */
+        .integrations-strip {
+            padding: 60px 0;
+            background: rgba(15,23,42,0.5);
+            overflow: hidden;
+        }
+        .integrations-label { text-align: center; font-size: 13px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 28px; }
+        .int-scroll-track { display: flex; gap: 16px; width: max-content; animation: scrollTrack 28s linear infinite; }
+        .int-scroll-track:hover { animation-play-state: paused; }
+        .int-badge {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px; padding: 10px 20px;
+            font-size: 13px; font-weight: 600; color: var(--muted);
+            white-space: nowrap; display: inline-flex; align-items: center; gap: 8px;
+            transition: 0.2s;
+        }
+        .int-badge:hover { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.3); color: white; }
+
+        @keyframes scrollTrack {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* ─── FOOTER ─────────────────────────────────────────────── */
+        footer {
+            background: var(--bg-hero);
+            padding: 80px 0 40px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 60px;
+            margin-bottom: 60px;
+        }
+        .footer-logo { font-size: 24px; font-weight: 800; color: white; text-decoration: none; margin-bottom: 20px; display: block; }
+        .footer-links h4 { margin-bottom: 20px; font-size: 16px; }
+        .footer-links a { display: block; color: var(--muted); text-decoration: none; margin-bottom: 12px; font-size: 14px; transition: 0.2s; }
+        .footer-links a:hover { color: white; }
+
+        .footer-bottom {
+            display: flex; justify-content: space-between; align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 30px;
+            font-size: 13px; color: var(--muted);
+        }
+
+        @media (max-width: 768px) {
+            .footer-grid { grid-template-columns: 1fr; text-align: center; }
+            .footer-bottom { flex-direction: column; gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVIGATION -->
+    <nav>
+        <div class="container nav-inner">
+            <a href="#" class="logo">WAAMINI<span>.</span></a>
+            
+            <input type="checkbox" id="nav-check">
+            <label for="nav-check" class="nav-toggle">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </label>
+
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#industries">Industries</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#">Login</a>
+                <a href="#" class="btn-primary" style="padding: 10px 24px; font-size: 14px; display: none;">Get Started</a>
+            </div>
+
+            <div class="nav-cta">
+                <a href="#" style="color:white; text-decoration:none; font-weight:600; font-size:14px; margin-right:20px;">Login</a>
+                <a href="#" class="btn-primary" style="padding: 12px 24px; font-size: 14px;">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- HERO SECTION -->
+        <section class="hero">
+            <div class="container hero-layout">
+                <div class="hero-content reveal">
+                    <div class="badge-pill">
+                        <div class="pulse-dot"></div>
+                        Official WhatsApp Business API Partner
+                    </div>
+                    <h1>Scale Your Business with <span class="gradient-text">WAAMINI CRM</span></h1>
+                    <p class="hero-subtitle">Automate WhatsApp marketing, manage leads, and drive hyper-growth with India's most powerful automation platform — built for 30+ industries.</p>
+                    
+                    <div class="hero-btns">
+                        <a href="#" class="btn-primary">🚀 Get Started Now</a>
+                        <a href="#" class="btn-secondary">Explore Features →</a>
+                    </div>
+
+                    <div class="trust-bar">
+                        <div class="trust-item">
+                            <div class="green-ring">✓</div>
+                            Official Meta Business Partner
+                        </div>
+                        <div class="trust-item">
+                            <div class="live-dot"></div>
+                            14 new signups today / Tamil Nadu businesses
+                        </div>
+                        <div class="trust-item">
+                            <span style="color:#f59e0b">⭐⭐⭐⭐⭐</span> 4.9 / 5.0
+                        </div>
+                    </div>
+
+                    <!-- Mobile Flow Visual -->
+                    <div class="mobile-flow">
+                        <div class="mobile-pill">📥 Capture <span>→</span></div>
+                        <div class="mobile-pill">⚡ Automate <span>→</span></div>
+                        <div class="mobile-pill">📈 Convert</div>
+                        <div class="mobile-stat">1,200+ Leads Captured This Month</div>
+                    </div>
+                </div>
+
+                <div class="hero-visual reveal" style="transition-delay: 0.2s">
+                    <svg class="flow-svg" viewBox="0 0 400 400">
+                        <defs>
+                            <linearGradient id="comet-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="transparent" />
+                                <stop offset="100%" stop-color="#7c3aed" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- Left Sources -->
+                        <circle cx="40" cy="100" r="25" fill="#1877f2" opacity="0.1" />
+                        <text x="35" y="105" fill="#1877f2" font-size="20">f</text>
+                        
+                        <circle cx="40" cy="200" r="25" fill="#e4405f" opacity="0.1" />
+                        <text x="32" y="205" fill="#e4405f" font-size="18">📸</text>
+                        
+                        <circle cx="40" cy="300" r="25" fill="#00d2ff" opacity="0.1" />
+                        <text x="32" y="305" fill="#00d2ff" font-size="18">🌐</text>
+
+                        <!-- Paths to Hub -->
+                        <path class="pipe" d="M65,100 Q150,100 200,200" />
+                        <path class="pipe" d="M65,200 L200,200" />
+                        <path class="pipe" d="M65,300 Q150,300 200,200" />
+
+                        <!-- Comet Particles -->
+                        <path d="M65,100 Q150,100 200,200" fill="none" stroke="url(#comet-grad)" stroke-width="2" class="comet">
+                            <animate attributeName="stroke-dashoffset" from="110" to="0" dur="3s" repeatCount="indefinite" />
+                        </path>
+                        <path d="M65,200 L200,200" fill="none" stroke="url(#comet-grad)" stroke-width="2" class="comet">
+                            <animate attributeName="stroke-dashoffset" from="135" to="0" dur="3s" begin="1s" repeatCount="indefinite" />
+                        </path>
+                        <path d="M65,300 Q150,300 200,200" fill="none" stroke="url(#comet-grad)" stroke-width="2" class="comet">
+                            <animate attributeName="stroke-dashoffset" from="110" to="0" dur="3s" begin="2s" repeatCount="indefinite" />
+                        </path>
+
+                        <!-- Hub -->
+                        <circle class="hub-ring" cx="200" cy="200" r="60" stroke-dasharray="10 5" />
+                        <circle class="hub-ring" cx="200" cy="200" r="50" stroke-dasharray="8 4" style="animation-direction: reverse;" />
+                        <circle class="hub-core" cx="200" cy="200" r="40" />
+                        <text x="188" y="210" fill="white" font-weight="800" font-size="32">W</text>
+
+                        <!-- Outgoing Paths -->
+                        <path class="pipe" d="M240,200 Q300,200 350,100" />
+                        <path class="pipe" d="M240,200 L350,200" />
+                        <path class="pipe" d="M240,200 Q300,200 350,300" />
+
+                        <!-- Ticks -->
+                        <g class="tick-badge" id="t-wa">
+                            <circle cx="350" cy="100" r="15" fill="#25D366" />
+                            <text x="345" y="105" fill="white" font-size="12">✓</text>
+                        </g>
+                        <g class="tick-badge" id="t-bot">
+                            <circle cx="350" cy="200" r="15" fill="#25D366" />
+                            <text x="345" y="205" fill="white" font-size="12">✓</text>
+                        </g>
+                        <g class="tick-badge" id="t-crm">
+                            <circle cx="350" cy="300" r="15" fill="#25D366" />
+                            <text x="345" y="305" fill="white" font-size="12">✓</text>
+                        </g>
+
+                        <!-- Node Labels -->
+                        <text x="335" y="80" fill="white" font-size="10" font-weight="600">WhatsApp API</text>
+                        <text x="335" y="180" fill="white" font-size="10" font-weight="600">AI Bot</text>
+                        <text x="335" y="280" fill="white" font-size="10" font-weight="600">CRM Sync</text>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOW IT WORKS -->
+        <section class="section">
+            <div class="container">
+                <div class="section-header reveal">
+                    <h2>How It Works</h2>
+                    <p>The journey from a cold lead to a closed deal in 4 simple steps.</p>
+                </div>
+                <div class="how-grid reveal" style="transition-delay: 0.1s">
+                    <div class="how-connector"></div>
+                    <div class="how-card">
+                        <div class="how-num">1</div>
+                        <span class="how-icon">📥</span>
+                        <h3>Capture Leads</h3>
+                        <p>Auto-capture data from FB, IG, and Web Ads.</p>
+                    </div>
+                    <div class="how-card">
+                        <div class="how-num">2</div>
+                        <span class="how-icon">⚡</span>
+                        <h3>Auto-Respond</h3>
+                        <p>Send instant greetings via WhatsApp API.</p>
+                    </div>
+                    <div class="how-card">
+                        <div class="how-num">3</div>
+                        <span class="how-icon">🤖</span>
+                        <h3>Qualify & Route</h3>
+                        <p>AI Bot qualifies intent and notifies sales.</p>
+                    </div>
+                    <div class="how-card">
+                        <div class="how-num">4</div>
+                        <span class="how-icon">🤝</span>
+                        <h3>Close Deals</h3>
+                        <p>Manage all conversations in your CRM.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FEATURES GRID -->
+        <section class="section" id="features" style="background: rgba(15,23,42,0.3);">
+            <div class="container">
+                <div class="section-header reveal">
+                    <h2>Everything You Need</h2>
+                    <p>Powerful tools designed for speed and reliability.</p>
+                </div>
+                <div class="features-grid">
+                    <div class="f-card reveal" style="transition-delay: 0s">
+                        <div class="f-icon-wrap">🚀</div>
+                        <h3>Bulk Campaigns</h3>
+                        <p>Send 10,000+ messages in one click with official WhatsApp rates.</p>
+                    </div>
+                    <div class="f-card reveal" style="transition-delay: 0.1s">
+                        <div class="f-icon-wrap">🤖</div>
+                        <h3>AI Chatbot</h3>
+                        <p>24/7 auto-reply, keyword matching, and lead qualification.</p>
+                    </div>
+                    <div class="f-card reveal" style="transition-delay: 0.2s">
+                        <div class="f-icon-wrap">📊</div>
+                        <h3>CRM Pipeline</h3>
+                        <p>Visual Kanban board to track every stage of your sales funnel.</p>
+                    </div>
+                    <div class="f-card reveal" style="transition-delay: 0.3s">
+                        <div class="f-icon-wrap">🔗</div>
+                        <h3>Multi-Source</h3>
+                        <p>Capture leads from FB, IG, Web forms, and QR codes instantly.</p>
+                    </div>
+                    <div class="f-card reveal" style="transition-delay: 0.4s">
+                        <div class="f-icon-wrap">📅</div>
+                        <h3>Smart Scheduling</h3>
+                        <p>Set up drip sequences and automated follow-up reminders.</p>
+                    </div>
+                    <div class="f-card reveal" style="transition-delay: 0.5s">
+                        <div class="f-icon-wrap">📈</div>
+                        <h3>Analytics</h3>
+                        <p>Deep insights into open rates, reply rates, and campaign ROI.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ STATS BAND ═══ -->
+        <div class="stats-band">
+            <div class="container">
+                <div class="stats-band-grid">
+                    <div class="stat-band-item reveal">
+                        <strong id="stat-msgs">924+</strong>
+                        <span>Messages Processed</span>
+                    </div>
+                    <div class="stat-band-item reveal" style="transition-delay:0.1s">
+                        <strong>500+</strong>
+                        <span>Businesses Trusted</span>
+                    </div>
+                    <div class="stat-band-item reveal" style="transition-delay:0.2s">
+                        <strong>91%</strong>
+                        <span>Avg Read Rate</span>
+                    </div>
+                    <div class="stat-band-item reveal" style="transition-delay:0.3s">
+                        <strong style="color:#4ade80">GREEN</strong>
+                        <span>WA Quality Rating</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ BOT BUILDER — PRO COMMERCIAL DARK UI ═══ -->
+        <section class="section bot-section" id="bot-builder">
+            <div class="container">
+                <div class="bot-inner">
+
+                    <!-- ── LEFT: Steps & Copy ── -->
+                    <div class="reveal">
+                        <div class="bot-eyebrow">Advanced Automation</div>
+
+                        <h2 class="bot-heading">
+                            Visualize, Build &amp;<br>
+                            <span class="grad">Automate Every Chat</span>
+                        </h2>
+
+                        <p class="bot-desc">
+                            No-code visual flow builder. Design complex customer journeys in minutes —
+                            every keyword, button click, and action mapped to a perfect automated reply.
+                        </p>
+
+                        <div class="b-timeline">
+                            <!-- Step 1 -->
+                            <div class="b-step" data-bdelay="0">
+                                <div class="b-icon b-icon-1">
+                                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                                </div>
+                                <div class="b-text">
+                                    <h4>① Keyword Trigger</h4>
+                                    <p>User sends <strong>"Price"</strong> or <strong>"Catalog"</strong>. Bot matches intent using <em>Exact, Contains, or Fuzzy</em> logic — fully automatic.</p>
+                                </div>
+                            </div>
+                            <!-- Step 2 -->
+                            <div class="b-step" data-bdelay="180">
+                                <div class="b-icon b-icon-2">
+                                    <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                                </div>
+                                <div class="b-text">
+                                    <h4>② Dynamic Branching</h4>
+                                    <p>If <em>New Customer</em> → send Welcome Catalog. If <em>Existing</em> → show order status with live <strong>{name}</strong> &amp; <strong>{last_purchase}</strong> variables.</p>
+                                </div>
+                            </div>
+                            <!-- Step 3 -->
+                            <div class="b-step" data-bdelay="360">
+                                <div class="b-icon b-icon-3">
+                                    <svg viewBox="0 0 24 24"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+                                </div>
+                                <div class="b-text">
+                                    <h4>③ Multi-Format Reply</h4>
+                                    <p>Dispatch a <em>List Message</em>, attach PDF brochure, and fire a <strong>Zapier / Pabbly webhook</strong> — all in a single automated step.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="b-chips">
+                            <span class="b-chip">Unlimited Keywords</span>
+                            <span class="b-chip">Variable Substitution</span>
+                            <span class="b-chip">Quick-Reply Buttons</span>
+                            <span class="b-chip">Webhook → Zapier</span>
+                            <span class="b-chip">Auto Human Handover</span>
+                        </div>
+                    </div>
+
+                    <!-- ── RIGHT: WhatsApp Phone Mockup ── -->
+                    <div class="bot-phone-col reveal" style="transition-delay:0.25s">
+                        <div class="wa-phone">
+
+                            <!-- Notch -->
+                            <div class="wa-notch"><div class="wa-notch-pill"></div></div>
+
+                            <!-- Status bar -->
+                            <div class="wa-statusbar">
+                                <span>9:41</span>
+                                <span>▲ ● ■</span>
+                            </div>
+
+                            <!-- WA Header bar -->
+                            <div class="wa-header">
+                                <span class="wa-back">‹</span>
+                                <div class="wa-av">🤖</div>
+                                <div class="wa-contact">
+                                    <strong>Waamini Bot</strong>
+                                    <span><span class="wa-green-dot"></span>online</span>
+                                </div>
+                                <span class="wa-menu-icon">⋮</span>
+                            </div>
+
+                            <!-- Chat area -->
+                            <div class="wa-chat" id="wa-chat-body">
+                                <div class="chat-date">Today</div>
+
+                                <!-- 1. User sends keyword -->
+                                <div class="chat-row out" id="cm1" style="opacity:0;transform:translateY(6px)">
+                                    <div class="chat-bubble">price</div>
+                                    <div class="chat-meta">10:42 AM <span class="blue-ticks">✓✓</span></div>
+                                </div>
+
+                                <!-- 2. Bot typing -->
+                                <div class="chat-typing" id="cm-typing" style="opacity:0">
+                                    <div class="typing-bubble"><span></span><span></span><span></span></div>
+                                </div>
+
+                                <!-- 3. Bot greeting + quick reply -->
+                                <div class="chat-row in" id="cm2" style="opacity:0;transform:translateY(6px)">
+                                    <div class="chat-bubble">
+                                        <span class="bot-name">Waamini Bot</span>
+                                        👋 Hi! Welcome. Are you a <span class="hi-green">new</span> or existing customer?
+                                    </div>
+                                    <div class="chat-qr-wrap">
+                                        <span class="chat-qr">🆕 New Customer</span>
+                                        <span class="chat-qr">🔄 Existing</span>
+                                    </div>
+                                    <div class="chat-meta">10:42 AM</div>
+                                </div>
+
+                                <!-- 4. User taps New -->
+                                <div class="chat-row out" id="cm3" style="opacity:0;transform:translateY(6px)">
+                                    <div class="chat-bubble">🆕 New Customer</div>
+                                    <div class="chat-meta">10:42 AM <span class="blue-ticks">✓✓</span></div>
+                                </div>
+
+                                <!-- 5. Bot typing 2 -->
+                                <div class="chat-typing" id="cm-typing2" style="opacity:0">
+                                    <div class="typing-bubble"><span></span><span></span><span></span></div>
+                                </div>
+
+                                <!-- 6. Bot list message -->
+                                <div id="cm4" style="opacity:0;transform:translateY(6px);transition:all 0.4s ease;display:none;">
+                                    <div class="chat-list-card">
+                                        <div class="chat-list-head">📋 Our Products</div>
+                                        <div class="chat-list-row">WhatsApp CRM Dashboard</div>
+                                        <div class="chat-list-row">AI Chatbot Builder</div>
+                                        <div class="chat-list-row">Bulk Campaign Tool</div>
+                                        <div class="chat-list-row">Cart Recovery Suite</div>
+                                        <div class="chat-list-meta">10:43 AM</div>
+                                    </div>
+                                </div>
+
+                                <!-- 7. Bot CTA -->
+                                <div class="chat-row in" id="cm5" style="opacity:0;transform:translateY(6px)">
+                                    <div class="chat-bubble">
+                                        🚀 Plans from <span class="hi-price">₹2,999/mo</span>. Want a quick demo?
+                                    </div>
+                                    <div class="chat-qr-wrap">
+                                        <span class="chat-qr">📅 Book Demo</span>
+                                        <span class="chat-qr">💰 Pricing</span>
+                                    </div>
+                                    <div class="chat-meta">10:43 AM</div>
+                                </div>
+
+                            </div><!-- /wa-chat -->
+
+                            <!-- Input bar -->
+                            <div class="wa-inputbar">
+                                <button class="wa-mic">
+                                    <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                                </button>
+                                <input class="wa-inputbar-field" placeholder="Type a message…" readonly>
+                                <button class="wa-send">
+                                    <svg viewBox="0 0 24 24"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+                                </button>
+                            </div>
+
+                        </div><!-- /wa-phone -->
+                    </div><!-- /bot-phone-col -->
+
+                </div><!-- /bot-inner -->
+            </div>
+        </section>
+
+        <!-- ═══ INTEGRATIONS SCROLL STRIP ═══ -->
+        <div class="integrations-strip">
+            <p class="integrations-label">Connects with your favourite tools</p>
+            <div style="overflow:hidden;">
+                <div class="int-scroll-track" id="int-track">
+                    <span class="int-badge">🔗 Zapier</span>
+                    <span class="int-badge">📊 Google Sheets</span>
+                    <span class="int-badge">💳 Razorpay</span>
+                    <span class="int-badge">📦 Shopify</span>
+                    <span class="int-badge">🤖 OpenAI</span>
+                    <span class="int-badge">📧 Mailchimp</span>
+                    <span class="int-badge">📱 IndiaMart</span>
+                    <span class="int-badge">📣 Facebook Ads</span>
+                    <span class="int-badge">📷 Instagram</span>
+                    <span class="int-badge">💼 Zoho CRM</span>
+                    <span class="int-badge">🧾 Tally</span>
+                    <span class="int-badge">🌐 Pabbly</span>
+                    <!-- duplicate for seamless loop -->
+                    <span class="int-badge">🔗 Zapier</span>
+                    <span class="int-badge">📊 Google Sheets</span>
+                    <span class="int-badge">💳 Razorpay</span>
+                    <span class="int-badge">📦 Shopify</span>
+                    <span class="int-badge">🤖 OpenAI</span>
+                    <span class="int-badge">📧 Mailchimp</span>
+                    <span class="int-badge">📱 IndiaMart</span>
+                    <span class="int-badge">📣 Facebook Ads</span>
+                    <span class="int-badge">📷 Instagram</span>
+                    <span class="int-badge">💼 Zoho CRM</span>
+                    <span class="int-badge">🧾 Tally</span>
+                    <span class="int-badge">🌐 Pabbly</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SHOWCASE TABS -->
+        <section class="section">
+            <div class="container">
+                <div class="section-header reveal">
+                    <h2>Powerful Performance</h2>
+                    <p>Experience the engine behind the growth.</p>
+                </div>
+                <div class="tabs-container reveal">
+                    <div class="tab-bar">
+                        <button class="tab-btn active" onclick="showTab('ai')">AI Chat</button>
+                        <button class="tab-btn" onclick="showTab('campaign')">Campaigns</button>
+                        <button class="tab-btn" onclick="showTab('crm')">CRM Pipeline</button>
+                    </div>
+
+                    <!-- AI Chat Panel -->
+                    <div class="panel glass-card active" id="tab-ai">
+                        <div class="chat-simulation" id="chat-sim">
+                            <div class="bubble user">"Hi, I'm interested in the Premium Plan."</div>
+                            <div class="bubble bot">"Welcome! 🚀 Our Premium plan includes unlimited team members. Would you like a demo?"</div>
+                            <div class="bubble user">"Yes, show me the pricing."</div>
+                            <div class="bubble bot">"It's just ₹1,499/mo! Shall I send the registration link?"</div>
+                        </div>
+                    </div>
+
+                    <!-- Campaign Panel -->
+                    <div class="panel glass-card" id="tab-campaign">
+                        <div class="campaign-stat-box">
+                            <div class="stat-num" id="count-sent">0</div>
+                            <div class="stat-label">Messages Sent Successfully</div>
+                            <div class="stat-num" style="font-size:40px; margin-top:30px;">94.2%</div>
+                            <div class="stat-label">Average Open Rate</div>
+                        </div>
+                    </div>
+
+                    <!-- CRM Panel -->
+                    <div class="panel glass-card" id="tab-crm">
+                        <div class="kanban">
+                            <div class="k-col">
+                                <h4>New Lead</h4>
+                                <div class="k-card"><strong>Priya S.</strong>Restaurant Inquiry</div>
+                                <div class="k-card"><strong>Arjun K.</strong>Real Estate Tour</div>
+                            </div>
+                            <div class="k-col">
+                                <h4>Contacted</h4>
+                                <div class="k-card"><strong>Deepak M.</strong>Sent Catalog</div>
+                            </div>
+                            <div class="k-col">
+                                <h4>Converted</h4>
+                                <div class="k-card"><strong>Meera V.</strong>Paid — ₹14,999</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- INDUSTRIES -->
+        <section class="section" id="industries" style="background: rgba(15,23,42,0.3);">
+            <div class="container">
+                <div class="section-header reveal">
+                    <h2>Built for 30+ Industries</h2>
+                    <p>Pre-built flows specifically for your niche.</p>
+                </div>
+                <div class="industry-grid">
+                    <div class="ind-card glass-card reveal">
+                        <div class="ind-icon">🍴</div>
+                        <div class="ind-info">
+                            <h3>Restaurant</h3>
+                            <div class="ind-chat-preview">
+                                <div class="ind-msg">"Book a table for 4?"</div>
+                                <div class="ind-msg">"Confirmed! See you at 7 PM. ✓✓"</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ind-card glass-card reveal">
+                        <div class="ind-icon">🏠</div>
+                        <div class="ind-info">
+                            <h3>Real Estate</h3>
+                            <div class="ind-chat-preview">
+                                <div class="ind-msg">"Show me 2BHK flats."</div>
+                                <div class="ind-msg">"Sent PDF catalog to your chat! ✓✓"</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ind-card glass-card reveal">
+                        <div class="ind-icon">💎</div>
+                        <div class="ind-info">
+                            <h3>Jewellery</h3>
+                            <div class="ind-chat-preview">
+                                <div class="ind-msg">"Is this design in stock?"</div>
+                                <div class="ind-msg">"Yes! Visit our T. Nagar store. ✓✓"</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ind-card glass-card reveal">
+                        <div class="ind-icon">🎓</div>
+                        <div class="ind-info">
+                            <h3>Education</h3>
+                            <div class="ind-chat-preview">
+                                <div class="ind-msg">"Admission fees?"</div>
+                                <div class="ind-msg">"Application form sent! ✓✓"</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRICING -->
+        <section class="section" id="pricing">
+            <div class="container">
+                <div class="section-header reveal">
+                    <h2>Simple, Honest Pricing</h2>
+                    <p>No hidden markups. Pay only for what you use.</p>
+                </div>
+                <div class="pricing-grid">
+                    <div class="p-card reveal">
+                        <h3>Starter</h3>
+                        <div class="p-price">₹999<span>/mo</span></div>
+                        <ul class="p-features">
+                            <li><span class="p-check">✓</span> 5,000 Messages</li>
+                            <li><span class="p-check">✓</span> 1 Team Member</li>
+                            <li><span class="p-check">✓</span> Basic AI Bot</li>
+                        </ul>
+                        <a href="#" class="btn-secondary" style="width:100%;">Start Free Trial</a>
+                    </div>
+                    <div class="p-card featured reveal">
+                        <div class="p-tag">POPULAR</div>
+                        <h3>Growth</h3>
+                        <div class="p-price">₹1,499<span>/mo</span></div>
+                        <ul class="p-features">
+                            <li><span class="p-check">✓</span> Unlimited Messages</li>
+                            <li><span class="p-check">✓</span> 5 Team Members</li>
+                            <li><span class="p-check">✓</span> Advanced Flow Builder</li>
+                            <li><span class="p-check">✓</span> CRM Integration</li>
+                        </ul>
+                        <a href="#" class="btn-primary" style="width:100%;">Start Free Trial</a>
+                    </div>
+                    <div class="p-card reveal">
+                        <h3>Enterprise</h3>
+                        <div class="p-price">₹1,999<span>/mo</span></div>
+                        <ul class="p-features">
+                            <li><span class="p-check">✓</span> Dedicated Manager</li>
+                            <li><span class="p-check">✓</span> Custom Bot Logic</li>
+                            <li><span class="p-check">✓</span> Whitelabel Option</li>
+                        </ul>
+                        <a href="#" class="btn-secondary" style="width:100%;">Start Free Trial</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TESTIMONIALS -->
+        <section class="section" style="background: rgba(15,23,42,0.3);">
+            <div class="container">
+                <div class="section-header reveal">
+                    <h2>Trusted by 500+ Businesses</h2>
+                </div>
+                <div class="testimonial-grid">
+                    <div class="t-card glass-card reveal">
+                        <div class="t-stars">⭐⭐⭐⭐⭐</div>
+                        <p class="t-quote">"Waamini transformed how we handle customer inquiries. Our response time dropped from 4 hours to 4 seconds!"</p>
+                        <div class="t-author">Senthil Kumar</div>
+                        <div class="t-biz">SK Jewellery, Chennai</div>
+                    </div>
+                    <div class="t-card glass-card reveal">
+                        <div class="t-stars">⭐⭐⭐⭐⭐</div>
+                        <p class="t-quote">"The best WhatsApp CRM for real estate. Automated brochures sent while I'm asleep!"</p>
+                        <div class="t-author">Anjali Devi</div>
+                        <div class="t-biz">VGP Properties</div>
+                    </div>
+                    <div class="t-card glass-card reveal">
+                        <div class="t-stars">⭐⭐⭐⭐⭐</div>
+                        <p class="t-quote">"Simple to use and very powerful. The official Meta partnership gives us peace of mind."</p>
+                        <div class="t-author">Dr. Rajesh</div>
+                        <div class="t-biz">Apollo Clinics</div>
+                    </div>
+                    <div class="t-card glass-card reveal">
+                        <div class="t-stars">⭐⭐⭐⭐⭐</div>
+                        <p class="t-quote">"Zero markup on messages is a game-changer. We saved ₹40k last month alone."</p>
+                        <div class="t-author">Prabhu T.</div>
+                        <div class="t-biz">Dine-In Restaurant</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FINAL CTA -->
+        <section class="section final-cta">
+            <div class="container reveal">
+                <h2>Ready to 10x Your WhatsApp Marketing?</h2>
+                <p>Join the future of business communication today.</p>
+                <div class="hero-btns" style="justify-content: center;">
+                    <a href="#" class="btn-primary">Start Free Trial</a>
+                    <a href="#" class="btn-secondary">Book a Demo</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <a href="#" class="footer-logo">WAAMINI<span>.</span></a>
+                    <p style="color:var(--muted); font-size:14px; margin-top:15px; max-width:300px;">India's most powerful WhatsApp Business API partner. Scale your business with automation.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Platform</h4>
+                    <a href="#features">Features</a>
+                    <a href="#pricing">Pricing</a>
+                    <a href="#industries">Industries</a>
+                    <a href="#">Login</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Legal</h4>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Contact Us</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div>© 2025 Waamini CRM. All rights reserved.</div>
+                <div>Official Meta Business Partner</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. REVEAL OBSERVER
+            const revealCallback = (entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            };
+            const revealObserver = new IntersectionObserver(revealCallback, { threshold: 0.15 });
+            document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+            // 2. TAB LOGIC
+            window.showTab = function(type) {
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                
+                event.currentTarget.classList.add('active');
+                document.getElementById('tab-' + type).classList.add('active');
+
+                if (type === 'ai') startChatSim();
+                if (type === 'campaign') startCountUp();
+            };
+
+            // 3. AI CHAT SIMULATION
+            function startChatSim() {
+                const bubbles = document.querySelectorAll('.bubble');
+                bubbles.forEach(b => b.classList.remove('revealed'));
+                bubbles.forEach((b, i) => {
+                    setTimeout(() => b.classList.add('revealed'), i * 800);
+                });
+            }
+            startChatSim(); // Initial start
+
+            // 4. COUNT UP ANIMATION
+            function startCountUp() {
+                const el = document.getElementById('count-sent');
+                let count = 0;
+                const target = 10482;
+                const speed = target / 50;
+                const timer = setInterval(() => {
+                    count += speed;
+                    if (count >= target) {
+                        el.innerText = target.toLocaleString();
+                        clearInterval(timer);
+                    } else {
+                        el.innerText = Math.floor(count).toLocaleString();
+                    }
+                }, 30);
+            }
+
+            // 5. BOT STEP REVEAL (IntersectionObserver) — new .b-step + .in class
+            const bSteps = document.querySelectorAll('.b-step');
+            const bStepObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const delay = parseInt(entry.target.getAttribute('data-bdelay')) || 0;
+                        setTimeout(() => entry.target.classList.add('in'), delay);
+                    }
+                });
+            }, { threshold: 0.25 });
+            bSteps.forEach(s => bStepObserver.observe(s));
+
+            // 6. WHATSAPP CHAT SIMULATION
+            function runWaChat() {
+                const steps = [
+                    { id: 'cm1',       delay: 400,  type: 'show' },
+                    { id: 'cm-typing', delay: 1000, type: 'show' },
+                    { id: 'cm-typing', delay: 2100, type: 'hide' },
+                    { id: 'cm2',       delay: 2200, type: 'show' },
+                    { id: 'cm3',       delay: 3600, type: 'show' },
+                    { id: 'cm-typing2',delay: 4200, type: 'show' },
+                    { id: 'cm-typing2',delay: 5200, type: 'hide' },
+                    { id: 'cm4',       delay: 5300, type: 'showBlock' },
+                    { id: 'cm5',       delay: 6600, type: 'show' },
+                ];
+
+                // reset
+                ['cm1','cm2','cm3','cm4','cm5','cm-typing','cm-typing2'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(6px)';
+                    el.style.transition = '';
+                    if (id === 'cm4') el.style.display = 'none';
+                });
+
+                steps.forEach(({ id, delay, type }) => {
+                    setTimeout(() => {
+                        const el = document.getElementById(id);
+                        if (!el) return;
+                        if (type === 'show') {
+                            el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                            el.style.opacity = '1';
+                            el.style.transform = 'translateY(0)';
+                        } else if (type === 'showBlock') {
+                            el.style.display = 'block';
+                            requestAnimationFrame(() => {
+                                el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                                el.style.opacity = '1';
+                                el.style.transform = 'translateY(0)';
+                            });
+                        } else if (type === 'hide') {
+                            el.style.opacity = '0';
+                        }
+                        // scroll chat to bottom
+                        const chat = document.getElementById('wa-chat-body');
+                        if (chat) chat.scrollTop = chat.scrollHeight;
+                    }, delay);
+                });
+            }
+
+            // Trigger WA chat when phone scrolls into view
+            const waPhone = document.querySelector('.wa-phone');
+            if (waPhone) {
+                const waObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            runWaChat();
+                            // replay every 10s
+                            if (!waPhone._interval) {
+                                waPhone._interval = setInterval(runWaChat, 10000);
+                            }
+                        }
+                    });
+                }, { threshold: 0.4 });
+                waObserver.observe(waPhone);
+            }
+
+            // 7. NEURAL FLOW TICKS
+            function startFlowAnimation() {
+                const ticks = ['t-wa', 't-bot', 't-crm'];
+                ticks.forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.classList.remove('active');
+                });
+                
+                setTimeout(() => { if(document.getElementById('t-wa')) document.getElementById('t-wa').classList.add('active'); }, 1000);
+                setTimeout(() => { if(document.getElementById('t-bot')) document.getElementById('t-bot').classList.add('active'); }, 2000);
+                setTimeout(() => { if(document.getElementById('t-crm')) document.getElementById('t-crm').classList.add('active'); }, 3000);
+            }
+            setInterval(startFlowAnimation, 5000);
+            startFlowAnimation();
+
+        });
+    </script>
+</body>
+</html>

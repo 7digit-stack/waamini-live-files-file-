@@ -1,0 +1,148 @@
+/* ============================================
+   WAAMINI REGISTER PAGE - Premium Dark Theme
+   ============================================ */
+
+/* Center wrapper */
+.register-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 85vh;
+    padding: 60px 20px;
+}
+
+/* Card */
+.register-card {
+    width: 500px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 48px 44px;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: fadeSlide 0.6s ease;
+}
+
+/* Header */
+.register-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.icon-box {
+    font-size: 36px;
+    margin-bottom: 12px;
+}
+
+.register-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+}
+
+.register-header p {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* Alert message */
+.alert-msg {
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    background: rgba(108, 92, 231, 0.1);
+    border: 1px solid rgba(108, 92, 231, 0.2);
+    color: var(--primary);
+}
+
+/* Inputs */
+.input-group {
+    margin-bottom: 18px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    transition: var(--transition);
+    outline: none;
+}
+
+.input-group input::placeholder {
+    color: var(--text-muted);
+}
+
+.input-group input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--glow);
+}
+
+/* Two column layout */
+.row-2 {
+    display: flex;
+    gap: 12px;
+}
+
+/* Button */
+.register-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-top: 8px;
+    box-shadow: 0 4px 15px var(--glow);
+}
+
+.register-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px var(--glow);
+}
+
+/* Login link */
+.login-link {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.login-link a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.login-link a:hover {
+    color: var(--primary-hover);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .register-card {
+        width: 90%;
+        padding: 32px 24px;
+    }
+
+    .row-2 {
+        flex-direction: column;
+        gap: 0;
+    }
+}

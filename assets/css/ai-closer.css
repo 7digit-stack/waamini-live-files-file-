@@ -1,0 +1,21 @@
+/* "Your AI Sales Closer" — copy left, video right, plain white */
+body.lp-neo .ai-showcase.aix{background:#fff!important;padding:90px 0;overflow:hidden}
+.aix-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(32px,5vw,72px);align-items:center;max-width:1180px;margin:0 auto}
+.aix-tag{display:inline-flex;align-items:center;gap:9px;padding:9px 18px;border-radius:999px;background:#E3F7EE;color:#128C7E;
+  font:700 12px/1 var(--font-mono,'JetBrains Mono',ui-monospace,monospace);letter-spacing:1.3px}
+.aix-tag b{width:8px;height:8px;border-radius:50%;background:#25D366;display:inline-block}
+.aix-title{margin:22px 0 20px;font-family:'Inter',system-ui,sans-serif;font-weight:700;font-size:clamp(36px,5.2vw,62px);line-height:1.08;letter-spacing:-.045em;color:#0F2622}
+.aix-title span{color:#128C7E}
+.aix-sub{max-width:540px;margin:0 0 30px;font:400 17px/1.65 'Inter',system-ui,sans-serif;color:#55536b}
+.aix-cta{display:inline-flex;align-items:center;padding:17px 30px;border-radius:999px;background:#128C7E;color:#fff;text-decoration:none;
+  font:700 15.5px/1 'Inter',system-ui,sans-serif;box-shadow:0 14px 30px -12px rgba(27,26,46,.5);transition:transform .2s,background .2s,box-shadow .2s}
+.aix-cta:hover{background:#0D6B5F;color:#fff;transform:translateY(-2px);box-shadow:0 18px 34px -12px rgba(18,140,126,.55)}
+.aix-media{position:relative;display:flex;justify-content:center}
+.aix-video{display:block;width:100%;max-width:560px;height:auto;background:#fff}
+/* hides the corner badge baked into the video file */
+.aix-mask{position:absolute;right:0;bottom:0;width:22%;height:11%;background:#fff}
+@media (max-width:900px){
+  .aix-grid{grid-template-columns:1fr;gap:36px}
+  .aix-media{order:2}
+  body.lp-neo .ai-showcase.aix{padding:60px 0}
+}

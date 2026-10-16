@@ -1,0 +1,66 @@
+/* Interactive feature hub: feature nodes either side of a WhatsApp hub, click to connect */
+.fh{max-width:1080px;margin:0 auto;font-family:'Inter',system-ui,sans-serif;border-radius:28px;padding:34px 28px 30px;
+  background:linear-gradient(160deg,#eef0ff 0%,#f6f0fb 55%,#fdf1f5 100%);border:1px solid #DDEFE7}
+.fh-stage{position:relative;display:grid;grid-template-columns:1fr 150px 1fr;align-items:center;gap:60px}
+.fh-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.fh-path{fill:none;stroke:#dcdaea;stroke-width:1.6}
+.fh-path.is-on{stroke:#25D366;stroke-width:2.4;stroke-dasharray:7 6;animation:fhDash 1s linear infinite}
+@keyframes fhDash{to{stroke-dashoffset:-26}}
+
+.fh-col{display:flex;flex-direction:column;gap:14px;position:relative;z-index:2}
+.fh-node{display:flex;align-items:center;gap:12px;width:100%;padding:13px 16px;border:1px solid #DDEFE7;border-radius:14px;background:rgba(255,255,255,.75);
+  font:600 14.5px/1.2 'Inter',system-ui,sans-serif;color:#5F6F6A;cursor:pointer;text-align:left;transition:all .25s}
+.fh-right .fh-node{justify-content:space-between;text-align:right}
+.fh-left .fh-node{justify-content:flex-start}
+.fh-nic{flex:none;width:30px;height:30px;border-radius:9px;background:#E8F8F0;color:#128C7E;display:flex;align-items:center;justify-content:center;transition:all .25s}
+.fh-nic svg{width:17px;height:17px}
+.fh-node:hover{background:#fff;color:#0F2622;transform:translateY(-1px)}
+.fh-node.is-on{background:#fff;color:#0F2622;border-color:#128C7E;box-shadow:0 12px 28px -12px rgba(18,140,126,.45)}
+.fh-node.is-on .fh-nic{background:#128C7E;color:#fff}
+
+.fh-hub{position:relative;z-index:2;width:130px;height:130px;margin:0 auto;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 18px 44px -10px rgba(37,211,102,.55)}
+.fh-hub-ring{position:absolute;inset:-14px;border-radius:50%;border:2px solid rgba(37,211,102,.28);animation:fhPulse 2.4s ease-out infinite}
+@keyframes fhPulse{0%{transform:scale(.88);opacity:1}100%{transform:scale(1.18);opacity:0}}
+
+/* Detail panel */
+.fh-detail{margin-top:34px;padding-top:28px;border-top:2px solid #e2e0ee;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:start}
+.fh-detail.fh-swap{animation:fhFade .45s ease}
+@keyframes fhFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.fh-d-head{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.fh-d-ic{width:46px;height:46px;border-radius:14px;background:#128C7E;color:#fff;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 8px 20px rgba(18,140,126,.3)}
+.fh-d-ic svg{width:23px;height:23px}
+.fh-d-head h3{font-size:21px;font-weight:800;letter-spacing:-.4px;color:#0F2622;margin:0 0 3px}
+.fh-tag{font:600 10.5px/1 var(--font-mono,'JetBrains Mono',ui-monospace,monospace);letter-spacing:1px;color:#5F6F6A}
+.fh-d-desc{font-size:15.5px;line-height:1.6;color:#4a4863;margin:0 0 16px;max-width:460px}
+.fh-io{display:flex;gap:22px;align-items:baseline;padding:7px 0;font-size:14.5px;color:#0F2622;font-weight:500}
+.fh-io-k{flex:none;width:56px;font:700 10.5px/1 var(--font-mono,'JetBrains Mono',ui-monospace,monospace);letter-spacing:.8px;color:#128C7E}
+
+.fh-d-right{display:flex;flex-direction:column;gap:10px}
+.fh-live{font:700 10.5px/1 var(--font-mono,'JetBrains Mono',ui-monospace,monospace);letter-spacing:1.2px;color:#5F6F6A;margin-bottom:4px}
+.fh-msg{max-width:88%;padding:11px 16px;border-radius:16px;font-size:14.5px;line-height:1.45;color:#0F2622;box-shadow:0 10px 24px -14px rgba(18,140,126,.35)}
+.fh-msg-in{background:#fff;align-self:flex-start}
+.fh-msg-out{background:#c9f7d9;align-self:flex-end}
+.fh-chip{align-self:center;margin-top:6px;padding:8px 16px;border-radius:8px;background:#fff;border:1px solid #DDEFE7;
+  font:600 10px/1 var(--font-mono,'JetBrains Mono',ui-monospace,monospace);letter-spacing:.8px;color:#128C7E;text-align:center}
+
+/* Responsive: lines hidden, hub on top, nodes in a 2-col grid */
+@media (max-width:760px){
+  .fh{padding:22px 14px}
+  .fh-lines{display:none}
+  .fh-stage{grid-template-columns:1fr;gap:18px}
+  .fh-hub{order:-1;width:92px;height:92px}
+  .fh-hub svg{width:34px;height:34px}
+  .fh-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .fh-left{order:1}.fh-right{order:2}
+  .fh-right .fh-node{flex-direction:row-reverse;justify-content:flex-end;text-align:left}
+  .fh-node{padding:11px 12px;font-size:13px}
+  .fh-detail{grid-template-columns:1fr;gap:24px}
+  .fh-msg{max-width:94%}
+}
+@media (prefers-reduced-motion:reduce){.fh-path.is-on,.fh-hub-ring{animation:none}}
+
+/* Plain white section: no tinted background, no boxed card around the hub */
+body.lp-neo .features-section{background:#fff!important}
+.fh{background:none!important;border:0!important;padding:10px 0 0!important;border-radius:0}
+.fh-node{background:#fff}

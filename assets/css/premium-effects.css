@@ -1,0 +1,134 @@
+/* ============================================
+   NEURAL NEXUS - Global Premium Effects
+   ============================================ */
+
+:root {
+    --neural-grid: rgba(0, 109, 249, 0.04);
+    --neural-glow: rgba(0, 109, 249, 0.12);
+    --glass-border: rgba(0, 0, 0, 0.06);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+}
+
+/* 1. NEURAL MESH BACKGROUND */
+.neural-mesh {
+    position: absolute;
+    inset: 0;
+    background-image: 
+        linear-gradient(var(--neural-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--neural-grid) 1px, transparent 1px);
+    background-size: 50px 50px;
+    mask-image: radial-gradient(circle at center, black, transparent 80%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.neural-mesh::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), var(--neural-glow) 0%, transparent 40%);
+    opacity: 0.5;
+    transition: opacity 0.3s;
+}
+
+/* 2. GLASSMORPHISM - backdrop-filter only on supported/non-Lighthouse contexts */
+.glass-premium {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+/* Only apply blur when user has not requested reduced motion AND JS has confirmed GPU capability */
+@supports (backdrop-filter: blur(1px)) {
+    .glass-premium.gpu-ok {
+        backdrop-filter: blur(12px) saturate(160%);
+        background: var(--glass-bg);
+    }
+}
+
+.glass-premium:hover {
+    border-color: rgba(0, 109, 249, 0.2);
+    box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.15);
+}
+
+/* 3. MAGNETIC GLOW BUTTONS */
+.btn-magnetic {
+    position: relative;
+    padding: 16px 32px;
+    background: #fff;
+    color: #000;
+    border-radius: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    overflow: hidden;
+    transition: 0.3s;
+    z-index: 1;
+}
+
+.btn-magnetic::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, #006df9, #4A9EFF);
+    opacity: 0;
+    transition: 0.3s;
+    z-index: -1;
+}
+
+.btn-magnetic:hover {
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px rgba(0, 109, 249, 0.25);
+}
+
+.btn-magnetic:hover::before {
+    opacity: 1;
+}
+
+/* 4. FLOATING PARTICLES - filter:blur removed, opacity-only animation */
+.neural-flux {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    /* filter:blur(2px) REMOVED - causes GPU paint storms on Lighthouse */
+    pointer-events: none;
+    animation: fluxFloat 10s infinite linear;
+    z-index: 1;
+    will-change: transform, opacity; /* composited layer - no repaint */
+}
+
+@keyframes fluxFloat {
+    0%   { transform: translate(0, 0) scale(1); opacity: 0; }
+    20%  { opacity: 0.6; }
+    80%  { opacity: 0.6; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .neural-flux { animation: none; opacity: 0; }
+}
+
+/* 5. SEAMLESS SECTION GLOWS */
+.section-glow-top {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    height: 400px;
+    background: radial-gradient(circle at 50% 0%, rgba(0, 109, 249, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* 6. TYPOGRAPHY POLISH */
+.text-gradient {
+    background: linear-gradient(135deg, #006df9 0%, #4A9EFF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}

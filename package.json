@@ -1,0 +1,40 @@
+{
+  "name": "waamini-playwright-tests",
+  "version": "1.0.0",
+  "description": "Playwright E2E test suite for WAAMINI WhatsApp CRM",
+  "scripts": {
+    "test": "playwright test --project=all",
+    "test:ci": "HEADLESS=false playwright test --project=all --reporter=json,list",
+    "test:headed": "HEADLESS=false playwright test --project=all",
+    "test:report": "playwright show-report",
+    "test:report:gen": "ts-node tests/generate-report.ts",
+    "test:full": "playwright test --project=all && ts-node tests/generate-report.ts",
+    "test:auth": "playwright test --project=auth",
+    "test:admin": "playwright test --project=admin",
+    "test:client": "playwright test --project=client",
+    "test:contacts": "playwright test --project=contacts",
+    "test:campaigns": "playwright test --project=campaigns",
+    "test:templates": "playwright test --project=templates",
+    "test:bot": "playwright test --project=bot",
+    "test:chat": "playwright test --project=chat",
+    "test:settings": "playwright test --project=settings",
+    "test:premium": "playwright test --project=premium",
+    "test:gst": "playwright test --project=gst",
+    "test:integrations": "playwright test --project=integrations",
+    "test:webhook": "playwright test --project=webhook",
+    "test:api": "playwright test --project=api",
+    "test:perf": "playwright test --project=performance",
+    "test:security": "playwright test --project=security",
+    "test:last-failed": "playwright test --last-failed",
+    "test:debug": "PWDEBUG=1 playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "dotenv": "^16.6.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@benborla29/mcp-server-mysql": "^2.0.9"
+  }
+}

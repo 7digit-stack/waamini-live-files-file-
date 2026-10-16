@@ -1,0 +1,111 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Settings pages skin — WhatsApp Setup, Google Sheets, Sales Tracker, API & Webhook.
+   Same look as the rest of the panel: full width, white header, soft tiles,
+   WhatsApp green, no borders or divider lines. Loaded together with
+   ecom-ui.css (generic cards, buttons, fields) and scoped to body.set-ui.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body.set-ui { --s-g:#128C7E; --s-gd:#0B6B5E; --s-ink:#0F2622; --s-tx:#34453f; --s-mu:#586a63; --s-soft:#F3FBF7; --s-field:#F3F7F5; --s-sh:0 12px 30px -22px rgba(15,38,34,.45); }
+
+/* ── full width ── */
+body.set-ui .gs-wrap { max-width:none !important; width:100% !important; margin:0 !important; padding:4px 0 28px !important; }
+
+/* ── page headers → white card ── */
+body.set-ui .gs-hdr, body.set-ui .sapi-hero {
+  background:#fff !important; border:0 !important; border-radius:18px !important; padding:22px 26px !important; margin-bottom:18px !important; box-shadow:var(--s-sh) !important;
+}
+body.set-ui .gs-hdr-title, body.set-ui .sapi-hero-title { font-size:24px !important; font-weight:800 !important; letter-spacing:-.4px; color:var(--s-ink) !important; }
+body.set-ui .gs-hdr-sub, body.set-ui .sapi-hero-sub { font-size:14px !important; color:var(--s-tx) !important; }
+body.set-ui .sapi-hero-icon { width:52px !important; height:52px !important; border:0 !important; border-radius:14px !important; background:#E3F7EE !important; color:var(--s-g) !important; }
+body.set-ui .sapi-hero-watermark { display:none !important; }
+
+/* ── cards ── */
+body.set-ui .gs-card, body.set-ui .sapi-card {
+  background:#fff !important; border:0 !important; border-radius:18px !important; box-shadow:var(--s-sh) !important; overflow:visible !important;
+}
+body.set-ui .gs-card-hdr { border-bottom:0 !important; padding:20px 24px 0 !important; }
+body.set-ui .gs-card-body { padding:16px 24px 24px !important; }
+body.set-ui .gs-card-title, body.set-ui .sapi-card-title { font-size:17px !important; font-weight:800 !important; color:var(--s-ink) !important; letter-spacing:-.2px; }
+body.set-ui .gs-card-sub, body.set-ui .sapi-card-desc { color:var(--s-mu) !important; font-size:13.5px !important; }
+body.set-ui .gs-divider { display:none !important; }
+body.set-ui .sapi-card.hoverable:hover { transform:none !important; box-shadow:var(--s-sh) !important; border:0 !important; }
+body.set-ui .sapi-card-icon.key-icon, body.set-ui .sapi-card-icon.hook-icon { background:#E3F7EE !important; color:var(--s-g) !important; box-shadow:none !important; }
+
+/* ── alerts ── */
+body.set-ui .gs-alert { border:0 !important; border-radius:14px !important; }
+body.set-ui .gs-alert-ok { background:#E3F7EE !important; color:var(--s-gd) !important; }
+body.set-ui .gs-alert-err { background:#FDE7E7 !important; color:#b3261e !important; }
+
+/* ── steps ── */
+body.set-ui .gs-step-num, body.set-ui .step-number { background:var(--s-g) !important; color:#fff !important; box-shadow:none !important; }
+body.set-ui .gs-step-txt { color:var(--s-ink) !important; }
+
+/* ── code / copy boxes: light, readable ── */
+body.set-ui .gs-code-wrap { border-radius:14px !important; background:var(--s-soft) !important; }
+body.set-ui .gs-code-bar { background:transparent !important; border:0 !important; }
+body.set-ui .gs-code-lang { color:var(--s-mu) !important; }
+body.set-ui .gs-code-pre { background:#F3F7F5 !important; color:#0B3D36 !important; border-radius:12px; margin:0 12px 12px !important; }
+body.set-ui .gs-copy-btn, body.set-ui .copy-btn, body.set-ui .sapi-copy-btn {
+  background:#E6FCF2 !important; color:var(--s-gd) !important; border:0 !important; border-radius:9px !important; font-weight:800 !important; box-shadow:none !important;
+}
+body.set-ui .gs-copy-btn:hover, body.set-ui .copy-btn:hover, body.set-ui .sapi-copy-btn:hover { background:#CDF5E3 !important; color:var(--s-gd) !important; }
+body.set-ui .sapi-copy-btn.copied { background:var(--s-g) !important; color:#fff !important; }
+body.set-ui .callback-url-box, body.set-ui .sapi-code-box { background:var(--s-soft) !important; border:0 !important; border-radius:12px !important; }
+body.set-ui .callback-url-box code, body.set-ui .sapi-code-box { color:var(--s-gd) !important; }
+body.set-ui .sapi-endpoint-payload { background:#fff !important; border:0 !important; border-radius:9px !important; }
+body.set-ui .sapi-no-key { border:0 !important; background:var(--s-soft) !important; border-radius:14px !important; }
+
+/* ── fields ── */
+body.set-ui .gs-input, body.set-ui .sapi-input {
+  border:0 !important; background:var(--s-field) !important; color:var(--s-ink) !important; border-radius:12px !important; box-shadow:none !important;
+}
+body.set-ui .gs-input:focus, body.set-ui .sapi-input:focus { background:#fff !important; box-shadow:0 0 0 2px rgba(18,140,126,.4) !important; }
+body.set-ui .gs-label { color:var(--s-tx) !important; text-transform:none !important; letter-spacing:0 !important; font-size:13px !important; font-weight:800 !important; }
+
+/* ── buttons ── */
+body.set-ui .gs-btn { border:0 !important; border-radius:12px !important; font-weight:800 !important; transform:none !important; box-shadow:none !important; }
+body.set-ui .gs-btn-save { background:var(--s-g) !important; color:#fff !important; }
+body.set-ui .gs-btn-save:hover { background:var(--s-gd) !important; }
+body.set-ui .gs-btn-sync { background:#E6FCF2 !important; color:var(--s-gd) !important; }
+body.set-ui .gs-btn-sync:hover { background:#CDF5E3 !important; }
+
+/* ── status / info tiles ── */
+body.set-ui .gs-status, body.set-ui .gs-cmd-box, body.set-ui .info-box, body.set-ui .sapi-endpoint {
+  background:var(--s-soft) !important; border:0 !important; border-left:0 !important; border-radius:14px !important;
+}
+body.set-ui .gs-status-icon-nil { border:0 !important; background:#fff !important; }
+body.set-ui .gs-status-icon-ok { background:#E3F7EE !important; color:var(--s-gd) !important; }
+body.set-ui .gs-cmd-item code { background:#E3F7EE !important; color:var(--s-gd) !important; }
+body.set-ui .gs-cmd-box-title svg, body.set-ui .gs-how li svg { color:var(--s-g) !important; }
+body.set-ui .gs-tracker-badge { border:0 !important; background:#FEF3DC !important; color:#8a5a00 !important; }
+body.set-ui .sapi-method { border:0 !important; border-radius:999px !important; padding:3px 10px !important; }
+body.set-ui .sapi-method.get { background:#E3F7EE !important; color:var(--s-gd) !important; }
+body.set-ui .sapi-method.post { background:#E4EFFD !important; color:#1d4f9c !important; }
+body.set-ui .sapi-cid-badge { border:0 !important; background:#E3F7EE !important; color:var(--s-gd) !important; }
+
+/* ── WhatsApp Setup ── */
+body.set-ui .settings-grid { gap:18px !important; }
+body.set-ui .settings-section-title { border-bottom:0 !important; padding-bottom:0 !important; font-size:17px !important; font-weight:800 !important; color:var(--s-ink) !important; margin-bottom:16px !important; }
+body.set-ui .form-card h3[style*="inline-block"], body.set-ui .form-card h4[style*="inline-block"] { background:transparent !important; border:0 !important; padding:0 !important; }
+body.set-ui .form-card[style*="rgba(0,184,148"] { background:#fff !important; border:0 !important; }
+body.set-ui .btn[style*="border-radius:20px"], body.set-ui .btn[style*="linear-gradient"] { border-radius:11px !important; }
+body.set-ui .btn[style*="var(--bg-sidebar)"] { background:var(--s-mint, #E6FCF2) !important; color:var(--s-gd) !important; border:0 !important; }
+body.set-ui .badge { border:0 !important; border-radius:999px !important; padding:6px 14px !important; font-weight:800 !important; }
+body.set-ui .badge-active { background:#E3F7EE !important; color:var(--s-gd) !important; }
+body.set-ui .badge-draft { background:#FEF3DC !important; color:#8a5a00 !important; }
+body.set-ui .badge-suspended { background:#FDE7E7 !important; color:#b3261e !important; }
+body.set-ui .setup-step { background:var(--s-soft); border-radius:16px; padding:16px 18px; }
+body.set-ui .step-content strong { color:var(--s-ink) !important; }
+
+/* ── Sales Tracker ── */
+.stk-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-bottom:18px; }
+.stk-kpi { background:#fff; border-radius:18px; padding:18px 20px; display:flex; align-items:center; gap:14px; box-shadow:0 12px 30px -22px rgba(15,38,34,.45); }
+.stk-kpi .i { width:44px; height:44px; border-radius:12px; display:grid; place-items:center; flex:none; background:#E3F7EE; color:#128C7E; }
+.stk-kpi.amber .i { background:#FEF3DC; color:#b7791f; } .stk-kpi.blue .i { background:#E4EFFD; color:#1d6fd6; } .stk-kpi.purple .i { background:#F1E9FE; color:#7c3aed; }
+.stk-kpi b { display:block; font-size:26px; font-weight:800; letter-spacing:-.03em; line-height:1.1; color:#0F2622; }
+.stk-kpi span { font-size:13px; font-weight:700; color:#586a63; }
+.stk-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; align-items:start; }
+.stk-col { display:flex; flex-direction:column; gap:18px; min-width:0; }
+.stk-ex { font-family:ui-monospace,Consolas,monospace; background:#F3FBF7; border-radius:10px; padding:9px 14px; color:#0B3D36; font-size:13.5px; }
+@media (max-width:1100px) { .stk-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } .stk-grid { grid-template-columns:minmax(0,1fr); } }
+@media (max-width:560px) { .stk-kpis { grid-template-columns:minmax(0,1fr); } }

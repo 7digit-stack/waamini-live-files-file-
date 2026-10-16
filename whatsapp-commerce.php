@@ -1,0 +1,40 @@
+<?php
+$fp = [
+    'slug' => 'whatsapp-commerce.php',
+    'title' => 'WhatsApp Commerce: Catalog, Checkout & Cart Recovery | Waamini',
+    'meta_desc' => 'Sell on WhatsApp with a product catalog, UPI checkout, order tracking, abandoned cart recovery and loyalty rewards.',
+    'meta_keywords' => 'WhatsApp store, WhatsApp catalog, WhatsApp checkout UPI, cart recovery WhatsApp',
+    'eyebrow' => 'WhatsApp Commerce',
+    'h1' => 'Sell more with *WhatsApp commerce*',
+    'desc' => 'Show products, take orders, collect UPI payments and recover abandoned carts, all inside the chat your customers already use.',
+    'bullets' => ['Product catalog', 'UPI & live checkout', 'Abandoned cart recovery', 'Loyalty points'],
+    'chat_name' => 'Your Store',
+    'chat' => [
+        ['in', 'Your cart has 2 items waiting. Complete your order and get free delivery!'],
+        ['out', 'Send the payment link'],
+        ['in', 'Pay securely via UPI: Rs. 1,499'],
+        ['in', 'Payment received. Order #1042 is confirmed.'],
+    ],
+    'chips' => [['cart', 'Cart recovered'], ['card', 'Paid via UPI']],
+    'stats' => [['3x', 'Faster order flow'], ['UPI', 'Instant payments'], ['Auto', 'Order updates'], ['+', 'Repeat customers']],
+    'features_title' => 'A complete store inside WhatsApp',
+    'features_sub' => 'From browsing to payment to loyalty, every step happens in one conversation.',
+    'features' => [
+        ['tag', 'Catalog & Products', 'Manage products, prices, stock and images, and share them in chat.'],
+        ['card', 'Checkout & Payments', 'Collect UPI and gateway payments with payment links and live checkout.'],
+        ['cart', 'Cart Recovery', 'Remind shoppers about abandoned carts automatically and win back lost sales.'],
+        ['send', 'Order Tracking', 'Send order confirmations and shipping updates without lifting a finger.'],
+        ['gift', 'Loyalty Points', 'Reward customers with points per message or order and redeem with automatic reward messages.'],
+        ['chart', 'Orders & Reports', 'Track orders, revenue and catalog performance from one dashboard.'],
+    ],
+    'steps_title' => 'Start selling in three steps',
+    'steps_sub' => 'Go from catalog to cash with no extra app.',
+    'steps' => [
+        ['Add products', 'Upload your catalog with prices and stock levels.'],
+        ['Share & chat', 'Customers browse and ask questions in WhatsApp.'],
+        ['Get paid', 'Send a payment link, confirm the order and track delivery.'],
+    ],
+    'cta_title' => 'Turn WhatsApp into your best sales channel',
+    'cta_text' => 'Open your WhatsApp store today and let customers buy in a few taps.',
+];
+include __DIR__ . '/includes/feature_page.php';

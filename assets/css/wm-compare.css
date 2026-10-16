@@ -1,0 +1,67 @@
+/* WhatsApp Business App vs API comparison table with typing reveal (WAAMINI green palette) */
+.wm-compare{
+  --wm-accent:#128C7E;--wm-accent-hover:#0D6B5F;--wm-bright:#25D366;
+  --wm-ink:#0F2622;--wm-text:#5F6F6A;--wm-muted:#9fb0aa;--wm-line:#DDEFE7;--wm-soft:#F3FBF7;--wm-bg:#fff;
+  font-family:Inter,"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:var(--wm-ink);background:var(--wm-bg);padding:80px 20px;-webkit-font-smoothing:antialiased}
+body.lp-neo .wm-compare{background:#fff!important}
+.wm-compare *,.wm-compare *::before,.wm-compare *::after{box-sizing:border-box}
+.wm-compare__inner{max-width:960px;margin:0 auto}
+.wm-compare__title{margin:0 0 12px;text-align:center;font-size:clamp(24px,4.2vw,38px);font-weight:700;line-height:1.2;letter-spacing:-.02em;color:var(--wm-ink)}
+.wm-compare__title em{font-style:italic;color:var(--wm-accent)}
+.wm-compare__sub{margin:0 0 36px;text-align:center;font-size:15px;line-height:1.5;color:var(--wm-text)}
+
+.wm-compare__card{border:1px solid var(--wm-line);border-radius:16px;overflow:hidden;background:var(--wm-bg);box-shadow:0 24px 50px -28px rgba(18,140,126,.35)}
+.wm-compare .wm-table{width:100%;border-collapse:collapse;table-layout:fixed;margin:0;background:transparent}
+.wm-compare .wm-table th,.wm-compare .wm-table td{padding:18px 20px;text-align:center;vertical-align:middle;border:0;border-top:1px solid var(--wm-line);border-left:1px solid var(--wm-line);font-size:14px;line-height:1.45;font-weight:400;color:var(--wm-text);background:transparent}
+.wm-compare .wm-table tr>:first-child{border-left:0;text-align:left}
+.wm-compare .wm-table thead th,.wm-compare .wm-table thead td{border-top:0}
+.wm-compare .wm-table thead th{padding:28px 20px 24px;vertical-align:top;height:1px}
+@supports (-moz-appearance:none){.wm-compare .wm-table thead th{height:100%}}
+.wm-compare .wm-table tbody tr{transition:background-color .35s ease}
+.wm-compare .wm-table tbody tr:hover,.wm-compare .wm-table tbody tr.is-typing{background:var(--wm-soft)}
+
+.wm-plan{display:flex;flex-direction:column;height:100%}
+.wm-plan__name{font-size:18px;font-weight:700;color:var(--wm-ink);line-height:1.3}
+.wm-plan__tag{margin:6px 0 20px;font-size:13px;color:var(--wm-text)}
+.wm-btn{display:block;margin-top:auto;padding:11px 14px;border:2px solid var(--wm-accent);border-radius:8px;background:var(--wm-accent);color:#fff;font-size:14px;font-weight:600;line-height:1.2;text-decoration:none;text-align:center;transition:background-color .2s,border-color .2s,color .2s}
+.wm-btn:hover{background:var(--wm-accent-hover);border-color:var(--wm-accent-hover);color:#fff}
+.wm-btn--outline{background:transparent;color:var(--wm-ink);border-color:var(--wm-ink)}
+.wm-btn--outline:hover{background:var(--wm-ink);border-color:var(--wm-ink);color:#fff}
+.wm-btn:focus-visible,.wm-info:focus-visible{outline:2px solid var(--wm-bright);outline-offset:2px}
+
+.wm-compare .wm-table tbody th{font-weight:600;color:var(--wm-accent)}
+.wm-info{position:relative;display:inline-block;margin-left:2px;padding:0;border:0;background:none;color:var(--wm-muted);line-height:0;vertical-align:-2px;cursor:help;font:inherit}
+.wm-info svg{width:14px;height:14px}
+.wm-tip{position:absolute;left:-10px;bottom:calc(100% + 8px);z-index:5;width:max-content;max-width:220px;padding:8px 10px;border-radius:8px;background:var(--wm-ink);color:#fff;font-size:12px;font-weight:400;line-height:1.45;text-align:left;opacity:0;visibility:hidden;transform:translateY(4px);pointer-events:none;transition:opacity .18s,transform .18s,visibility .18s}
+.wm-info:hover .wm-tip,.wm-info:focus .wm-tip{opacity:1;visibility:visible;transform:none}
+
+.wm-val{display:inline-flex;align-items:flex-start;gap:8px;text-align:left}
+.wm-ic{flex:none;width:16px;height:16px;margin-top:2px}
+.wm-ic--yes{color:var(--wm-bright)}
+.wm-ic--no,.wm-ic--part{color:var(--wm-muted)}
+
+/* animation states (active only while .wm-anim is set by the script) */
+.wm-anim [data-wm]{opacity:0}
+.wm-anim [data-wm].is-on{opacity:1}
+.wm-anim [data-wm="pop"]{transform:scale(.55);transition:opacity .2s ease,transform .3s cubic-bezier(.34,1.56,.64,1)}
+.wm-anim [data-wm="fade"]{transform:translateY(6px);transition:opacity .3s ease,transform .3s ease}
+.wm-anim [data-wm="pop"].is-on,.wm-anim [data-wm="fade"].is-on{transform:none}
+.wm-anim [data-wm="draw"]{opacity:1;clip-path:inset(0 0 100% 0);transition:clip-path .8s cubic-bezier(.4,0,.2,1)}
+.wm-anim [data-wm="draw"].is-on{clip-path:inset(0 0 0 0)}
+.wm-ch{opacity:0}
+.wm-ch.is-on{opacity:1}
+.wm-ch.is-caret{box-shadow:2px 0 0 currentColor}
+
+@media (max-width:640px){
+  .wm-compare{padding:52px 12px}
+  .wm-compare__sub{margin-bottom:24px;font-size:14px}
+  .wm-compare .wm-table th,.wm-compare .wm-table td{padding:12px 8px;font-size:12px}
+  .wm-compare .wm-table thead th{padding:16px 8px 14px}
+  .wm-plan__name{font-size:13.5px}
+  .wm-plan__tag{margin:4px 0 12px;font-size:11px}
+  .wm-btn{padding:8px 2px;font-size:11.5px;white-space:nowrap}
+  .wm-val{gap:5px}
+  .wm-ic{width:14px;height:14px;margin-top:1px}
+  .wm-info svg{width:12px;height:12px}
+  .wm-tip{max-width:170px}
+}

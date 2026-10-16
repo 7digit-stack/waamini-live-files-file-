@@ -1,0 +1,12 @@
+Options -Indexes
+
+# Prevent execution of any scripts from uploads/
+<FilesMatch "\.(php|phtml|phar|php[0-9]?|pl|py|cgi|asp|aspx|js|jsp|sh)$">
+    Require all denied
+</FilesMatch>
+
+# Force safe content handling for common upload types
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+</IfModule>
+

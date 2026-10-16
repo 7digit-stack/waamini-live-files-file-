@@ -1,0 +1,52 @@
+/* Industry pages (e-commerce, real estate, healthcare, education): hero mockup as a real WhatsApp chat */
+.ind-hero-visual .ind-mockup{max-width:400px;margin-left:auto;margin-right:auto;border-radius:26px;overflow:hidden;background:#fff;border:1px solid #DDEFE7;box-shadow:0 40px 80px -24px rgba(18,140,126,.4)}
+.ind-mockup .ind-mockup-stats{display:none}
+.ind-mockup .ind-mockup-mac{display:none}
+
+/* header */
+.ind-mockup .ind-mockup-header{background:#128C7E!important;border-bottom:0;padding:11px 14px;color:#fff}
+.ind-mockup .ind-mockup-brand{display:flex;align-items:center;gap:10px;color:#fff;font-size:15px;font-weight:600}
+.iw-back{display:flex;color:#fff;margin-right:-2px}
+.ind-mockup .ind-mockup-dot{width:38px;height:38px;border-radius:50%!important;background:#25D366!important;display:flex;align-items:center;justify-content:center}
+.ind-mockup .ind-mockup-dot svg{width:20px;height:20px;stroke:#fff;fill:none}
+.iw-name{display:flex;flex-direction:column;line-height:1.2}
+.iw-name b{font-size:15px;font-weight:600;color:#fff}
+.iw-name i{font-style:normal;font-size:11.5px;color:rgba(255,255,255,.82);font-weight:400}
+.iw-icons{display:flex;gap:16px;color:#fff;margin-left:auto}
+
+/* wallpaper + messages */
+.ind-mockup .ind-mockup-chat{background-color:#f4efe6!important;background-image:url(../img/wa-doodle.jpg)!important;background-size:380px auto!important;background-repeat:repeat!important;
+  padding:12px 12px 14px!important;gap:7px!important;min-height:340px;max-height:340px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+.ind-mockup .ind-chat-label{align-self:center;background:#FFF5C4!important;color:#5F6F6A!important;font-size:10.5px;font-weight:600;padding:5px 12px;border-radius:8px;box-shadow:0 1px 1px rgba(11,20,26,.12);border:0}
+.iw-date{align-self:center;background:#fff;color:#5F6F6A;font-size:11px;font-weight:600;letter-spacing:.4px;padding:5px 12px;border-radius:8px;box-shadow:0 1px 1px rgba(11,20,26,.12)}
+.ind-mockup .ind-chat-av{display:none!important}
+.ind-mockup .ind-chat-row{display:flex;max-width:84%;gap:0}
+.ind-mockup .ind-chat-row:not(.ind-chat-out){align-self:flex-start}
+.ind-mockup .ind-chat-row.ind-chat-out{align-self:flex-end}
+.ind-mockup .ind-chat-bubble{position:relative;padding:7px 10px 18px;font-size:14px;line-height:1.42;color:#111b21!important;background:#fff!important;border:0!important;border-radius:0 8px 8px 8px!important;box-shadow:0 1px 1px rgba(11,20,26,.14)}
+.ind-mockup .ind-chat-bubble-out{background:#d9fdd3!important;border-radius:8px 0 8px 8px!important}
+.ind-mockup .ind-chat-bubble::before{content:'';position:absolute;top:0;width:9px;height:12px}
+.ind-mockup .ind-chat-row:not(.ind-chat-out) .ind-chat-bubble::before{left:-8px;background:#fff;clip-path:polygon(100% 0,100% 100%,0 0)}
+.ind-mockup .ind-chat-row.ind-chat-out .ind-chat-bubble::before{right:-8px;background:#d9fdd3;clip-path:polygon(0 0,100% 0,0 100%)}
+.iw-t{position:absolute;right:8px;bottom:4px;display:inline-flex;align-items:center;gap:3px;font-size:10.5px;color:#667781}
+
+/* animated sequence */
+.ind-mockup-chat.iw-js .ind-chat-row{display:none}
+.ind-mockup-chat.iw-js .ind-chat-row.iw-show{display:flex;animation:iwIn .45s cubic-bezier(.21,.98,.35,1) both}
+@keyframes iwIn{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+.iw-typing .ind-chat-bubble{display:inline-flex;align-items:center;gap:5px;padding:13px 15px!important}
+.iw-typing .ind-chat-bubble span{width:7px;height:7px;border-radius:50%;background:#9aa5ab;animation:iwDot 1.2s infinite ease-in-out}
+.iw-typing .ind-chat-bubble span:nth-child(2){animation-delay:.18s}.iw-typing .ind-chat-bubble span:nth-child(3){animation-delay:.36s}
+.iw-typing.ind-chat-out .ind-chat-bubble span{background:#4cae78}
+@keyframes iwDot{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-6px);opacity:1}}
+
+/* input bar */
+.iw-input{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f0f2f5}
+.iw-field{flex:1;display:flex;align-items:center;gap:10px;background:#fff;border-radius:22px;padding:9px 14px;color:#667781;font-size:13.5px}
+.iw-mic{width:38px;height:38px;border-radius:50%;background:#128C7E;color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+
+/* confirmation strip becomes a WhatsApp-style footer notice */
+.ind-mockup .ind-mockup-notif{background:#fff;border-top:1px solid #E8F3EE;padding:11px 16px;transition:opacity .4s}
+.ind-mockup-notif.iw-hide{opacity:.25}
+
+@media (max-width:600px){.ind-hero-visual .ind-mockup{max-width:100%}}

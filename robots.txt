@@ -1,0 +1,32 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /client/
+Disallow: /includes/
+Disallow: /api/
+Disallow: /tmp/
+Disallow: /cron_campaign_sender.php
+Disallow: /cron_birthday_sender.php
+Disallow: /cron_festival_sender.php
+Disallow: /cron_pulse_analyzer.php
+Disallow: /cron_subscription_reminder.php
+Disallow: /webhook.php
+Disallow: /db.php
+Disallow: /db_config.php
+
+# Block all test/setup/debug files
+Disallow: /setup*.php
+Disallow: /upgrade*.php
+Disallow: /create*.php
+Disallow: /fix*.php
+Disallow: /test*.php
+Disallow: /check*.php
+Disallow: /repair*.php
+Disallow: /recover*.php
+Disallow: /extract*.php
+Disallow: /backup*.php
+Disallow: /scan_results.txt
+Disallow: /*.sql
+Disallow: /*.log
+
+Sitemap: https://waamini.in/sitemap.xml

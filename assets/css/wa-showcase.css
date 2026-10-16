@@ -1,0 +1,145 @@
+/* Showcase chat previews styled like the real WhatsApp app: doodle wallpaper, tailed bubbles, header, input bar */
+.ai-chat-preview,.cp-message-preview,.wa-wall{--wa-bg:#f4efe6}
+.ai-chat-preview{background:#fff;border:1px solid #DDEFE7;border-radius:20px;box-shadow:0 24px 50px -22px rgba(18,140,126,.35);overflow:hidden}
+
+/* header */
+.acp-header{background:#128C7E;padding:10px 14px;gap:10px}
+.acp-header .wa-back{display:flex;color:#fff;opacity:.95;margin-right:-2px}
+.acp-avatar{width:38px;height:38px;background:#25D366!important;font-weight:700}
+.acp-name{font-size:15px;font-weight:600;color:#fff}
+.acp-status{font-size:11.5px;color:rgba(255,255,255,.8)}
+.acp-score-badge{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.3)}
+
+/* wallpaper */
+.acp-body,.cp-message-preview,.wa-wall{background-color:var(--wa-bg)!important;background-image:url(../img/wa-doodle.jpg)!important;background-size:380px auto!important;background-repeat:repeat!important}
+.acp-body{padding:14px 14px 18px;gap:7px;min-height:300px}
+
+/* date + system chips */
+.wa-date{align-self:center;background:#fff;color:#5F6F6A;font-size:11px;font-weight:600;letter-spacing:.4px;padding:5px 12px;border-radius:8px;box-shadow:0 1px 1px rgba(11,20,26,.12);margin:2px 0 4px}
+.acp-ai-badge{color:#5F6F6A!important;background:#FFF5C4!important;border:0!important;box-shadow:0 1px 1px rgba(11,20,26,.12);border-radius:8px!important;font-weight:600!important;padding:5px 12px!important;text-align:center}
+
+/* bubbles with tails + timestamp */
+.acp-msg{position:relative;padding:7px 10px 18px 10px;font-size:13.5px;line-height:1.42;max-width:82%;border-radius:8px;box-shadow:0 1px 1px rgba(11,20,26,.14);color:#111b21}
+.acp-msg.recv{background:#fff;border-radius:0 8px 8px 8px;color:#111b21}
+.acp-msg.sent{background:#d9fdd3;color:#111b21;border-radius:8px 0 8px 8px}
+.acp-msg::before{content:'';position:absolute;top:0;width:9px;height:12px}
+.acp-msg.recv::before{left:-8px;background:#fff;clip-path:polygon(100% 0,100% 100%,0 0)}
+.acp-msg.sent::before{right:-8px;background:#d9fdd3;clip-path:polygon(0 0,100% 0,0 100%)}
+.acp-msg::after{position:absolute;right:9px;bottom:4px;font-size:10.5px;color:#667781;letter-spacing:0}
+.acp-1::after{content:"10:41 AM"}.acp-2::after{content:"10:41 AM"}.acp-3::after{content:"10:42 AM"}.acp-4::after{content:"10:42 AM"}
+.acp-msg.sent::after{right:30px}
+.acp-msg .acp-ticks{position:absolute;right:8px;bottom:3px;font-size:12px;color:#53bdeb}
+
+/* input bar */
+.wa-input{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f0f2f5}
+.wa-input .wa-field{flex:1;display:flex;align-items:center;gap:10px;background:#fff;border-radius:22px;padding:9px 14px;color:#667781;font-size:13.5px}
+.wa-input .wa-field svg{flex:none;color:#667781}
+.wa-input .wa-mic{width:38px;height:38px;border-radius:50%;background:#128C7E;color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+
+/* campaign preview bubble */
+.cp-message-preview{border:1px solid #DDEFE7;border-radius:14px;padding:14px}
+.cpm-tag{display:inline-block;background:#fff;color:#5F6F6A;padding:4px 10px;border-radius:8px;box-shadow:0 1px 1px rgba(11,20,26,.12);margin-bottom:10px}
+.cpm-bubble{position:relative;background:#d9fdd3!important;color:#111b21!important;font-size:13px!important;line-height:1.5!important;border-radius:8px 0 8px 8px!important;padding:8px 11px 20px!important;max-width:86%;margin-left:auto;box-shadow:0 1px 1px rgba(11,20,26,.14)}
+.cpm-bubble::before{content:'';position:absolute;top:0;right:-8px;width:9px;height:12px;background:#d9fdd3;clip-path:polygon(0 0,100% 0,0 100%)}
+.cpm-bubble::after{content:"10:30 AM ✓✓";position:absolute;right:9px;bottom:4px;font-size:10.5px;color:#667781}
+.cpm-meta{display:inline-block;background:#fff;padding:4px 10px;border-radius:8px;box-shadow:0 1px 1px rgba(11,20,26,.12);margin-top:10px!important}
+
+/* payments chat container uses the same wallpaper */
+.wa-wall{padding:16px!important}
+
+/* ===== "Stop Replying. Start Automating." chat card ===== */
+.auto-visual-card{background:#fff;border:1px solid #DDEFE7;border-radius:20px;box-shadow:0 24px 50px -22px rgba(18,140,126,.35);overflow:hidden}
+.auto-visual-header{background:#128C7E;border-bottom:0;padding:10px 14px;gap:10px;color:#fff}
+.auto-visual-header .wa-back{display:flex;color:#fff;margin-right:-2px}
+.wa-hav{width:38px;height:38px;border-radius:50%;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:none}
+.wa-hinfo{flex:1;min-width:0}
+.auto-visual-title{font-size:15px;font-weight:600;color:#fff;letter-spacing:0}
+.wa-hstatus{font-size:11.5px;color:rgba(255,255,255,.8)}
+.wa-hicons{display:flex;gap:18px;color:#fff}
+
+.auto-visual-body{background-color:var(--wa-bg,#f4efe6)!important;background-image:url(../img/wa-doodle.jpg)!important;background-size:380px auto!important;background-repeat:repeat!important;padding:14px 14px 20px;gap:7px;min-height:340px}
+.auto-visual-body .wa-date{align-self:center}
+.auto-chat-avatar{display:none}
+.auto-chat-line{max-width:84%;gap:0}
+.auto-chat-bubble{position:relative;padding:7px 10px 19px;font-size:13.5px;line-height:1.42;color:#111b21;border:0;border-radius:8px;box-shadow:0 1px 1px rgba(11,20,26,.14);background:#fff}
+.auto-chat-in .auto-chat-bubble{border-radius:0 8px 8px 8px}
+.auto-chat-out .auto-chat-bubble{border-radius:8px 0 8px 8px}
+.auto-chat-out-bubble{background:#d9fdd3!important}
+.auto-chat-bubble::before{content:'';position:absolute;top:0;width:9px;height:12px}
+.auto-chat-in .auto-chat-bubble::before{left:-8px;background:#fff;clip-path:polygon(100% 0,100% 100%,0 0)}
+.auto-chat-out .auto-chat-bubble::before{right:-8px;background:#d9fdd3;clip-path:polygon(0 0,100% 0,0 100%)}
+.auto-chat-bubble::after{position:absolute;right:9px;bottom:4px;font-size:10.5px;color:#667781}
+.auto-chat-out .auto-chat-bubble::after{padding-right:19px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='11' viewBox='0 0 16 11' fill='none' stroke='%2353bdeb' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='1 6 4 9 10 2'/%3E%3Cpolyline points='6 8 7.5 9 14 2'/%3E%3C/svg%3E") right center no-repeat}
+.auto-visual-body .auto-chat-line:nth-child(2) .auto-chat-bubble::after,.auto-visual-body .auto-chat-line:nth-child(3) .auto-chat-bubble::after{content:"10:41 AM"}
+.auto-visual-body .auto-chat-line:nth-child(4) .auto-chat-bubble::after,.auto-visual-body .auto-chat-line:nth-child(5) .auto-chat-bubble::after{content:"10:42 AM"}
+.auto-chat-label{color:#128C7E;font-size:10px;margin-bottom:3px}
+.auto-chat-lead{align-self:center;background:#FFF5C4;color:#5F6F6A;font-weight:600;border-radius:8px;box-shadow:0 1px 1px rgba(11,20,26,.12);margin-top:6px}
+.auto-visual-card .wa-input{border-top:0}
+
+/* ===== "Why WAAMINI?" comparison: both phone chats use the real WhatsApp wallpaper + bubbles ===== */
+body.lp-neo .wa-compare-section .wa-phone-frame{background:var(--wa-bg,#f4efe6)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:1px solid #DDEFE7!important;border-radius:28px!important;box-shadow:0 24px 50px -22px rgba(18,140,126,.35)!important}
+.wa-compare-section .wa-chat{background-color:var(--wa-bg,#f4efe6)!important;background-image:url(../img/wa-doodle.jpg)!important;background-size:380px auto!important;background-repeat:repeat!important;gap:8px;padding:14px 12px 20px}
+.wa-compare-section .wa-chat-muted{opacity:1}
+.wa-compare-section .wa-inputbar{background:#f0f2f5;border-top:0}
+.wa-compare-section .wa-field{border:0}
+
+.wa-compare-section .wa-date{background:#fff;color:#5F6F6A;font-weight:600;letter-spacing:.4px;box-shadow:0 1px 1px rgba(11,20,26,.12);padding:5px 12px}
+.wa-compare-section .wa-bubble{position:relative;font-size:13px;line-height:1.42;color:#111b21;border-radius:0 8px 8px 8px;box-shadow:0 1px 1px rgba(11,20,26,.14);padding:7px 10px}
+.wa-compare-section .wa-out .wa-bubble{background:#d9fdd3;color:#111b21;border-radius:8px 0 8px 8px}
+.wa-compare-section .wa-bubble::before{content:'';position:absolute;top:0;width:9px;height:12px}
+.wa-compare-section .wa-in .wa-bubble::before{left:-8px;background:#fff;clip-path:polygon(100% 0,100% 100%,0 0)}
+.wa-compare-section .wa-out .wa-bubble::before{right:-8px;background:#d9fdd3;clip-path:polygon(0 0,100% 0,0 100%)}
+.wa-compare-section .wa-meta{font-size:10.5px;color:#667781;margin-top:2px}
+
+/* Fix: the old floating-phone ".wa-phone" style (270px white card) was also applied to the comparison columns,
+   and the scroll-reveal left the frames invisible. Scope both back to normal here. */
+.wa-compare-section .wa-phone{position:static;width:100%;max-width:none;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible;animation:none!important;transform:none!important;z-index:auto}
+body.lp-neo.lp-anim-ready .wa-compare-section .wa-phone-frame{opacity:1!important;transform:none!important}
+.wa-compare-section .wa-compare-grid{grid-template-columns:1fr 1fr;gap:32px;max-width:860px}
+.wa-compare-section .wa-phone-frame{max-width:380px;margin:0 auto}
+@media (max-width:860px){.wa-compare-section .wa-compare-grid{grid-template-columns:1fr;max-width:400px}}
+
+/* Comparison phones: readable headers, matching status bars */
+.wa-compare-section .wa-chat-header{padding:11px 14px;gap:11px}
+.wa-compare-section .wa-chat-header .wa-av{width:36px;height:36px;font-size:14px}
+.wa-compare-section .wa-info strong{font-size:14.5px;font-weight:600;color:#fff}
+.wa-compare-section .wa-info span{font-size:11.5px;color:rgba(255,255,255,.8)}
+.wa-compare-section .wa-chat-header>span:last-child{color:#fff!important;font-size:18px!important}
+.wa-compare-section .wa-chat-header-muted{background:#5b6670!important}
+.wa-compare-section .wa-chat-header-muted .wa-info strong{color:#fff!important}
+.wa-compare-section .wa-chat-header-muted .wa-info span{color:rgba(255,255,255,.75)!important}
+.wa-compare-section .wa-chat-header-muted .wa-av{background:#8a949c!important;color:#fff!important}
+.wa-compare-section .wa-phone-frame:has(.wa-chat-header-muted) .wa-phone-notch,
+.wa-compare-section .wa-phone-frame:has(.wa-chat-header-muted) .wa-phone-status{background:#46515a}
+.wa-compare-section .wa-phone-frame:has(.wa-chat-header-muted) .wa-phone-pill{background:#222a30}
+.wa-compare-section .wa-back{color:#fff;opacity:1;font-size:24px}
+
+/* ===== "Built for Your Industry" bot-reply phones: real WhatsApp wallpaper, bubbles, buttons ===== */
+.itab-right .it-phone{width:296px;border-width:6px;border-radius:40px}
+.itab-right .it-status,.itab-right .it-header{background:#128C7E}
+.itab-right .it-header{padding:9px 12px 10px;gap:9px}
+.itab-right .it-av{width:34px;height:34px;background:#25D366;border:0;color:#fff;font-weight:700}
+.itab-right .it-info strong{font-size:14px}
+.itab-right .it-info span{font-size:11px}
+.itab-right .it-back{font-size:24px;color:#fff}
+.itab-right .it-chat{background-color:var(--wa-bg,#f4efe6)!important;background-image:url(../img/wa-doodle.jpg)!important;background-size:360px auto!important;background-repeat:repeat!important;
+  padding:10px 12px 12px;gap:6px;min-height:320px;max-height:340px}
+.itab-right .it-date{background:#fff;color:#5F6F6A;font-weight:600;letter-spacing:.3px;border-radius:8px;padding:4px 11px;font-size:10.5px;box-shadow:0 1px 1px rgba(11,20,26,.12)}
+.itab-right .it-row{max-width:84%}
+.itab-right .it-bbl{position:relative;font-size:12.5px;line-height:1.45;padding:6px 9px 5px;border-radius:8px;box-shadow:0 1px 1px rgba(11,20,26,.14)}
+.itab-right .it-out .it-bbl{background:#d9fdd3;border-radius:8px 0 8px 8px}
+.itab-right .it-in .it-bbl{background:#fff;border-radius:0 8px 8px 8px}
+.itab-right .it-bbl::before{content:'';position:absolute;top:0;width:9px;height:12px}
+.itab-right .it-out .it-bbl::before{right:-8px;background:#d9fdd3;clip-path:polygon(0 0,100% 0,0 100%)}
+.itab-right .it-in .it-bbl::before{left:-8px;background:#fff;clip-path:polygon(100% 0,100% 100%,0 0)}
+.itab-right .it-lbl{color:#128C7E;font-size:11px}
+.itab-right .it-meta{font-size:9.5px;color:#667781;padding:2px 3px 0}
+/* WhatsApp-style quick-reply buttons */
+.itab-right .it-qr-row{flex-direction:column;gap:4px;max-width:none;width:100%;margin-top:5px}
+.itab-right .it-qr{display:block;text-align:center;font-size:12px;font-weight:600;padding:8px 10px;border:0;border-radius:8px;background:#fff;color:#128C7E;box-shadow:0 1px 1px rgba(11,20,26,.14)}
+.itab-right .it-list{border:0;border-radius:8px;box-shadow:0 1px 1px rgba(11,20,26,.14)}
+.itab-right .it-list-head{background:#128C7E;font-size:12px}
+.itab-right .it-list-row{font-size:12px}
+.itab-right .it-inputbar{background:#f0f2f5;border-top:0;padding:7px 8px}
+.itab-right .it-send{background:#128C7E;box-shadow:none}
+@media(max-width:900px){.itab-right .it-phone{width:270px}}
