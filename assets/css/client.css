@@ -1428,3 +1428,5 @@ body.sb-collapsed .nav-item .icon{width:24px;height:24px}
 body.sb-collapsed .sb-logo-full{display:none}
 body.sb-collapsed .sb-logo-mini{display:block}
 @media (max-width:1024px){body.sb-collapsed .sb-logo-full{display:block}body.sb-collapsed .sb-logo-mini{display:none}}
+/* icon-only sidebar: sub-items (Knowledge, Bot Settings) have no icon, so hide them instead of leaving blank rows */
+body.sb-collapsed .nav-item.nav-sub{display:none}

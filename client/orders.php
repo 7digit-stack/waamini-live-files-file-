@@ -1,6 +1,6 @@
 ﻿<?php
 include '../includes/client_auth_check.php';
-if (!has_feature('ec_orders')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client menu pages
+if (function_exists('waamini_plan_switches') && !has_feature('ec_orders')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client menu pages
 include_once '../includes/schema_guard.php';
 $pageTitle = 'Order Management';
 $currentPage = 'orders';

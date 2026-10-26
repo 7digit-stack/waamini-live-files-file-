@@ -5,7 +5,7 @@
  * demo booked on WhatsApp. The sign-in itself is client/google_calendar_connect.php + auth/google-callback.php.
  */
 include '../includes/client_auth_check.php';
-if (!has_feature('google_calendar')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client Settings menu
+if (function_exists('waamini_plan_switches') && !has_feature('google_calendar')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client Settings menu
 require_once __DIR__ . '/../includes/google_meet_helper.php';
 
 $pageTitle = 'Google Calendar & Meet';

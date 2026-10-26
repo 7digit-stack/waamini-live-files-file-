@@ -1,6 +1,6 @@
 <?php
 include '../includes/client_auth_check.php';
-if (!has_feature('billing')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client menu pages
+if (function_exists('waamini_plan_switches') && !has_feature('billing')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client menu pages
 
 $pageTitle = 'Billing & Payments Dashboard';
 $currentPage = 'billing';

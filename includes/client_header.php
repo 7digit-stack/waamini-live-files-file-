@@ -82,6 +82,10 @@ if (!function_exists('cn_locked_attrs')) {
         return $locked ? ' onclick="return false;" title="Upgrade your plan to unlock this feature" aria-disabled="true"' : '';
     }
 }
+if (!function_exists('cn_on')) {
+    /** Per-page plan switch; stays on if the server still has a feature_check.php without these switches. */
+    function cn_on(string $key): bool { return !function_exists('waamini_plan_switches') || has_feature($key); }
+}
 if (!function_exists('cn_plan_menu_only')) {
     /** The client menu shows only what the plan includes: drop locked items, then any section heading left empty. */
     function cn_plan_menu_only(string $html): string {
@@ -152,7 +156,7 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-    <link rel="stylesheet" href="<?php echo app_url('assets/css/client.css?v=4.4'); ?>">
+    <link rel="stylesheet" href="<?php echo app_url('assets/css/client.css?v=4.5'); ?>">
     <link rel="stylesheet" href="<?php echo app_url('assets/css/sidebar-pro.css?v=4'); ?>">
     <?php
     // E-Commerce section pages share one dashboard skin
@@ -271,7 +275,7 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
         </a>
 
         <?php $_hasIntegrations = has_feature('indiamart')||has_feature('fb_lead_ads')||has_feature('google_sheets')||has_feature('api_webhook')||has_feature('api_webhook_access')||has_feature('shopify'); ?>
-        <?php if (has_feature('menu_integrations')): ?>
+        <?php if (cn_on('menu_integrations')): ?>
         <a href="<?php echo $_hasIntegrations ? app_url('client/integrations.php') : '#'; ?>" class="nav-item <?php echo $cp==='integrations'?'active':''; ?> <?php echo $_hasIntegrations?'':'locked'; ?>"<?php echo cn_locked_attrs(!$_hasIntegrations); ?>>
             <span class="icon"><?php echo cn_svg('integrations'); ?></span> Integrations
             <?php if (!$_hasIntegrations) echo cn_lock_icon(); ?>
@@ -287,7 +291,7 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
             <span class="icon"><?php echo cn_svg('contacts'); ?></span> Contacts
             <?php if (!has_feature('contacts')) echo cn_lock_icon(); ?>
         </a>
-        <?php if (has_feature('contact_groups')): ?>
+        <?php if (cn_on('contact_groups')): ?>
         <a href="<?php echo has_feature('contacts') ? app_url('client/contact_groups.php') : '#'; ?>" class="nav-item <?php echo $cp==='contact_groups'?'active':''; ?> <?php echo has_feature('contacts')?'':'locked'; ?>" style="padding-left:32px;font-size:12.5px;"<?php echo cn_locked_attrs(!has_feature('contacts')); ?>>
             <span class="icon"><?php echo cn_svg('groups'); ?></span> Groups
             <?php if (!has_feature('contacts')) echo cn_lock_icon(); ?>
@@ -303,7 +307,7 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
             <span class="icon"><?php echo cn_svg('bot'); ?></span> Bot Replies
             <?php if (!has_feature('bot_replies')) echo cn_lock_icon(); ?>
         </a>
-        <?php if (has_feature('demo_bookings')): ?>
+        <?php if (cn_on('demo_bookings')): ?>
         <a href="<?php echo has_feature('bot_replies') ? app_url('client/demo_bookings.php') : '#'; ?>" class="nav-item <?php echo $cp==='demo_bookings'?'active':''; ?> <?php echo has_feature('bot_replies')?'':'locked'; ?>"<?php echo cn_locked_attrs(!has_feature('bot_replies')); ?>>
             <span class="icon"><?php echo cn_svg('scheduled'); ?></span>
             Demo Bookings
@@ -316,12 +320,12 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
             <?php if (!has_feature('ai_chatbot')): ?><?php echo cn_lock_icon(); ?><?php else: ?><span class="badge badge-admin" style="font-size:9px;padding:2px 6px;margin-left:auto;">AI</span><?php endif; ?>
         </a>
         <?php if (has_feature('ai_chatbot')): ?>
-        <?php if (has_feature('bot_knowledge')): ?>
+        <?php if (cn_on('bot_knowledge')): ?>
         <a href="<?php echo app_url('client/waamini_bot_knowledge.php'); ?>" class="nav-item nav-sub <?php echo $cp==='waamini_bot_knowledge'?'active':''; ?>">
             Knowledge
         </a>
         <?php endif; ?>
-        <?php if (has_feature('bot_settings')): ?>
+        <?php if (cn_on('bot_settings')): ?>
         <a href="<?php echo app_url('client/waamini_bot_settings.php'); ?>" class="nav-item nav-sub <?php echo $cp==='waamini_bot_settings'?'active':''; ?>">
             Bot Settings
         </a>
@@ -393,31 +397,31 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
 
         <!-- E-Commerce -->
         <div class="nav-section-title"><?php echo cn_svg('catalog'); ?> E-Commerce</div>
-        <?php if (has_feature('ec_analytics')): ?>
+        <?php if (cn_on('ec_analytics')): ?>
         <a href="<?php echo has_feature('feat_native_checkout') ? app_url('client/order_dashboard.php') : '#'; ?>" class="nav-item <?php echo $cp==='order_dashboard'?'active':''; ?> <?php echo has_feature('feat_native_checkout')?'':'locked'; ?>"<?php echo cn_locked_attrs(!has_feature('feat_native_checkout')); ?>>
             <span class="icon"><?php echo cn_svg('orders_chart'); ?></span> Order Analytics
             <?php if (!has_feature('feat_native_checkout')) echo cn_lock_icon(); ?>
         </a>
         <?php endif; ?>
-        <?php if (has_feature('ec_orders')): ?>
+        <?php if (cn_on('ec_orders')): ?>
         <a href="<?php echo has_feature('feat_native_checkout') ? app_url('client/orders.php') : '#'; ?>" class="nav-item <?php echo $cp==='orders'?'active':''; ?> <?php echo has_feature('feat_native_checkout')?'':'locked'; ?>"<?php echo cn_locked_attrs(!has_feature('feat_native_checkout')); ?>>
             <span class="icon"><?php echo cn_svg('package'); ?></span> Manage Orders
             <?php if (!has_feature('feat_native_checkout')) echo cn_lock_icon(); ?>
         </a>
         <?php endif; ?>
-        <?php if (has_feature('ec_catalog')): ?>
+        <?php if (cn_on('ec_catalog')): ?>
         <a href="<?php echo has_feature('feat_native_checkout') ? app_url('client/catalog.php') : '#'; ?>" class="nav-item <?php echo $cp==='catalog'?'active':''; ?> <?php echo has_feature('feat_native_checkout')?'':'locked'; ?>"<?php echo cn_locked_attrs(!has_feature('feat_native_checkout')); ?>>
             <span class="icon"><?php echo cn_svg('catalog'); ?></span> Product Catalog
             <?php if (!has_feature('feat_native_checkout')) echo cn_lock_icon(); ?>
         </a>
         <?php endif; ?>
-        <?php if (has_feature('ec_reports')): ?>
+        <?php if (cn_on('ec_reports')): ?>
         <a href="<?php echo has_feature('feat_native_checkout') ? app_url('client/catalog_reports.php') : '#'; ?>" class="nav-item <?php echo $cp==='catalog_reports'?'active':''; ?> <?php echo has_feature('feat_native_checkout')?'':'locked'; ?>"<?php echo cn_locked_attrs(!has_feature('feat_native_checkout')); ?>>
             <span class="icon"><?php echo cn_svg('analytics'); ?></span> Catalog Reports
             <?php if (!has_feature('feat_native_checkout')) echo cn_lock_icon(); ?>
         </a>
         <?php endif; ?>
-        <?php if (has_feature('ec_checkout')): ?>
+        <?php if (cn_on('ec_checkout')): ?>
         <a href="<?php echo has_feature('feat_native_checkout') ? app_url('client/ecommerce_settings.php') : '#'; ?>" class="nav-item <?php echo $cp==='ecommerce'?'active':''; ?> <?php echo has_feature('feat_native_checkout')?'':'locked'; ?>"<?php echo cn_locked_attrs(!has_feature('feat_native_checkout')); ?>>
             <span class="icon"><?php echo cn_svg('settings'); ?></span> Checkout Settings
             <?php if (!has_feature('feat_native_checkout')) echo cn_lock_icon(); ?>
@@ -523,7 +527,7 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
         <!-- Plan & Billing -->
         <div class="nav-section-title"><?php echo cn_svg('billing'); ?> Plan &amp; Billing</div>
 
-        <?php if (has_feature('billing')): ?>
+        <?php if (cn_on('billing')): ?>
         <a href="<?php echo app_url('client/billing.php'); ?>" class="nav-item <?php echo $cp==='billing'?'active':''; ?>">
             <span class="icon"><?php echo cn_svg('billing'); ?></span>
             Billing &amp; Wallet
@@ -531,7 +535,7 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
         </a>
         <?php endif; ?>
 
-        <?php if (has_feature('discover')): ?>
+        <?php if (cn_on('discover')): ?>
         <a href="<?php echo app_url('client/premium_features.php'); ?>" class="nav-item <?php echo $cp==='premium_features'?'active':''; ?>">
             <span class="icon"><?php echo cn_svg('discover'); ?></span>
             Discover More
@@ -541,7 +545,7 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
         <!-- Help -->
         <div class="nav-section-title"><?php echo cn_svg('support'); ?> Help &amp; Support</div>
 
-        <?php if (has_feature('set_manual')): ?>
+        <?php if (cn_on('set_manual')): ?>
         <a href="<?php echo app_url('client/manual.php'); ?>" class="nav-item <?php echo $cp==='manual'?'active':''; ?>">
             <span class="icon"><?php echo cn_svg('manual'); ?></span> User Guide
         </a>
@@ -550,12 +554,12 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
         <!-- Settings -->
         <div class="nav-section-title"><?php echo cn_svg('settings'); ?> Settings</div>
 
-        <?php if (has_feature('set_general')): ?>
+        <?php if (cn_on('set_general')): ?>
         <a href="<?php echo app_url('client/settings_general.php'); ?>" class="nav-item <?php echo $cp==='settings_general'?'active':''; ?>">
             <span class="icon"><?php echo cn_svg('general'); ?></span> General
         </a>
         <?php endif; ?>
-        <?php if (has_feature('set_whatsapp')): ?>
+        <?php if (cn_on('set_whatsapp')): ?>
         <a href="<?php echo app_url('client/settings_whatsapp.php'); ?>" class="nav-item <?php echo $cp==='settings_whatsapp'?'active':''; ?>">
             <span class="icon"><?php echo cn_svg('wa_setup'); ?></span> WhatsApp Setup
         </a>
@@ -567,13 +571,13 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
             <?php if (!has_feature('google_sheets')) echo cn_lock_icon(); ?>
         </a>
 
-        <?php if (has_feature('google_calendar')): ?>
+        <?php if (cn_on('google_calendar')): ?>
         <a href="<?php echo app_url('client/google_calendar.php'); ?>" class="nav-item <?php echo $cp==='google_calendar'?'active':''; ?>">
             <span class="icon"><?php echo cn_svg('scheduled'); ?></span> Google Calendar &amp; Meet
         </a>
         <?php endif; ?>
 
-        <?php if (has_feature('sales_tracker')): ?>
+        <?php if (cn_on('sales_tracker')): ?>
         <a href="<?php echo app_url('client/settings_sales_tracker.php'); ?>" class="nav-item <?php echo $cp==='settings_sales_tracker'?'active':''; ?>">
             <span class="icon"><?php echo cn_svg('sales'); ?></span> Sales Tracker
         </a>
@@ -589,7 +593,7 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
             <?php if (!has_feature('pulse')) echo cn_lock_icon(); ?>
         </a>
 
-        <?php if (has_feature('set_support')): ?>
+        <?php if (cn_on('set_support')): ?>
         <a href="<?php echo app_url('client/support.php'); ?>" class="nav-item <?php echo $cp==='support'?'active':''; ?>">
             <span class="icon"><?php echo cn_svg('support'); ?></span> Support
         </a>

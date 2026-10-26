@@ -1,6 +1,6 @@
 <?php
 include '../includes/client_auth_check.php';
-if (!has_feature('sales_tracker')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client Settings menu
+if (function_exists('waamini_plan_switches') && !has_feature('sales_tracker')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client Settings menu
 $pageTitle = 'Sales Tracker';
 $currentPage = 'settings_sales_tracker';
 

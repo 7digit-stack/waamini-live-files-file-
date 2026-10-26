@@ -197,6 +197,13 @@ function is_subscription_expired() {
  * @param string $feature Feature key (e.g., 'whatsapp_chat', 'campaigns', 'ai_chatbot')
  * @return bool
  */
+/**
+ * Marker: this feature_check.php knows the per-page plan switches (Client Settings menu / Client menu pages).
+ * The client menu and pages only enforce those switches when this exists, so an older copy of this file
+ * on the server (files uploaded out of order) leaves the pages visible instead of hiding them.
+ */
+function waamini_plan_switches(): bool { return true; }
+
 function has_feature($feature)
 {
     global $_featureCache;

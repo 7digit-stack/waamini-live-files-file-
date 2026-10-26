@@ -1,6 +1,6 @@
 <?php
 include '../includes/client_auth_check.php';
-if (!has_feature('set_whatsapp')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client Settings menu
+if (function_exists('waamini_plan_switches') && !has_feature('set_whatsapp')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client Settings menu
 
 $pageTitle = 'WhatsApp Setup';
 $currentPage = 'settings_whatsapp';
