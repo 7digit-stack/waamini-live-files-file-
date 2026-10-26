@@ -258,7 +258,7 @@ include '../includes/client_header.php';
 .tp-notice{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:14px;margin-bottom:18px;font-size:14px;background:#E3F7EE;color:#0B6B5E}
 .tp-notice.err{background:#FDE7E7;color:#9b1c1c}
 
-.tp-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:20px}
+.tp-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:clamp(10px,1.2vw,16px);margin-bottom:20px}
 .tp-kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 12px 30px -24px rgba(18,140,126,.5);transition:transform .2s,box-shadow .2s}
 .tp-kpi:hover{transform:translateY(-2px);box-shadow:0 16px 34px -22px rgba(18,140,126,.6)}
 .tp-kpi-ico{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;background:#E3F7EE;color:var(--g)}
@@ -297,8 +297,8 @@ include '../includes/client_header.php';
 .tp-search input{border:0;background:transparent;outline:none;font:500 14px Inter,system-ui,sans-serif;color:var(--ink);width:100%}
 .tp-search:focus-within{box-shadow:0 0 0 2px var(--g);background:#fff}
 
-.tp-list{display:flex;flex-direction:column;gap:8px}
-.tp-row{display:grid;grid-template-columns:30px minmax(0,1.25fr) minmax(0,2fr) minmax(120px,.9fr) auto;gap:14px;align-items:center;padding:12px 14px;border-radius:13px;background:var(--soft);transition:background .15s}
+.tp-list{display:flex;flex-direction:column;gap:8px;container-type:inline-size;container-name:tplist}
+.tp-row{display:grid;grid-template-columns:30px minmax(0,1.2fr) minmax(0,2.2fr) 128px 282px;gap:14px;align-items:center;padding:12px 14px;border-radius:13px;background:var(--soft);transition:background .15s}
 .tp-row:not(.tp-head):hover{background:#E7F7F1}
 .tp-head{background:transparent;padding-top:2px;padding-bottom:2px;font-size:12px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px}
 .tp-row input[type=checkbox]{accent-color:var(--g);width:17px;height:17px;cursor:pointer}
@@ -681,18 +681,26 @@ include '../includes/client_header.php';
 .tp-ft-note{font-size:12.5px;color:#54656f;margin-right:auto}
 
 @media (max-width:1100px){.tp-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.tp-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.tp-3{grid-template-columns:repeat(2,minmax(0,1fr))}.tp-limits{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:1280px){
-  .tp-head{display:none}
-  .tp-row{grid-template-columns:30px minmax(0,1fr) auto;grid-template-areas:"chk name st" "body body body" "acts acts acts";row-gap:10px}
-  .tp-row>.c-st{text-align:right}.tp-row>.c-st .tp-hint{display:none}
-  .tp-row>.c-act{justify-content:flex-start;padding-top:10px;border-top:1px dashed var(--line)}
-  .tp-body{-webkit-line-clamp:3}
+@media (max-width:900px){.tp-2{grid-template-columns:1fr}}
+/* Rows react to the width the list actually has (sidebar open/closed, any zoom), not the window */
+@container tplist (max-width:1040px){
+  .tp-row{grid-template-columns:30px minmax(0,1.2fr) minmax(0,1.8fr) 116px 172px;gap:12px}
+  .tp-send span{display:none}.tp-send{width:36px;padding:0;justify-content:center}
 }
-@media (max-width:900px){
+@container tplist (max-width:820px){
   .tp-head{display:none}
   .tp-row{grid-template-columns:30px minmax(0,1fr) auto;grid-template-areas:"chk name st" "body body body" "acts acts acts";row-gap:10px}
   .tp-row>.c-chk{grid-area:chk}.tp-row>.c-name{grid-area:name}.tp-row>.c-body{grid-area:body}.tp-row>.c-st{grid-area:st}.tp-row>.c-act{grid-area:acts}
-  .tp-2{grid-template-columns:1fr}
+  .tp-row>.c-st{text-align:right}.tp-row>.c-st .tp-hint{display:none}
+  .tp-row>.c-act{justify-content:flex-start;padding-top:10px;border-top:1px dashed var(--line)}
+  .tp-send span{display:inline}.tp-send{width:auto;padding:0 12px}
+  .tp-body{-webkit-line-clamp:3}
+}
+@container tplist (max-width:520px){
+  .tp-row{grid-template-areas:"chk name name" "st st st" "body body body" "acts acts acts"}
+  .tp-row>.c-st{grid-column:1/-1;text-align:left}
+  .tp-row>.c-act{flex-wrap:wrap}
+  .tp-send{flex:1;justify-content:center}
 }
 @media (max-width:640px){
   .tp-hero{padding:18px}.tp-hero h1{font-size:21px}.tp-hero-actions,.tp-hero-actions .tp-btn{width:100%}
@@ -701,10 +709,6 @@ include '../includes/client_header.php';
   .tp-tabbar{flex-direction:column;align-items:stretch}
   .tp-tabs{width:100%}.tp-tab{flex:1;justify-content:center;padding:0 10px}
   .tp-guide-btn{justify-content:center;height:42px}
-  .tp-row>.c-act{flex-wrap:wrap}
-  .tp-send{flex:1;justify-content:center}
-  .tp-row>.c-st{grid-column:1/-1;grid-row:auto;text-align:left}
-  .tp-row{grid-template-areas:"chk name name" "st st st" "body body body" "acts acts acts"}
   .tp-panel{padding:12px 10px 8px}
 }
 </style>
@@ -786,7 +790,7 @@ include '../includes/client_header.php';
     <div class="tp-list">
         <div class="tp-row tp-head">
             <div class="c-chk"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" aria-label="Select all"></div>
-            <div>Template</div><div>Message</div><div>Meta status</div><div></div>
+            <div>Template</div><div>Message</div><div>Meta status</div><div style="text-align:right;padding-right:6px">Actions</div>
         </div>
         <?php foreach ($templates as $t):
             $group = tp_group($t['wa_status'] ?? '');
@@ -799,7 +803,7 @@ include '../includes/client_header.php';
         <div class="tp-row tp-item" data-group="<?php echo $group; ?>" data-text="<?php echo htmlspecialchars(strtolower($t['name'] . ' ' . $body), ENT_QUOTES); ?>">
             <div class="c-chk"><input type="checkbox" name="selected_ids[]" value="<?php echo (int)$t['id']; ?>" class="row-checkbox" onchange="updateBulkActions()" aria-label="Select template"></div>
             <div class="c-name" style="min-width:0;">
-                <div class="tp-name"><?php echo htmlspecialchars($t['name']); ?></div>
+                <div class="tp-name" title="<?php echo htmlspecialchars($t['name']); ?>"><?php echo htmlspecialchars($t['name']); ?></div>
                 <div class="tp-meta"><span class="tp-tag cat-<?php echo htmlspecialchars($cat); ?>"><?php echo htmlspecialchars(ucfirst($cat)); ?></span><span class="tp-tag"><?php echo htmlspecialchars(strtoupper((string)($t['language'] ?? 'en'))); ?></span></div>
             </div>
             <div class="c-body tp-body"><?php echo htmlspecialchars($body); ?></div>

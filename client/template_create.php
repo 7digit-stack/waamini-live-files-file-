@@ -563,7 +563,7 @@ include '../includes/client_header.php';
 .mt-step.later{color:var(--ink-3)}
 .mt-dash{width:14px;height:1px;background:var(--line)}
 .mt-alert{background:#FBE7E5;color:#8f1d14;border-radius:6px;padding:11px 14px;margin-bottom:12px;font-weight:600;box-shadow:0 0 0 1px rgba(196,40,28,.18)}
-.mt-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
+.mt-grid{display:grid;grid-template-columns:minmax(0,1fr) clamp(290px,26vw,380px);gap:clamp(16px,1.6vw,24px);align-items:start}
 .mt-col{display:flex;flex-direction:column;gap:12px;min-width:0}
 .mt-card{background:#fff;border-radius:6px;box-shadow:0 0 0 1px rgba(28,43,51,.06),0 1px 3px rgba(28,43,51,.1);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .mt-card h2{font-size:16px;font-weight:700}
@@ -632,7 +632,10 @@ include '../includes/client_header.php';
 .mt-actions .said{margin-right:auto;color:var(--ink-3);font-size:13px}
 
 /* preview */
-.mt-side{position:sticky;top:90px;gap:12px}
+.mt-side{position:sticky;top:90px;gap:12px;display:flex;flex-direction:column;max-height:calc(100vh - 110px);max-height:calc(100dvh - 110px)}
+.mt-side>h3,.mt-side>.mt-fine{flex:none}
+.mt-side .mt-wall{flex:1 1 auto;min-height:220px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.mt-side .mt-msg{max-width:min(100%,300px)}
 .mt-wall{border-radius:4px;overflow:hidden;min-height:340px;background-color:var(--wall);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' fill='none' stroke='%23DCD2C6' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='14' cy='16' r='5'/%3E%3Cpath d='M46 10l6 6m0-6l-6 6M60 46c4-4 8 4 12 0M12 54h10v8H12zM38 50l5 9 5-9zM66 20v8m-4-4h8M30 32c3 3 7 3 10 0'/%3E%3C/svg%3E")}
 .mt-chat{padding:14px 12px 16px 16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
 .mt-msg{position:relative;max-width:250px;width:100%;background:#fff;color:#111B21;border-radius:0 8px 8px 8px;box-shadow:0 1px .5px rgba(11,20,26,.16);font-size:13.5px;line-height:1.38}
@@ -658,7 +661,7 @@ include '../includes/client_header.php';
 .mt-ccard .cb{display:flex;flex-direction:column}
 .mt-ccard .cb div{border-top:1px solid #E6EAED;color:#0A8BD6;font-size:12.5px;font-weight:600;text-align:center;padding:7px}
 .mt-fine{font-size:12px;color:var(--ink-3)}
-@media (max-width:980px){.mt-grid{grid-template-columns:minmax(0,1fr)}.mt-side{position:static}}
+@media (max-width:980px){.mt-grid{grid-template-columns:minmax(0,1fr)}.mt-side{position:static;max-height:none}.mt-side .mt-wall{max-height:65vh;max-height:65dvh}}
 @media (max-width:600px){.mt-row2{grid-template-columns:minmax(0,1fr)}.mt-dash{display:none}}
 </style>
 
