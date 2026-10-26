@@ -1,5 +1,6 @@
 <?php
 include '../includes/client_auth_check.php';
+if (!has_feature('bot_knowledge')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client menu pages
 if (!has_feature('ai_chatbot')) {
     header('Location: dashboard.php');
     exit();

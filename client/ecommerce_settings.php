@@ -1,5 +1,6 @@
 <?php
 include '../includes/client_auth_check.php';
+if (!has_feature('ec_checkout')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client menu pages
 require_once __DIR__ . '/../includes/ecommerce_handler.php';
 
 if (!has_feature('feat_native_checkout')) {

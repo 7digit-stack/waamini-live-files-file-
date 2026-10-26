@@ -1,5 +1,6 @@
 <?php
 include '../includes/client_auth_check.php';
+if (!has_feature('ec_analytics')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client menu pages
 include_once '../includes/schema_guard.php';
 $pageTitle = 'Order Analytics Dashboard';
 $currentPage = 'order_dashboard';

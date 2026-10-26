@@ -1,5 +1,6 @@
 <?php
 include '../includes/client_auth_check.php';
+if (!has_feature('demo_bookings')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client menu pages
 include_once '../includes/schema_guard.php';
 require_once '../includes/google_meet_helper.php';
 require_once '../includes/demo_wa.php'; // per-client WhatsApp sender + business name

@@ -1,5 +1,6 @@
 <?php
 include '../includes/client_auth_check.php';
+if (!has_feature('discover')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client menu pages
 
 $pageTitle = 'Premium Features';
 $currentPage = 'premium_features';

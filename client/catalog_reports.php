@@ -1,5 +1,6 @@
 <?php
 include '../includes/client_auth_check.php';
+if (!has_feature('ec_reports')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client menu pages
 require_once __DIR__ . '/../includes/whatsapp_catalog_checkout.php';
 
 $pageTitle = 'Catalog Reports';

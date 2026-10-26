@@ -49,6 +49,18 @@ $_newCols = [
     'feat_google_calendar'   => "TINYINT(1) NOT NULL DEFAULT 1",
     'feat_set_support'       => "TINYINT(1) NOT NULL DEFAULT 1",
     'feat_set_manual'        => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_menu_integrations' => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_contact_groups'    => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_demo_bookings'     => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_bot_knowledge'     => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_bot_settings'      => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_ec_analytics'      => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_ec_orders'         => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_ec_catalog'        => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_ec_reports'        => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_ec_checkout'       => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_billing'           => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_discover'          => "TINYINT(1) NOT NULL DEFAULT 1",
 ];
 foreach ($_newCols as $_col => $_def) {
     try {
@@ -156,7 +168,7 @@ if (isset($_POST['save'])) {
     $featNotifications = intval($_POST['feat_notifications'] ?? 0);
     $feat2fa = intval($_POST['feat_2fa'] ?? 0);
     $adsFlags = [];
-    foreach (['feat_ads_attribution', 'feat_ads_capi', 'feat_ads_insights', 'feat_ads_builder', 'feat_shopify', 'feat_sales_tracker', 'feat_google_calendar', 'feat_set_general', 'feat_set_whatsapp', 'feat_set_support', 'feat_set_manual'] as $_af) { $adsFlags[$_af] = intval($_POST[$_af] ?? 0) ? 1 : 0; }
+    foreach (['feat_ads_attribution', 'feat_ads_capi', 'feat_ads_insights', 'feat_ads_builder', 'feat_shopify', 'feat_sales_tracker', 'feat_google_calendar', 'feat_set_general', 'feat_set_whatsapp', 'feat_set_support', 'feat_set_manual', 'feat_menu_integrations', 'feat_contact_groups', 'feat_demo_bookings', 'feat_bot_knowledge', 'feat_bot_settings', 'feat_ec_analytics', 'feat_ec_orders', 'feat_ec_catalog', 'feat_ec_reports', 'feat_ec_checkout', 'feat_billing', 'feat_discover'] as $_af) { $adsFlags[$_af] = intval($_POST[$_af] ?? 0) ? 1 : 0; }
     $saveAdsFlags = static function (int $planId) use ($conn, $adsFlags): void {
         $set = implode(', ', array_map(static fn($c) => $c . '=?', array_keys($adsFlags)));
         $st = $conn->prepare("UPDATE subscription_plans SET $set WHERE id=?");
@@ -280,6 +292,18 @@ if (!$plan) {
         'feat_set_whatsapp' => 1,
         'feat_set_support' => 1,
         'feat_set_manual' => 1,
+        'feat_menu_integrations' => 1,
+        'feat_contact_groups' => 1,
+        'feat_demo_bookings' => 1,
+        'feat_bot_knowledge' => 1,
+        'feat_bot_settings' => 1,
+        'feat_ec_analytics' => 1,
+        'feat_ec_orders' => 1,
+        'feat_ec_catalog' => 1,
+        'feat_ec_reports' => 1,
+        'feat_ec_checkout' => 1,
+        'feat_billing' => 1,
+        'feat_discover' => 1,
     ];
 }
 
@@ -517,6 +541,41 @@ $settingsFeatures = [
     ['feat_set_manual', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>', 'User Guide', '#f59e0b'],
 ];
 foreach ($settingsFeatures as $f):
+    $checked = ($plan[$f[0]] ?? 1) ? 'checked' : '';
+?>
+                <div class="feature-toggle-card <?php echo $checked ? 'active' : ''; ?>" data-feature="<?php echo htmlspecialchars($f[0]); ?>">
+                    <input type="hidden" name="<?php echo $f[0]; ?>" value="0">
+                    <input type="checkbox" name="<?php echo $f[0]; ?>" id="<?php echo $f[0]; ?>" <?php echo $checked; ?> style="display:none;" value="1">
+                    <div class="feature-icon" style="background:<?php echo htmlspecialchars($f[3], ENT_QUOTES, 'UTF-8'); ?>20;color:<?php echo htmlspecialchars($f[3], ENT_QUOTES, 'UTF-8'); ?>;"><?php echo $f[1]; ?></div>
+                    <div class="feature-name"><?php echo htmlspecialchars($f[2], ENT_QUOTES, 'UTF-8'); ?></div>
+                    <div class="feature-check"><?php if ($checked): ?><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg><?php else: ?><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg><?php endif; ?></div>
+                </div>
+                <?php
+endforeach; ?>
+            </div>
+        </div>
+
+        <!-- Client menu pages (sidebar pages that used to share another feature's switch) -->
+        <div style="margin-top:16px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M1 12h4M19 12h4M4.2 19.8 7 17M17 7l2.8-2.8"/></svg> Client menu pages</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">One switch per sidebar page. A page also needs its main feature on: Groups needs Contacts, Demo Bookings needs Bot Replies, Bot pages need AI Chatbot, the order and catalog pages need Native Checkout. Dashboard and My Subscription are always shown.</div>
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;">
+                <?php
+$menuFeatures = [
+    ['feat_menu_integrations', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0zM12 17v5"/></svg>', 'Integrations page', '#0ea5e9'],
+    ['feat_contact_groups', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.1.7 3.5 2.7 3.5 6"/></svg>', 'Contact Groups', '#00b894'],
+    ['feat_demo_bookings', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M8.5 15l2.2 2.2 4.5-4.5"/></svg>', 'Demo Bookings', '#6c5ce7'],
+    ['feat_bot_knowledge', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>', 'Bot Knowledge', '#8b5cf6'],
+    ['feat_bot_settings', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4M9 13h.01M15 13h.01M9 17h6"/></svg>', 'Bot Settings', '#8b5cf6'],
+    ['feat_ec_analytics', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M3.5 3.5v17h17M8 16v-4M12.5 16V8M17 16v-6.5"/></svg>', 'Order Analytics', '#e17055'],
+    ['feat_ec_orders', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>', 'Manage Orders', '#e17055'],
+    ['feat_ec_catalog', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>', 'Product Catalog', '#e17055'],
+    ['feat_ec_reports', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M5 3.5h10l4.5 4.5v12.5H5zM14.5 3.5V8.5h5M8.5 12.5h7M8.5 16h4.5"/></svg>', 'Catalog Reports', '#e17055'],
+    ['feat_ec_checkout', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/></svg>', 'Checkout Settings', '#e17055'],
+    ['feat_billing', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M16 12h2M2.5 9.5h19"/></svg>', 'Billing & Wallet', '#16a34a'],
+    ['feat_discover', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3z"/></svg>', 'Discover More', '#f59e0b'],
+];
+foreach ($menuFeatures as $f):
     $checked = ($plan[$f[0]] ?? 1) ? 'checked' : '';
 ?>
                 <div class="feature-toggle-card <?php echo $checked ? 'active' : ''; ?>" data-feature="<?php echo htmlspecialchars($f[0]); ?>">
