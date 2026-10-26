@@ -5,11 +5,42 @@
  */
 require_once __DIR__ . '/../config/bootstrap.php';
 
-$clientId    = (string)\Waamini\Config\Env::get('GOOGLE_CLIENT_ID', '');
-$redirectUri = (string)\Waamini\Config\Env::get('GOOGLE_REDIRECT_URI', '');
+/**
+ * Keys for "Continue with Google" on login/register.
+ * .env first; otherwise the platform keys saved in Admin > Google setup (never a client's own app).
+ */
+if (!function_exists('waamini_google_login_keys')) {
+function waamini_google_login_keys(): array
+{
+    $id       = (string)\Waamini\Config\Env::get('GOOGLE_CLIENT_ID', '');
+    $secret   = (string)\Waamini\Config\Env::get('GOOGLE_CLIENT_SECRET', '');
+    $redirect = (string)\Waamini\Config\Env::get('GOOGLE_REDIRECT_URI', '');
+    if ($id === '' || $secret === '') {
+        if (!isset($GLOBALS['conn'])) { include_once __DIR__ . '/../db.php'; if (isset($conn)) { $GLOBALS['conn'] = $conn; } }
+        if (!function_exists('decrypt_secret') && file_exists(__DIR__ . '/../services/EncryptionService.php')) {
+            require_once __DIR__ . '/../services/EncryptionService.php';
+        }
+        require_once __DIR__ . '/../includes/google_meet_helper.php';
+        $cfg = gmeet_oauth_config($GLOBALS['conn'] ?? null, 0);
+        if (!empty($cfg['ready'])) {
+            $id = (string)$cfg['client_id'];
+            $secret = (string)$cfg['client_secret'];
+            $redirect = (string)$cfg['redirect_uri'];
+        }
+    }
+    if ($id !== '' && $redirect === '') {
+        $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+        $redirect = ($https ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/auth/google-callback.php';
+    }
+    return ['client_id' => $id, 'client_secret' => $secret, 'redirect_uri' => $redirect];
+}
+}
+$gKeys       = waamini_google_login_keys();
+$clientId    = $gKeys['client_id'];
+$redirectUri = $gKeys['redirect_uri'];
 
 if ($clientId === '' || $redirectUri === '') {
-    error_log('[WAAMINI Google OAuth] GOOGLE_CLIENT_ID or GOOGLE_REDIRECT_URI not set in .env');
+    error_log('[WAAMINI Google OAuth] GOOGLE_CLIENT_ID or GOOGLE_REDIRECT_URI not set in .env or Admin > Google setup');
     $back = str_contains((string)($_SERVER['HTTP_REFERER'] ?? ''), 'register.php') ? 'register.php' : 'login.php';
     header('Location: ../' . $back . '?error=oauth_config');
     exit;

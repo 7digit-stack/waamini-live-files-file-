@@ -93,6 +93,7 @@ function auth_open(string $title, array $nav = []): void
 function auth_close(string $extraScript = ''): void
 {
     $nonce = auth_e($_SESSION['_csp_nonce'] ?? '');
+    $base = (string)($GLOBALS['AUTH_BASE'] ?? '');
     ?>
     </main>
   </div>
