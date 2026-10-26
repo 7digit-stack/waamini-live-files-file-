@@ -529,25 +529,41 @@ if ($gRes && ($gRow = $gRes->fetch_assoc())) $waGuideOn = (string)$gRow['setting
 .step-content p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
 
 .callback-url-box { display: flex; align-items: center; gap: 8px; margin-top: 6px; padding: 8px 12px; background: var(--bg-dark); border-radius: 8px; border: 1px solid var(--border); }
-.callback-url-box code { flex: 1; font-size: 12px; color: #00b894; word-break: break-all; }
+.callback-url-box code { flex: 1; min-width: 0; font-size: 12px; color: #00b894; overflow-wrap: anywhere; word-break: normal; }
 .copy-btn { background: rgba(0,184,148,0.1); border: 1px solid rgba(0,184,148,0.2); color: #00b894; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; }
 .copy-btn:hover { background: rgba(0,184,148,0.2); }
+.copy-btn { flex: none; display: inline-flex; align-items: center; gap: 5px; }
+.copy-btn svg { flex: none; }
+.copy-btn.is-copied { background: #00b894; border-color: #00b894; color: #fff; }
 
 @media (max-width: 900px) { .settings-grid { grid-template-columns: 1fr; } }
 </style>
 
 <script>
 function copyToClipboard(elementId) {
+    // Copies the text of #elementId; the button right after it shows "Copied" for 2 s, then gets its own icon + label back.
     const el = document.getElementById(elementId);
     if (!el) return;
-    const text = el.textContent;
-    navigator.clipboard.writeText(text).then(() => {
-        const btn = el.nextElementSibling;
-        if (btn) {
-            btn.textContent = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;flex-shrink:0"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg> Copied!';
-            setTimeout(() => { btn.textContent = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;flex-shrink:0"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg> Copy'; }, 2000);
-        }
-    });
+    const text = el.textContent.trim();
+    const btn = el.nextElementSibling;
+    const CHECK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+    function done() {
+        if (!btn) return;
+        if (!btn.dataset.label) btn.dataset.label = btn.innerHTML;
+        btn.innerHTML = CHECK + ' Copied';
+        btn.classList.add('is-copied');
+        clearTimeout(btn._copyTimer);
+        btn._copyTimer = setTimeout(function () { btn.innerHTML = btn.dataset.label; btn.classList.remove('is-copied'); }, 2000);
+    }
+    function fallback() {   // older browsers / non-https: copy through a hidden textarea
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.top = '-1000px'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { if (document.execCommand('copy')) done(); } catch (e) {}
+        document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, fallback);
+    else fallback();
 }
 </script>
 

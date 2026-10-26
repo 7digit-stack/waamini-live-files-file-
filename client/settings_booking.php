@@ -104,7 +104,7 @@ function updateDefaults() {
     var d = defaults[v];
     if (!document.getElementById('bookMsgTA').value) document.getElementById('bookMsgTA').value = d.book_msg;
     if (!document.getElementById('confMsgTA').value) document.getElementById('confMsgTA').value = d.conf_msg;
-    document.getElementById('triggerLine').textContent = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;flex-shrink:0"><path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4"/><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/></svg> Trigger: Customer sends "' + d.trigger + '"';
+    (function (el) { el.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;flex-shrink:0"><path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4"/><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/></svg>'; el.appendChild(document.createTextNode(' Trigger: Customer sends "' + d.trigger + '"')); })(document.getElementById('triggerLine'));
 }
 updateDefaults();
 </script>
