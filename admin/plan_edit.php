@@ -42,6 +42,13 @@ $_newCols = [
     'feat_ads_builder'       => "TINYINT(1) NOT NULL DEFAULT 0",
     // Shopify add-on (off by default)
     'feat_shopify'           => "TINYINT(1) NOT NULL DEFAULT 0",
+    // Client Settings pages controlled by the plan (on by default)
+    'feat_set_general'       => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_set_whatsapp'      => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_sales_tracker'     => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_google_calendar'   => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_set_support'       => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_set_manual'        => "TINYINT(1) NOT NULL DEFAULT 1",
 ];
 foreach ($_newCols as $_col => $_def) {
     try {
@@ -149,10 +156,11 @@ if (isset($_POST['save'])) {
     $featNotifications = intval($_POST['feat_notifications'] ?? 0);
     $feat2fa = intval($_POST['feat_2fa'] ?? 0);
     $adsFlags = [];
-    foreach (['feat_ads_attribution', 'feat_ads_capi', 'feat_ads_insights', 'feat_ads_builder', 'feat_shopify'] as $_af) { $adsFlags[$_af] = intval($_POST[$_af] ?? 0) ? 1 : 0; }
+    foreach (['feat_ads_attribution', 'feat_ads_capi', 'feat_ads_insights', 'feat_ads_builder', 'feat_shopify', 'feat_sales_tracker', 'feat_google_calendar', 'feat_set_general', 'feat_set_whatsapp', 'feat_set_support', 'feat_set_manual'] as $_af) { $adsFlags[$_af] = intval($_POST[$_af] ?? 0) ? 1 : 0; }
     $saveAdsFlags = static function (int $planId) use ($conn, $adsFlags): void {
-        $st = $conn->prepare("UPDATE subscription_plans SET feat_ads_attribution=?, feat_ads_capi=?, feat_ads_insights=?, feat_ads_builder=?, feat_shopify=? WHERE id=?");
-        if ($st) { $st->bind_param('iiiiii', $adsFlags['feat_ads_attribution'], $adsFlags['feat_ads_capi'], $adsFlags['feat_ads_insights'], $adsFlags['feat_ads_builder'], $adsFlags['feat_shopify'], $planId); $st->execute(); }
+        $set = implode(', ', array_map(static fn($c) => $c . '=?', array_keys($adsFlags)));
+        $st = $conn->prepare("UPDATE subscription_plans SET $set WHERE id=?");
+        if ($st) { $vals = array_values($adsFlags); $vals[] = $planId; $st->bind_param(str_repeat('i', count($vals)), ...$vals); $st->execute(); }
     };
 
     $monthlyEnabled = isset($_POST['monthly_enabled']) ? 1 : 0;
@@ -266,6 +274,12 @@ if (!$plan) {
         'feat_ads_insights' => 0,
         'feat_ads_builder' => 0,
         'feat_shopify' => 0,
+        'feat_sales_tracker' => 1,
+        'feat_google_calendar' => 1,
+        'feat_set_general' => 1,
+        'feat_set_whatsapp' => 1,
+        'feat_set_support' => 1,
+        'feat_set_manual' => 1,
     ];
 }
 
@@ -475,6 +489,35 @@ $intFeatures = [
 ];
 foreach ($intFeatures as $f):
     $checked = ($plan[$f[0]] ?? 0) ? 'checked' : '';
+?>
+                <div class="feature-toggle-card <?php echo $checked ? 'active' : ''; ?>" data-feature="<?php echo htmlspecialchars($f[0]); ?>">
+                    <input type="hidden" name="<?php echo $f[0]; ?>" value="0">
+                    <input type="checkbox" name="<?php echo $f[0]; ?>" id="<?php echo $f[0]; ?>" <?php echo $checked; ?> style="display:none;" value="1">
+                    <div class="feature-icon" style="background:<?php echo htmlspecialchars($f[3], ENT_QUOTES, 'UTF-8'); ?>20;color:<?php echo htmlspecialchars($f[3], ENT_QUOTES, 'UTF-8'); ?>;"><?php echo $f[1]; ?></div>
+                    <div class="feature-name"><?php echo htmlspecialchars($f[2], ENT_QUOTES, 'UTF-8'); ?></div>
+                    <div class="feature-check"><?php if ($checked): ?><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg><?php else: ?><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg><?php endif; ?></div>
+                </div>
+                <?php
+endforeach; ?>
+            </div>
+        </div>
+
+        <!-- Client Settings menu (each page in the client's Settings / Help menu) -->
+        <div style="margin-top:16px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M1 12h4M19 12h4M4.2 19.8 7 17M17 7l2.8-2.8"/></svg> Client Settings menu</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Pages in the client's Settings and Help menu. Google Sheets, API &amp; Webhook and Account Health follow the Google Sheets, Webhooks &amp; API and WAAMINI Pulse cards above.</div>
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;">
+                <?php
+$settingsFeatures = [
+    ['feat_set_general', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>', 'General', '#64748b'],
+    ['feat_set_whatsapp', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18h2"/></svg>', 'WhatsApp Setup', '#25d366'],
+    ['feat_google_calendar', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><path d="m15 14 4 2.5-4 2.5z"/></svg>', 'Google Calendar & Meet', '#1a73e8'],
+    ['feat_sales_tracker', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>', 'Sales Tracker', '#16a34a'],
+    ['feat_set_support', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg>', 'Support', '#0ea5e9'],
+    ['feat_set_manual', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>', 'User Guide', '#f59e0b'],
+];
+foreach ($settingsFeatures as $f):
+    $checked = ($plan[$f[0]] ?? 1) ? 'checked' : '';
 ?>
                 <div class="feature-toggle-card <?php echo $checked ? 'active' : ''; ?>" data-feature="<?php echo htmlspecialchars($f[0]); ?>">
                     <input type="hidden" name="<?php echo $f[0]; ?>" value="0">

@@ -524,19 +524,25 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
         <!-- Help -->
         <div class="nav-section-title"><?php echo cn_svg('support'); ?> Help &amp; Support</div>
 
+        <?php if (has_feature('set_manual')): ?>
         <a href="<?php echo app_url('client/manual.php'); ?>" class="nav-item <?php echo $cp==='manual'?'active':''; ?>">
             <span class="icon"><?php echo cn_svg('manual'); ?></span> User Guide
         </a>
+        <?php endif; ?>
 
         <!-- Settings -->
         <div class="nav-section-title"><?php echo cn_svg('settings'); ?> Settings</div>
 
+        <?php if (has_feature('set_general')): ?>
         <a href="<?php echo app_url('client/settings_general.php'); ?>" class="nav-item <?php echo $cp==='settings_general'?'active':''; ?>">
             <span class="icon"><?php echo cn_svg('general'); ?></span> General
         </a>
+        <?php endif; ?>
+        <?php if (has_feature('set_whatsapp')): ?>
         <a href="<?php echo app_url('client/settings_whatsapp.php'); ?>" class="nav-item <?php echo $cp==='settings_whatsapp'?'active':''; ?>">
             <span class="icon"><?php echo cn_svg('wa_setup'); ?></span> WhatsApp Setup
         </a>
+        <?php endif; ?>
 
 
         <a href="<?php echo has_feature('google_sheets') ? app_url('client/settings_gsheets.php') : '#'; ?>" class="nav-item <?php echo $cp==='settings_gsheets'?'active':''; ?> <?php echo has_feature('google_sheets')?'':'locked'; ?>"<?php echo cn_locked_attrs(!has_feature('google_sheets')); ?>>
@@ -544,13 +550,17 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
             <?php if (!has_feature('google_sheets')) echo cn_lock_icon(); ?>
         </a>
 
+        <?php if (has_feature('google_calendar')): ?>
         <a href="<?php echo app_url('client/google_calendar.php'); ?>" class="nav-item <?php echo $cp==='google_calendar'?'active':''; ?>">
             <span class="icon"><?php echo cn_svg('scheduled'); ?></span> Google Calendar &amp; Meet
         </a>
+        <?php endif; ?>
 
+        <?php if (has_feature('sales_tracker')): ?>
         <a href="<?php echo app_url('client/settings_sales_tracker.php'); ?>" class="nav-item <?php echo $cp==='settings_sales_tracker'?'active':''; ?>">
             <span class="icon"><?php echo cn_svg('sales'); ?></span> Sales Tracker
         </a>
+        <?php endif; ?>
 
         <a href="<?php echo has_feature('api_webhook') ? app_url('client/settings_api.php') : '#'; ?>" class="nav-item <?php echo $cp==='settings_api'?'active':''; ?> <?php echo has_feature('api_webhook')?'':'locked'; ?>"<?php echo cn_locked_attrs(!has_feature('api_webhook')); ?>>
             <span class="icon"><?php echo cn_svg('api'); ?></span> API &amp; Webhook
@@ -562,9 +572,11 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
             <?php if (!has_feature('pulse')) echo cn_lock_icon(); ?>
         </a>
 
+        <?php if (has_feature('set_support')): ?>
         <a href="<?php echo app_url('client/support.php'); ?>" class="nav-item <?php echo $cp==='support'?'active':''; ?>">
             <span class="icon"><?php echo cn_svg('support'); ?></span> Support
         </a>
+        <?php endif; ?>
 
         <?php endif; /* !$isRestricted */ ?>
 

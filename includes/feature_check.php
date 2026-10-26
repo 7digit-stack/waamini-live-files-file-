@@ -261,12 +261,24 @@ function has_feature($feature)
         'ads_builder' => 'feat_ads_builder',
         // Shopify add-on (plan flag, or per company via companies.features_override)
         'shopify' => 'feat_shopify',
+        // Client Settings / Help menu pages (plan switches, on by default)
+        'set_general' => 'feat_set_general',
+        'set_whatsapp' => 'feat_set_whatsapp',
+        'google_calendar' => 'feat_google_calendar',
+        'sales_tracker' => 'feat_sales_tracker',
+        'set_support' => 'feat_set_support',
+        'set_manual' => 'feat_set_manual',
     ];
 
     $col = $map[$feature] ?? $feature;
 
     $result = false;
     if (!empty($_featureCache) && is_array($_featureCache) && !empty($_featureCache[$col])) {
+        $result = true;
+    }
+    // Settings-menu switches were added later: a plan saved before they existed (no column yet) keeps the page on
+    $defaultOn = ['feat_set_general', 'feat_set_whatsapp', 'feat_google_calendar', 'feat_sales_tracker', 'feat_set_support', 'feat_set_manual'];
+    if (!$result && in_array($col, $defaultOn, true) && is_array($_featureCache) && !empty($_featureCache) && !array_key_exists($col, $_featureCache)) {
         $result = true;
     }
     

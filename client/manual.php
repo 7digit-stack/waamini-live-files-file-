@@ -1,5 +1,6 @@
 <?php
 include '../includes/client_auth_check.php';
+if (!has_feature('set_manual')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client Settings menu
 include 'user_guide_data.php';
 
 $validLangs = ['en', 'ta', 'hi'];

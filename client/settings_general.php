@@ -1,5 +1,6 @@
 ﻿<?php
 include '../includes/client_auth_check.php';
+if (!has_feature('set_general')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client Settings menu
 include_once '../includes/schema_guard.php';
 
 $pageTitle = 'General Settings';
