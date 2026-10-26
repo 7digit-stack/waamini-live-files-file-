@@ -34,10 +34,40 @@ function waamini_support_ensure_tables(mysqli $conn): void {
             INDEX idx_ticket (ticket_id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
+    // Category and urgency chosen by the client (added later; old tickets have none)
+    foreach (['category' => "VARCHAR(40) NULL", 'priority' => "VARCHAR(12) NOT NULL DEFAULT 'normal'"] as $col => $def) {
+        try {
+            $r = $conn->query("SHOW COLUMNS FROM support_tickets LIKE '$col'");
+            if ($r && $r->num_rows === 0) $conn->query("ALTER TABLE support_tickets ADD COLUMN $col $def");
+        } catch (\Throwable $e) { error_log('[support.php] add column ' . $col . ': ' . $e->getMessage()); }
+    }
     $done = true;
 }
 
 waamini_support_ensure_tables($conn);
+
+/* Ticket categories and urgency levels offered in the form (whitelists: anything else is ignored) */
+$supportCategories = [
+    'whatsapp'  => 'WhatsApp number & API',
+    'templates' => 'Templates & approval',
+    'campaigns' => 'Campaigns & broadcasts',
+    'automation'=> 'Bots, flows & automation',
+    'integrations' => 'Integrations & webhooks',
+    'billing'   => 'Billing & subscription',
+    'other'     => 'Something else',
+];
+$supportPriorities = [
+    'normal'   => ['Normal', 'Question or how-to'],
+    'high'     => ['High', 'Something is not working'],
+    'critical' => ['Critical', 'Messages are not going out'],
+];
+
+/* Support desk hours: Monday to Saturday, 9 AM to 7 PM IST */
+$__ist = new DateTime('now', new DateTimeZone('Asia/Kolkata'));
+$__dow = (int)$__ist->format('N');
+$__hr  = (int)$__ist->format('G') + (int)$__ist->format('i') / 60;
+$deskOpen = $__dow <= 6 && $__hr >= 9 && $__hr < 19;
+$deskBack = $deskOpen ? '' : (($__dow <= 6 && $__hr < 9) ? 'today' : ($__dow <= 5 ? 'tomorrow' : 'on Monday'));
 
 $success = '';
 $error = '';
@@ -50,6 +80,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_ticket'])) {
 
     $subject = mb_substr(trim((string)($_POST['subject'] ?? '')), 0, 255);
     $message = mb_substr(trim((string)($_POST['message'] ?? '')), 0, 65535);
+    $category = (string)($_POST['category'] ?? '');
+    $category = isset($supportCategories[$category]) ? $category : 'other';
+    $priority = (string)($_POST['priority'] ?? '');
+    $priority = isset($supportPriorities[$priority]) ? $priority : 'normal';
 
     if ($subject === '' || $message === '') {
         $error = 'Subject and message are required.';
@@ -58,11 +92,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_ticket'])) {
     } else {
         $conn->begin_transaction();
         try {
-            $stmt = $conn->prepare('INSERT INTO support_tickets (company_id, user_id, subject) VALUES (?, ?, ?)');
+            $stmt = $conn->prepare('INSERT INTO support_tickets (company_id, user_id, subject, category, priority) VALUES (?, ?, ?, ?, ?)');
             if (!$stmt) {
                 throw new RuntimeException($conn->error);
             }
-            $stmt->bind_param('iis', $companyId, $userId, $subject);
+            $stmt->bind_param('iisss', $companyId, $userId, $subject, $category, $priority);
             if (!$stmt->execute()) {
                 throw new RuntimeException($stmt->error);
             }
@@ -77,7 +111,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_ticket'])) {
             if (!$msgStmt) {
                 throw new RuntimeException($conn->error);
             }
-            $msgStmt->bind_param('iis', $ticketId, $userId, $message);
+            $firstMessage = 'Category: ' . $supportCategories[$category] . ' · Urgency: ' . $supportPriorities[$priority][0] . "
+
+" . $message;
+            $msgStmt->bind_param('iis', $ticketId, $userId, $firstMessage);
             if (!$msgStmt->execute()) {
                 throw new RuntimeException($msgStmt->error);
             }
@@ -197,650 +234,517 @@ $lI = static function (string $p, int $s = 20): string {
 };
 
 include '../includes/client_header.php';
+
+/* ── View helpers ── */
+$sx = static fn(string $p, int $s = 18): string => '<svg width="' . $s . '" height="' . $s . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $p . '</svg>';
+$h = static fn($v): string => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+// The first message of a ticket starts with "Category: … · Urgency: …" for the admin inbox; the client sees chips instead
+$cleanMsg = static function (string $m): string {
+    return preg_match('/^Category: [^\n]*· Urgency: [^\n]*\R\R/u', $m) ? (string)preg_replace('/^Category: [^\n]*· Urgency: [^\n]*\R\R/u', '', $m, 1) : $m;
+};
+$fmtDur = static function (int $sec): string {
+    if ($sec < 3600) return max(1, (int)round($sec / 60)) . ' min';
+    if ($sec < 86400) return round($sec / 3600, 1) . ' h';
+    return round($sec / 86400, 1) . ' days';
+};
+$resolvedPct = $statTotal > 0 ? (int)round($statClosed * 100 / $statTotal) : 0;
+$waText = rawurlencode('Hi WAAMINI Support, I need help with my account.');
+$I = [
+    'wa'     => '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+    'mail'   => '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+    'book'   => '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+    'inbox'  => '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+    'clock'  => '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+    'check'  => '<path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/>',
+    'zap'    => '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
+    'ticket' => '<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 17v2M13 11v2"/>',
+    'plus'   => '<path d="M5 12h14"/><path d="M12 5v14"/>',
+    'send'   => '<path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/>',
+    'info'   => '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+    'help'   => '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
+    'arrow'  => '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+    'back'   => '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+    'shield' => '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+    'x'      => '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
+];
+$faqs = [
+    ['Why was my WhatsApp template rejected?', 'Meta rejects templates that look promotional but are filed as Utility, that use variables without sample values, or that start or end with a variable. Edit the wording or category under Templates and submit again.', 'templates.php', 'Open Templates'],
+    ['How do I connect or reconnect my WhatsApp number?', 'Go to Settings → WhatsApp Setup and follow the steps there. If messages stopped suddenly, check that the number is still connected and has a valid template for the message type.', 'settings_whatsapp.php', 'Open WhatsApp Setup'],
+    ['Where can I see if my messages were delivered?', 'Every campaign shows sent, delivered, read and failed counts. Open the campaign from Campaigns to see each contact\'s status and the reason for any failure.', 'campaigns.php', 'Open Campaigns'],
+    ['How do I renew or upgrade my plan?', 'Open My Subscription to see your plan, its end date and the upgrade options. Payments and invoices are listed under Billing & Wallet.', 'subscription.php', 'Open My Subscription'],
+];
 ?>
-<link rel="stylesheet" href="<?php echo app_url('assets/css/section-ui.css?v=3'); ?>">
 <style>
-/* ═══════════════════════════════════════════
-   WAAMINI Help & Support — redesigned UI
-   Matches the Tailwind mockup, plain CSS
-   ═══════════════════════════════════════════ */
+/* ═══ Help & Support (client) · professional help-desk layout · all numbers are live ═══ */
+.sx{--g9:#064e3b;--g8:#065f46;--g7:#047857;--g6:#059669;--g5:#10b981;--g1:#d1fae5;--g0:#ecfdf5;
+  --ink:#0f172a;--tx:#334155;--mu:#64748b;--li:#94a3b8;--bd:#e2e8f0;--bd2:#eef2f6;--sf:#f8fafc;
+  max-width:1240px;margin:0 auto;display:grid;gap:20px;color:var(--ink);font-size:14px}
+.sx *{box-sizing:border-box}
+.sx a{text-decoration:none}
+.sx svg{flex:none}
+.sx-card{background:#fff;border:1px solid var(--bd);border-radius:18px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
 
-/* Page shell */
-.sp-page {
-  --sp-green:   #008767;
-  --sp-green-d: #0d7f6c;
-  --sp-green-l: #f0fdf9;
-  --sp-green-b: #ccfbf1;
-  --sp-ink:     #0f172a;
-  --sp-sub:     #475569;
-  --sp-muted:   #94a3b8;
-  --sp-border:  #e2e8f0;
-  --sp-surface: #f8fafc;
-  --sp-white:   #ffffff;
-  --sp-radius:  16px;
-  --sp-shadow:  0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-  --sp-shadow-md: 0 4px 16px -4px rgba(0,0,0,.08);
-  font-family: Inter, "Segoe UI", system-ui, sans-serif;
-  color: var(--sp-ink);
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding-bottom: 32px;
-}
-.sp-page *, .sp-page *::before, .sp-page *::after { box-sizing: border-box; }
+/* hero */
+.sx-banner{position:relative;overflow:hidden;border-radius:20px;padding:30px 32px;color:#fff;
+  background:linear-gradient(110deg,var(--g9) 0%,var(--g8) 55%,#063f33 100%);box-shadow:0 18px 40px -22px rgba(6,78,59,.55)}
+.sx-banner::before,.sx-banner::after{content:"";position:absolute;border-radius:50%;pointer-events:none;filter:blur(40px)}
+.sx-banner::before{right:-60px;bottom:-80px;width:300px;height:300px;background:rgba(16,185,129,.28)}
+.sx-banner::after{right:240px;top:-60px;width:200px;height:200px;background:rgba(45,212,191,.14)}
+.sx-banner__in{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.sx-banner__txt{max-width:640px}
+.sx-banner__tags{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:10px}
+.sx-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:99px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);color:#a7f3d0}
+.sx-desk{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:rgba(209,250,229,.9)}
+.sx-desk i{width:8px;height:8px;border-radius:50%;background:#94a3b8}
+.sx-desk.is-on i{background:#34d399;box-shadow:0 0 0 0 rgba(52,211,153,.6);animation:sxPing 2s infinite}
+@keyframes sxPing{70%{box-shadow:0 0 0 7px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+.sx-banner h1{margin:0 0 8px;font-size:clamp(22px,2.6vw,30px);font-weight:800;letter-spacing:-.02em;line-height:1.2;color:#fff}
+.sx-banner p{margin:0;font-size:14px;line-height:1.65;color:rgba(209,250,229,.82)}
+.sx-banner__btns{display:flex;flex-wrap:wrap;gap:10px}
+.sx-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:12px;font-size:13px;font-weight:700;line-height:1;border:1px solid transparent;cursor:pointer;transition:transform .15s,background .2s,box-shadow .2s;white-space:nowrap}
+.sx-btn:active{transform:scale(.97)}
+.sx-btn--wa{background:#10b981;color:#022c22;box-shadow:0 8px 18px -10px rgba(16,185,129,.9)}
+.sx-btn--wa:hover{background:#34d399}
+.sx-btn--glass{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22);color:#fff}
+.sx-btn--glass:hover{background:rgba(255,255,255,.18)}
+.sx-btn--primary{background:var(--g8);color:#fff;box-shadow:0 8px 18px -12px rgba(6,95,70,.8)}
+.sx-btn--primary:hover{background:var(--g9)}
+.sx-btn--dark{background:var(--ink);color:#fff}
+.sx-btn--dark:hover{background:#1e293b}
+.sx-btn--soft{background:var(--sf);border-color:var(--bd);color:var(--tx)}
+.sx-btn--soft:hover{background:#f1f5f9}
+.sx-btn--block{width:100%}
 
-/* ── Card base ── */
-.sp-card {
-  background: var(--sp-white);
-  border: 1px solid var(--sp-border);
-  border-radius: var(--sp-radius);
-  box-shadow: var(--sp-shadow);
-}
+/* metrics */
+.sx-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.sx-kpi{padding:16px 18px}
+.sx-kpi__top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:12.5px;font-weight:600;color:var(--mu)}
+.sx-kpi__ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;border:1px solid}
+.sx-ic-slate{background:var(--sf);border-color:var(--bd2);color:#475569}
+.sx-ic-green{background:var(--g0);border-color:var(--g1);color:var(--g6)}
+.sx-ic-teal{background:#f0fdfa;border-color:#ccfbf1;color:#0d9488}
+.sx-ic-indigo{background:#eef2ff;border-color:#e0e7ff;color:#4f46e5}
+.sx-kpi__val{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px}
+.sx-kpi__val b{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.sx-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;background:var(--sf);color:var(--mu)}
+.sx-chip--green{background:var(--g0);color:var(--g7)}
+.sx-chip--amber{background:#fffbeb;color:#b45309}
+.sx-chip--red{background:#fef2f2;color:#b91c1c}
+.sx-chip--teal{background:#f0fdfa;color:#0f766e}
+.sx-chip--indigo{background:#eef2ff;color:#4338ca}
+.sx-kpi p{margin:6px 0 0;font-size:11.5px;color:var(--li)}
 
-/* ── Top header ── */
-.sp-header {
-  padding: 24px 28px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-.sp-header-l {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-}
-.sp-header-ico {
-  width: 48px; height: 48px;
-  border-radius: 12px;
-  background: var(--sp-green-l);
-  border: 1px solid var(--sp-green-b);
-  color: var(--sp-green-d);
-  display: grid; place-items: center;
-  flex-shrink: 0; margin-top: 2px;
-}
-.sp-header-ico svg { width: 22px; height: 22px; }
-.sp-header h1 { margin: 0 0 4px; font-size: 22px; font-weight: 800; letter-spacing: -.02em; color: var(--sp-ink); line-height: 1.2; }
-.sp-header p  { margin: 0; font-size: 14px; color: var(--sp-sub); line-height: 1.5; }
-.sp-header-r  { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
+/* channels */
+.sx-chans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.sx-chan{padding:22px;display:flex;flex-direction:column;gap:16px;transition:border-color .2s,box-shadow .2s}
+.sx-chan:hover{border-color:#cbd5e1;box-shadow:0 14px 30px -24px rgba(15,23,42,.45)}
+.sx-chan--wa{border:2px solid rgba(16,185,129,.35)}
+.sx-chan--wa:hover{border-color:rgba(5,150,105,.6)}
+.sx-chan__top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.sx-chan__ic{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;border:1px solid;transition:transform .2s}
+.sx-chan:hover .sx-chan__ic{transform:scale(1.05)}
+.sx-ic-blue{background:#eff6ff;border-color:#dbeafe;color:#2563eb}
+.sx-ic-amber{background:#fffbeb;border-color:#fef3c7;color:#d97706}
+.sx-pill{padding:4px 10px;border-radius:99px;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:#f1f5f9;color:#475569}
+.sx-pill--green{background:var(--g1);color:var(--g8)}
+.sx-pill--amber{background:#fef3c7;color:#92400e}
+.sx-chan h3{margin:0 0 6px;font-size:15.5px;font-weight:800}
+.sx-chan p{margin:0;font-size:13px;line-height:1.6;color:var(--mu)}
+.sx-facts{display:grid;gap:7px;padding:12px 14px;border-radius:12px;border:1px solid var(--bd2);background:var(--sf);font-size:12.5px}
+.sx-facts--green{background:rgba(236,253,245,.6);border-color:var(--g1)}
+.sx-facts--amber{background:rgba(255,251,235,.6);border-color:#fef3c7}
+.sx-facts div{display:flex;justify-content:space-between;gap:10px}
+.sx-facts span{color:var(--li)}
+.sx-facts b{font-weight:700;color:var(--ink);text-align:right}
+.sx-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:700}
+.sx-chan .sx-btn{margin-top:auto}
 
-/* ── Status pill ── */
-.sp-status-pill {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 12px; border-radius: 99px;
-  font-size: 12px; font-weight: 600;
-  background: #f1f5f9; color: #64748b;
-  border: 1px solid var(--sp-border);
-}
-.sp-status-pill .dot {
-  width: 8px; height: 8px; border-radius: 50%; background: #94a3b8;
-}
-.sp-status-pill.active .dot { background: var(--sp-green); }
-.sp-status-pill.active { color: var(--sp-green-d); background: var(--sp-green-l); border-color: var(--sp-green-b); }
+/* alerts */
+.sx-alert{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:13.5px;font-weight:600}
+.sx-alert--ok{background:var(--g0);border:1px solid var(--g1);color:var(--g8)}
+.sx-alert--err{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c}
 
-/* ── Primary button ── */
-.sp-btn-primary {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 9px 18px; border-radius: 12px;
-  background: var(--sp-green-d); color: #fff;
-  font-size: 13.5px; font-weight: 700;
-  border: none; cursor: pointer; text-decoration: none;
-  transition: background .2s, box-shadow .2s;
-  box-shadow: 0 2px 8px rgba(13,127,108,.2);
-}
-.sp-btn-primary:hover { background: #0a6b5b; box-shadow: 0 4px 14px rgba(13,127,108,.28); }
-.sp-btn-primary svg { width: 14px; height: 14px; flex-shrink: 0; }
+/* workspace */
+.sx-work{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;align-items:start}
+.sx-tickets{overflow:hidden;display:flex;flex-direction:column}
+.sx-tickets__head{padding:18px 20px 14px;border-bottom:1px solid var(--bd2)}
+.sx-h2{display:flex;align-items:center;gap:8px;margin:0;font-size:15px;font-weight:800}
+.sx-h2 svg{color:var(--g7)}
+.sx-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sx-count{font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;background:#f1f5f9;color:#475569}
+.sx-seg{display:flex;gap:4px;padding:4px;margin-top:12px;border-radius:12px;background:#f1f5f9}
+.sx-seg button{flex:1;padding:7px 6px;border:0;border-radius:9px;background:transparent;font:inherit;font-size:12.5px;font-weight:700;color:var(--mu);cursor:pointer;transition:background .2s,color .2s}
+.sx-seg button:hover{color:var(--ink)}
+.sx-seg button.is-on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(15,23,42,.1)}
+.sx-list{max-height:560px;overflow-y:auto}
+.sx-tk{display:block;padding:15px 20px;border-bottom:1px solid var(--bd2);color:inherit;transition:background .15s;position:relative}
+.sx-tk:hover{background:#f8fafc}
+.sx-tk.is-active{background:var(--g0)}
+.sx-tk.is-active::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--g6)}
+.sx-tk__meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:6px}
+.sx-tk__id{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;font-weight:700;color:var(--li)}
+.sx-st{padding:2px 8px;border-radius:6px;font-size:10.5px;font-weight:700;border:1px solid}
+.sx-st--open{background:#fffbeb;border-color:#fde68a;color:#b45309}
+.sx-st--closed{background:var(--g0);border-color:var(--g1);color:var(--g7)}
+.sx-cat{font-size:11px;font-weight:600;color:var(--li)}
+.sx-tk__date{margin-left:auto;font-size:11px;color:var(--li);white-space:nowrap}
+.sx-tk h4{margin:0 0 3px;font-size:13.5px;font-weight:700;line-height:1.35;transition:color .15s}
+.sx-tk:hover h4{color:var(--g7)}
+.sx-tk__pre{margin:0;font-size:12.5px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sx-tk__foot{display:flex;justify-content:space-between;gap:10px;margin-top:8px;font-size:11.5px;color:var(--li)}
+.sx-tk__foot b{font-weight:700;color:var(--g7)}
+.sx-tk__foot b.is-wait{color:#b45309}
+.sx-list__empty{display:none;padding:28px 20px;text-align:center;font-size:13px;color:var(--li)}
+.sx-tickets__foot{display:flex;align-items:center;gap:8px;padding:13px 20px;background:var(--sf);border-top:1px solid var(--bd2);font-size:12px;color:var(--mu)}
+.sx-tickets__foot svg{color:var(--g6)}
+.sx-empty{padding:40px 24px;text-align:center}
+.sx-empty__ic{width:54px;height:54px;margin:0 auto 12px;border-radius:16px;display:grid;place-items:center;background:var(--g0);color:var(--g6)}
+.sx-empty h3{margin:0 0 6px;font-size:15px;font-weight:800}
+.sx-empty p{margin:0;font-size:13px;color:var(--mu)}
 
-/* soft secondary button */
-.sp-btn-soft {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 9px 18px; border-radius: 12px;
-  background: var(--sp-green-l); color: var(--sp-green-d);
-  border: 1px solid var(--sp-green-b);
-  font-size: 13.5px; font-weight: 700;
-  cursor: pointer; text-decoration: none;
-  transition: background .2s;
-}
-.sp-btn-soft:hover { background: #ccfbf1; }
-.sp-btn-soft svg { width: 14px; height: 14px; flex-shrink: 0; }
+/* form */
+.sx-form{padding:24px 26px}
+.sx-form__head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:16px;margin-bottom:18px;border-bottom:1px solid var(--bd2)}
+.sx-form__head h2{margin:0;font-size:16px;font-weight:800}
+.sx-form__head p{margin:4px 0 0;font-size:12.5px;color:var(--mu)}
+.sx-form__badge{flex:none;padding:3px 10px;border-radius:99px;font-size:10.5px;font-weight:700;background:var(--g0);color:var(--g8);border:1px solid var(--g1)}
+.sx-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.sx-f{display:grid;gap:6px;margin-bottom:14px}
+.sx-f label{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#475569}
+.sx-f label i{font-style:normal;color:#f43f5e}
+.sx-f input,.sx-f select,.sx-f textarea{width:100%;padding:11px 13px;border:1px solid var(--bd);border-radius:12px;background:rgba(248,250,252,.6);font:inherit;font-size:13.5px;color:var(--ink);transition:border-color .2s,box-shadow .2s,background .2s}
+.sx-f textarea{resize:vertical;min-height:130px;line-height:1.55}
+.sx-f input:focus,.sx-f select:focus,.sx-f textarea:focus{outline:none;border-color:var(--g6);background:#fff;box-shadow:0 0 0 3px rgba(5,150,105,.14)}
+.sx-f small{font-size:11.5px;color:var(--li)}
+.sx-advice{display:flex;align-items:flex-start;gap:10px;margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--sf);border:1px solid var(--bd);font-size:12.5px;line-height:1.55;color:var(--tx)}
+.sx-advice svg{color:var(--g6);margin-top:1px}
+.sx-advice a{font-weight:700;color:var(--g7)}
+.sx-advice a:hover{text-decoration:underline}
 
-/* block/full-width */
-.sp-btn-primary.block, .sp-btn-soft.block { width: 100%; justify-content: center; padding: 13px 18px; font-size: 14.5px; }
+/* conversation */
+.sx-convo{display:flex;flex-direction:column;min-height:560px}
+.sx-convo__head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:18px 22px;border-bottom:1px solid var(--bd2)}
+.sx-convo__head h2{margin:0 0 6px;font-size:16px;font-weight:800;line-height:1.35}
+.sx-convo__meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;color:var(--mu)}
+.sx-stream{flex:1;max-height:470px;overflow-y:auto;padding:20px 22px;display:grid;gap:14px;align-content:start;background:linear-gradient(180deg,#fbfdfc,#fff)}
+.sx-msg{max-width:82%;display:grid;gap:4px}
+.sx-msg--me{justify-self:end;text-align:right}
+.sx-msg__who{font-size:11.5px;font-weight:700;color:var(--mu)}
+.sx-msg__bub{padding:11px 14px;border-radius:14px;font-size:13.5px;line-height:1.55;text-align:left;white-space:normal;word-wrap:break-word}
+.sx-msg--them .sx-msg__bub{background:#f1f5f9;color:var(--ink);border-top-left-radius:4px}
+.sx-msg--me .sx-msg__bub{background:var(--g8);color:#fff;border-top-right-radius:4px}
+.sx-msg__time{font-size:11px;color:var(--li)}
+.sx-composer{display:flex;align-items:flex-end;gap:10px;padding:14px 18px;border-top:1px solid var(--bd2)}
+.sx-composer textarea{flex:1;min-height:48px;max-height:180px;padding:12px 14px;border:1px solid var(--bd);border-radius:12px;background:rgba(248,250,252,.6);font:inherit;font-size:13.5px;resize:vertical}
+.sx-composer textarea:focus{outline:none;border-color:var(--g6);background:#fff;box-shadow:0 0 0 3px rgba(5,150,105,.14)}
 
-/* ── Metrics row ── */
-.sp-metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0,1fr));
-  gap: 14px;
-}
-.sp-metric {
-  padding: 18px 20px;
-  display: flex; align-items: center; gap: 14px;
-  transition: box-shadow .2s, transform .2s;
-}
-.sp-metric:hover { box-shadow: var(--sp-shadow-md); transform: translateY(-1px); }
-.sp-metric-ico {
-  width: 46px; height: 46px; border-radius: 12px;
-  display: grid; place-items: center; flex-shrink: 0;
-}
-.sp-metric-ico svg { width: 20px; height: 20px; }
-.sp-metric-ico.teal   { background: #f0fdfa; color: #0d9488; }
-.sp-metric-ico.sky    { background: #f0f9ff; color: #0284c7; }
-.sp-metric-ico.amber  { background: #fffbeb; color: #d97706; }
-.sp-metric-ico.purple { background: #faf5ff; color: #9333ea; }
-.sp-metric b { display: block; font-size: 24px; font-weight: 800; letter-spacing: -.02em; color: var(--sp-ink); line-height: 1; }
-.sp-metric span { display: block; font-size: 12px; font-weight: 500; color: var(--sp-muted); margin-top: 4px; }
+/* faq */
+.sx-faq{padding:22px 26px}
+.sx-faq__head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-bottom:14px;margin-bottom:16px;border-bottom:1px solid var(--bd2)}
+.sx-faq__head h3{margin:0;font-size:15px;font-weight:800}
+.sx-faq__head p{margin:3px 0 0;font-size:12.5px;color:var(--mu)}
+.sx-faq__head a{font-size:12.5px;font-weight:700;color:var(--g7)}
+.sx-faq__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.sx-q{padding:15px 16px;border-radius:14px;background:var(--sf);border:1px solid var(--bd2)}
+.sx-q h4{display:flex;align-items:flex-start;gap:8px;margin:0 0 8px;font-size:13.5px;font-weight:700;line-height:1.4}
+.sx-q h4 svg{color:var(--g6);margin-top:2px}
+.sx-q p{margin:0 0 10px;font-size:12.5px;line-height:1.6;color:var(--mu)}
+.sx-q a{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;color:var(--g7)}
+.sx-q a:hover{text-decoration:underline}
+.sx-foot{padding:4px 0 8px;text-align:center;font-size:12px;color:var(--li)}
+.sx-foot b{color:#475569}
 
-/* ── Channels row ── */
-.sp-channels {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  gap: 16px;
+@media (max-width:1100px){.sx-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.sx-chans{grid-template-columns:1fr}.sx-work{grid-template-columns:1fr}}
+@media (max-width:640px){
+  .sx-banner{padding:24px 20px}
+  .sx-banner__btns,.sx-banner__btns .sx-btn{width:100%}
+  .sx-kpis{gap:10px}.sx-kpi{padding:14px}.sx-kpi__val b{font-size:22px}
+  .sx-grid2,.sx-faq__grid{grid-template-columns:1fr}
+  .sx-form,.sx-faq{padding:20px 18px}
+  .sx-msg{max-width:92%}
+  .sx-composer{flex-direction:column;align-items:stretch}
 }
-.sp-channel {
-  padding: 22px;
-  display: flex; flex-direction: column; gap: 0;
-  transition: box-shadow .2s, transform .2s;
-}
-.sp-channel:hover { box-shadow: var(--sp-shadow-md); transform: translateY(-2px); }
-.sp-channel-top {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 14px;
-}
-.sp-channel-ico {
-  width: 42px; height: 42px; border-radius: 12px;
-  display: grid; place-items: center;
-}
-.sp-channel-ico svg { width: 22px; height: 22px; }
-.sp-channel-ico.green  { background: #ecfdf5; color: #059669; }
-.sp-channel-ico.blue   { background: #eff6ff; color: #2563eb; }
-.sp-channel-ico.amber  { background: #fffbeb; color: #d97706; }
-.sp-channel-tag {
-  display: inline-flex; align-items: center;
-  padding: 3px 10px; border-radius: 99px;
-  font-size: 11.5px; font-weight: 700;
-}
-.sp-channel-tag.green  { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-.sp-channel-tag.blue   { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-.sp-channel-tag.amber  { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
-.sp-channel h3 { margin: 0 0 6px; font-size: 15px; font-weight: 800; color: var(--sp-ink); }
-.sp-channel p  { margin: 0 0 18px; font-size: 13px; color: var(--sp-sub); line-height: 1.55; flex: 1; }
-.sp-channel .sp-btn-primary,
-.sp-channel .sp-btn-soft { width: 100%; justify-content: center; margin-top: auto; }
-
-/* ── Two-column split ── */
-.sp-split {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 8fr);
-  gap: 18px;
-  align-items: start;
-}
-
-/* ── Ticket list column ── */
-.sp-ticket-col { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
-.sp-ticket-col-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.sp-ticket-col-head h2 {
-  margin: 0; font-size: 16px; font-weight: 800; color: var(--sp-ink);
-  display: flex; align-items: center; gap: 8px;
-}
-.sp-ticket-col-head h2 .ico {
-  width: 32px; height: 32px; border-radius: 9px;
-  background: #f0fdfa; color: #0d9488;
-  display: grid; place-items: center;
-}
-.sp-ticket-col-head h2 .ico svg { width: 15px; height: 15px; }
-.sp-col-count {
-  padding: 3px 10px; border-radius: 99px;
-  font-size: 11.5px; font-weight: 700;
-  background: #f1f5f9; color: #64748b;
-  border: 1px solid var(--sp-border);
-}
-.sp-ticket-col > p { margin: 0; font-size: 12.5px; color: var(--sp-muted); }
-.sp-ticket-list { display: flex; flex-direction: column; gap: 8px; max-height: 520px; overflow-y: auto; padding-right: 2px; }
-.sp-ticket-list::-webkit-scrollbar { width: 5px; }
-.sp-ticket-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
-
-/* single ticket item */
-.sp-tk-item {
-  display: block; text-decoration: none; color: inherit;
-  background: var(--sp-surface);
-  border: 1px solid var(--sp-border);
-
-  border-radius: 12px; padding: 13px 14px;
-  transition: background .15s, box-shadow .15s, border-color .15s;
-}
-.sp-tk-item:hover  { background: #fff; box-shadow: var(--sp-shadow); }
-.sp-tk-item.active { background: var(--sp-green-l); border-color: var(--sp-green); }
-.sp-tk-item.open   { }
-.sp-tk-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
-.sp-tk-subj { font-size: 13.5px; font-weight: 800; color: var(--sp-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.sp-tk-tag {
-  padding: 2px 8px; border-radius: 6px;
-  font-size: 11px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
-}
-.sp-tk-tag.open   { background: #ecfdf5; color: #065f46; }
-.sp-tk-tag.closed { background: #f1f5f9; color: #475569; }
-.sp-tk-preview { font-size: 12px; color: var(--sp-sub); font-style: italic; margin-bottom: 9px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
-.sp-tk-foot { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 600; color: var(--sp-muted); border-top: 1px solid #e2e8f0; padding-top: 8px; }
-
-/* empty state */
-.sp-empty { text-align: center; padding: 32px 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.sp-empty-ico { width: 52px; height: 52px; border-radius: 14px; background: var(--sp-surface); display: grid; place-items: center; margin-bottom: 4px; }
-.sp-empty-ico svg { width: 26px; height: 26px; color: var(--sp-muted); }
-.sp-empty h3 { margin: 0; font-size: 15px; font-weight: 800; color: var(--sp-ink); }
-.sp-empty p  { margin: 0; font-size: 13px; color: var(--sp-muted); max-width: 240px; line-height: 1.5; }
-
-/* ── Right column: form / conversation ── */
-.sp-form-col { padding: 26px 28px; }
-.sp-form-head {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  gap: 12px; flex-wrap: wrap;
-  padding-bottom: 18px; border-bottom: 1px solid #f1f5f9; margin-bottom: 22px;
-}
-.sp-form-head h2 { margin: 0 0 3px; font-size: 18px; font-weight: 800; color: var(--sp-ink); letter-spacing: -.01em; }
-.sp-form-head p  { margin: 0; font-size: 13px; color: var(--sp-sub); }
-.sp-replies-tag {
-  padding: 5px 12px; border-radius: 99px;
-  font-size: 11.5px; font-weight: 700;
-  background: #ecfdf5; color: #065f46;
-  border: 1px solid #a7f3d0; white-space: nowrap; flex-shrink: 0;
-}
-
-/* form fields */
-.sp-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
-.sp-field label {
-  font-size: 11px; font-weight: 800; letter-spacing: .06em;
-  text-transform: uppercase; color: #374151;
-}
-.sp-field input,
-.sp-field textarea {
-  width: 100%; background: #f8fafc;
-  border: 1px solid var(--sp-border); border-radius: 12px;
-  padding: 11px 15px; font-size: 14px; color: var(--sp-ink);
-  font-family: inherit; outline: none;
-  transition: border-color .2s, background .2s, box-shadow .2s;
-  resize: vertical;
-}
-.sp-field input::placeholder, .sp-field textarea::placeholder { color: #94a3b8; }
-.sp-field input:focus, .sp-field textarea:focus {
-  background: #fff; border-color: var(--sp-green-d);
-  box-shadow: 0 0 0 3px rgba(13,127,108,.1);
-}
-.sp-field .hint { font-size: 11.5px; color: var(--sp-muted); }
-
-/* urgent callout */
-.sp-urgent {
-  display: flex; align-items: flex-start; gap: 12px;
-  margin-top: 20px; padding: 14px 16px;
-  background: #f0fdfa; border: 1px solid #99f6e4;
-  border-radius: 12px;
-}
-.sp-urgent-ico {
-  width: 22px; height: 22px; border-radius: 50%;
-  background: #ccfbf1; color: var(--sp-green-d);
-  display: grid; place-items: center; flex-shrink: 0; margin-top: 1px;
-}
-.sp-urgent-ico svg { width: 12px; height: 12px; }
-.sp-urgent p { margin: 0; font-size: 12.5px; color: #374151; line-height: 1.6; }
-.sp-urgent p strong { font-weight: 700; color: var(--sp-ink); }
-.sp-urgent a { color: var(--sp-green-d); font-weight: 700; text-decoration: none; }
-.sp-urgent a:hover { text-decoration: underline; }
-
-/* ── Conversation view ── */
-.sp-convo-hd {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  gap: 12px; flex-wrap: wrap; margin-bottom: 18px;
-}
-.sp-convo-hd h2 { margin: 0 0 3px; font-size: 17px; font-weight: 800; color: var(--sp-ink); }
-.sp-convo-meta { font-size: 12px; color: var(--sp-muted); font-weight: 600; }
-.sp-convo-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.sp-open-pill  { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 99px; font-size: 11.5px; font-weight: 700; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-.sp-open-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: #10b981; }
-.sp-closed-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 99px; font-size: 11.5px; font-weight: 700; background: #f1f5f9; color: #475569; border: 1px solid var(--sp-border); }
-.sp-closed-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; }
-.sp-new-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 13px; border-radius: 10px; font-size: 12px; font-weight: 700;
-  background: var(--sp-surface); color: var(--sp-sub);
-  border: 1px solid var(--sp-border); text-decoration: none;
-  transition: background .15s;
-}
-.sp-new-btn:hover { background: #fff; }
-.sp-new-btn svg { width: 13px; height: 13px; }
-
-/* message stream */
-.sp-stream {
-  background: #f0fdf9; border-radius: 14px;
-  padding: 16px; display: flex; flex-direction: column; gap: 14px;
-  max-height: 400px; overflow-y: auto; margin-bottom: 16px;
-}
-.sp-stream::-webkit-scrollbar { width: 5px; }
-.sp-stream::-webkit-scrollbar-thumb { background: #99f6e4; border-radius: 5px; }
-.sp-msg { display: flex; flex-direction: column; max-width: 80%; }
-.sp-msg.me    { align-self: flex-end; align-items: flex-end; }
-.sp-msg.them  { align-self: flex-start; align-items: flex-start; }
-.sp-who { font-size: 10.5px; font-weight: 800; color: var(--sp-muted); margin-bottom: 4px; padding: 0 3px; letter-spacing: .03em; text-transform: uppercase; }
-.sp-bub { padding: 10px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.55; word-break: break-word; }
-.sp-msg.me   .sp-bub { background: linear-gradient(135deg,#008767,#065f46); color: #fff; border-bottom-right-radius: 4px; }
-.sp-msg.them .sp-bub { background: #fff; color: var(--sp-ink); border-bottom-left-radius: 4px; box-shadow: 0 2px 8px -4px rgba(0,0,0,.12); }
-.sp-time { font-size: 10px; font-weight: 600; color: var(--sp-muted); margin-top: 4px; padding: 0 3px; }
-
-/* reply composer */
-.sp-composer { display: flex; gap: 10px; align-items: flex-end; }
-.sp-composer textarea { flex: 1; min-height: 50px; max-height: 140px; }
-
-/* alert banners */
-.sp-alert {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 16px; border-radius: 12px; font-size: 13.5px; font-weight: 600;
-  margin-bottom: 16px;
-}
-.sp-alert svg { width: 17px; height: 17px; flex-shrink: 0; }
-.sp-alert.ok  { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-.sp-alert.err { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-
-/* ── Responsive ── */
-@media (max-width: 1100px) {
-  .sp-split   { grid-template-columns: minmax(0,1fr); }
-  .sp-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
-}
-@media (max-width: 740px) {
-  .sp-channels { grid-template-columns: minmax(0,1fr); }
-  .sp-metrics  { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .sp-header   { padding: 18px 20px; }
-  .sp-form-col { padding: 20px; }
-  .sp-ticket-col { padding: 18px; }
-}
-@media (max-width: 480px) {
-  .sp-metrics { grid-template-columns: minmax(0,1fr); }
-  .sp-msg { max-width: 92%; }
-  .sp-composer { flex-direction: column; align-items: stretch; }
-  .sp-composer .sp-btn-primary { width: 100%; justify-content: center; }
-}
+@media (prefers-reduced-motion:reduce){.sx-desk.is-on i{animation:none}}
 </style>
 
-<?php
-$_svg = static function (string $p, int $s = 20): string {
-    return '<svg width="' . $s . '" height="' . $s . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $p . '</svg>';
-};
-?>
+<div class="sx">
 
-<div class="sp-page">
-
-  <!-- ── Top header ── -->
-  <header class="sp-card sp-header">
-    <div class="sp-header-l">
-      <div class="sp-header-ico">
-        <?php echo $_svg('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>', 22); ?>
+  <!-- ── Hero ── -->
+  <section class="sx-banner" aria-labelledby="sxTitle">
+    <div class="sx-banner__in">
+      <div class="sx-banner__txt">
+        <div class="sx-banner__tags">
+          <span class="sx-tag"><?php echo $sx($I['shield'], 12); ?> WAAMINI Support Desk</span>
+          <span class="sx-desk<?php echo $deskOpen ? ' is-on' : ''; ?>"><i></i><?php echo $deskOpen ? 'Online now · Mon–Sat, 9 AM–7 PM IST' : 'Offline · back ' . $h($deskBack) . ' at 9 AM IST'; ?></span>
+        </div>
+        <h1 id="sxTitle">How can we help your business today?</h1>
+        <p>Chat with our team on WhatsApp, raise a ticket and track every reply here, or find the answer yourself in the user guide.</p>
       </div>
-      <div>
-        <h1>Help &amp; Support</h1>
-        <p>Chat with us on WhatsApp, drop an email, or raise a ticket and track every reply right inside your dashboard.</p>
+      <div class="sx-banner__btns">
+        <a class="sx-btn sx-btn--wa" href="https://wa.me/919150802906?text=<?php echo $waText; ?>" target="_blank" rel="noopener noreferrer"><?php echo $sx($I['wa'], 16); ?> WhatsApp support</a>
+        <a class="sx-btn sx-btn--glass" href="support.php#sxForm"><?php echo $sx($I['plus'], 16); ?> Create a ticket</a>
       </div>
-    </div>
-    <div class="sp-header-r">
-      <span class="sp-status-pill <?php echo $statOpen > 0 ? 'active' : ''; ?>">
-        <span class="dot"></span>
-        <?php echo $statOpen; ?> open ticket<?php echo $statOpen === 1 ? '' : 's'; ?>
-      </span>
-      <a href="support.php" class="sp-btn-primary">
-        <?php echo $_svg('<path d="M5 12h14"/><path d="M12 5v14"/>', 15); ?>
-        New ticket
-      </a>
-    </div>
-  </header>
-
-  <!-- ── Metrics row ── -->
-  <section class="sp-metrics" aria-label="Support metrics">
-    <div class="sp-card sp-metric">
-      <div class="sp-metric-ico teal"><?php echo $_svg('<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>'); ?></div>
-      <div><b><?php echo $statTotal; ?></b><span>Total tickets raised</span></div>
-    </div>
-    <div class="sp-card sp-metric">
-      <div class="sp-metric-ico sky"><?php echo $_svg('<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>'); ?></div>
-      <div><b><?php echo $statOpen; ?></b><span>Open, waiting on us</span></div>
-    </div>
-    <div class="sp-card sp-metric">
-      <div class="sp-metric-ico amber"><?php echo $_svg('<path d="M20 6 9 17l-5-5"/>'); ?></div>
-      <div><b><?php echo $statClosed; ?></b><span>Closed &amp; resolved</span></div>
-    </div>
-    <div class="sp-card sp-metric">
-      <div class="sp-metric-ico purple"><?php echo $_svg('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'); ?></div>
-      <div><b><?php echo $avgReply !== '' ? $avgReply : '—'; ?></b><span>Avg. first reply</span></div>
     </div>
   </section>
 
-  <!-- ── Alert banners ── -->
+  <!-- ── Live metrics (from this account's tickets) ── -->
+  <section class="sx-kpis" aria-label="Your support tickets">
+    <div class="sx-card sx-kpi">
+      <div class="sx-kpi__top">Tickets raised <span class="sx-kpi__ic sx-ic-slate"><?php echo $sx($I['inbox'], 16); ?></span></div>
+      <div class="sx-kpi__val"><b><?php echo $statTotal; ?></b><span class="sx-chip">All time</span></div>
+      <p>Every request you have sent us</p>
+    </div>
+    <div class="sx-card sx-kpi">
+      <div class="sx-kpi__top">Open &amp; waiting <span class="sx-kpi__ic sx-ic-green"><?php echo $sx($I['clock'], 16); ?></span></div>
+      <div class="sx-kpi__val"><b style="color:<?php echo $statOpen > 0 ? '#b45309' : '#059669'; ?>"><?php echo $statOpen; ?></b><?php echo $statOpen > 0 ? '<span class="sx-chip sx-chip--amber">In progress</span>' : '<span class="sx-chip sx-chip--green">All clear</span>'; ?></div>
+      <p><?php echo $statOpen > 0 ? 'Our team is working on ' . ($statOpen === 1 ? 'it' : 'them') : 'Nothing waiting on our team'; ?></p>
+    </div>
+    <div class="sx-card sx-kpi">
+      <div class="sx-kpi__top">Resolved <span class="sx-kpi__ic sx-ic-teal"><?php echo $sx($I['check'], 16); ?></span></div>
+      <div class="sx-kpi__val"><b><?php echo $statClosed; ?></b><?php if ($statClosed > 0): ?><span class="sx-chip sx-chip--teal"><?php echo $resolvedPct; ?>% closed</span><?php endif; ?></div>
+      <p><?php echo $statTotal > 0 ? 'Out of ' . $statTotal . ' ticket' . ($statTotal === 1 ? '' : 's') : 'No tickets yet'; ?></p>
+    </div>
+    <div class="sx-card sx-kpi">
+      <div class="sx-kpi__top">Avg. first reply <span class="sx-kpi__ic sx-ic-indigo"><?php echo $sx($I['zap'], 16); ?></span></div>
+      <div class="sx-kpi__val"><b><?php echo $replyCount > 0 ? $h($fmtDur((int)round($replySeconds / $replyCount))) : '—'; ?></b></div>
+      <p><?php echo $replyCount > 0 ? 'Across ' . $replyCount . ' answered ticket' . ($replyCount === 1 ? '' : 's') : 'Shown after our first reply'; ?></p>
+    </div>
+  </section>
+
   <?php if (isset($_GET['msg']) && $_GET['msg'] === 'created'): ?>
-  <div class="sp-alert ok"><?php echo $_svg('<path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/>', 18); ?> Ticket created — our team has been notified and will reply here.</div>
+  <div class="sx-alert sx-alert--ok" role="status"><?php echo $sx($I['check'], 18); ?> Ticket created. Our team has been notified and will reply in this thread.</div>
   <?php endif; ?>
   <?php if ($error !== ''): ?>
-  <div class="sp-alert err"><?php echo $_svg('<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>', 18); ?> <?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></div>
+  <div class="sx-alert sx-alert--err" role="alert"><?php echo $sx($I['x'], 18); ?> <?php echo $h($error); ?></div>
   <?php endif; ?>
 
-  <!-- ── Channel cards ── -->
-  <section class="sp-channels" aria-label="Support channels">
-
-    <div class="sp-card sp-channel">
-      <div class="sp-channel-top">
-        <div class="sp-channel-ico green">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
-        </div>
-        <span class="sp-channel-tag green">Fastest</span>
+  <!-- ── Channels ── -->
+  <section class="sx-chans" aria-label="Ways to reach us">
+    <div class="sx-card sx-chan sx-chan--wa">
+      <div class="sx-chan__top"><span class="sx-chan__ic sx-ic-green"><?php echo $sx($I['wa'], 22); ?></span><span class="sx-pill sx-pill--green">Fastest reply</span></div>
+      <div><h3>WhatsApp support</h3><p>Chat directly with our team about campaigns, templates, setup or payments.</p></div>
+      <div class="sx-facts sx-facts--green">
+        <div><span>Number</span><b class="sx-mono">+91 91508 02906</b></div>
+        <div><span>Hours</span><b>Mon–Sat, 9 AM–7 PM IST</b></div>
       </div>
-      <h3>Instant WhatsApp</h3>
-      <p>Demo doubts, campaign questions or payment issues — chat with our team directly for the fastest resolution.</p>
-      <a href="https://wa.me/919150802906?text=Hi%20WAAMINI%20Support,%20I%20need%20help%20with%20my%20account." target="_blank" rel="noopener noreferrer" class="sp-btn-primary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
-        Chat with +91 9150802906
-      </a>
+      <a class="sx-btn sx-btn--primary sx-btn--block" href="https://wa.me/919150802906?text=<?php echo $waText; ?>" target="_blank" rel="noopener noreferrer"><?php echo $sx($I['wa'], 16); ?> Chat with us</a>
     </div>
-
-    <div class="sp-card sp-channel">
-      <div class="sp-channel-top">
-        <div class="sp-channel-ico blue"><?php echo $_svg('<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>'); ?></div>
-        <span class="sp-channel-tag blue">24 hrs</span>
+    <div class="sx-card sx-chan">
+      <div class="sx-chan__top"><span class="sx-chan__ic sx-ic-blue"><?php echo $sx($I['mail'], 22); ?></span><span class="sx-pill">Reply in 24 hrs</span></div>
+      <div><h3>Email &amp; billing</h3><p>Custom requirements, invoices, billing questions or detailed technical issues.</p></div>
+      <div class="sx-facts">
+        <div><span>Inbox</span><b class="sx-mono">info@7digit.in</b></div>
+        <div><span>Best for</span><b>Invoices &amp; detailed issues</b></div>
       </div>
-      <h3>Email support</h3>
-      <p>Custom requirements, billing issues or detailed technical questions — write to us and we reply within a day.</p>
-      <a href="mailto:info@7digit.in" class="sp-btn-soft">
-        <?php echo $_svg('<path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/>', 14); ?>
-        info@7digit.in
-      </a>
+      <a class="sx-btn sx-btn--dark sx-btn--block" href="mailto:info@7digit.in"><?php echo $sx($I['send'], 15); ?> Email info@7digit.in</a>
     </div>
-
-    <div class="sp-card sp-channel">
-      <div class="sp-channel-top">
-        <div class="sp-channel-ico amber"><?php echo $_svg('<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>'); ?></div>
-        <span class="sp-channel-tag amber">Self-serve</span>
+    <div class="sx-card sx-chan">
+      <div class="sx-chan__top"><span class="sx-chan__ic sx-ic-amber"><?php echo $sx($I['book'], 22); ?></span><span class="sx-pill sx-pill--amber">Self-serve</span></div>
+      <div><h3>User guide</h3><p>Step-by-step help for every WAAMINI feature. Most answers are already here.</p></div>
+      <div class="sx-facts sx-facts--amber">
+        <div><span>Languages</span><b>English · தமிழ் · हिन्दी</b></div>
+        <div><span>Available</span><b>Any time</b></div>
       </div>
-      <h3>User guide</h3>
-      <p>Step-by-step docs for every WAAMINI feature in English, Tamil and Hindi — most answers live here already.</p>
-      <a href="manual.php" class="sp-btn-soft">
-        <?php echo $_svg('<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>', 14); ?>
-        Open the guide
-      </a>
+      <a class="sx-btn sx-btn--soft sx-btn--block" href="manual.php"><?php echo $sx($I['book'], 15); ?> Open the user guide</a>
     </div>
-
   </section>
 
-  <!-- ── Two-column split: ticket list + form/conversation ── -->
-  <div class="sp-split">
+  <!-- ── Tickets + form / conversation ── -->
+  <div class="sx-work">
 
-    <!-- LEFT: ticket list -->
-    <div class="sp-card sp-ticket-col">
-      <div class="sp-ticket-col-head">
-        <h2>
-          <span class="ico"><?php echo $_svg('<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>', 15); ?></span>
-          My tickets
-        </h2>
-        <span class="sp-col-count"><?php echo $statTotal; ?> total</span>
+    <section class="sx-card sx-tickets" aria-labelledby="sxTkTitle">
+      <div class="sx-tickets__head">
+        <div class="sx-row">
+          <h2 class="sx-h2" id="sxTkTitle"><?php echo $sx($I['ticket'], 17); ?> My support tickets</h2>
+          <span class="sx-count"><?php echo $statTotal; ?> total</span>
+        </div>
+        <?php if ($statTotal > 0): ?>
+        <div class="sx-seg" role="tablist" aria-label="Filter tickets">
+          <button type="button" class="is-on" data-f="all" role="tab" aria-selected="true">All (<?php echo $statTotal; ?>)</button>
+          <button type="button" data-f="open" role="tab" aria-selected="false">Open (<?php echo $statOpen; ?>)</button>
+          <button type="button" data-f="closed" role="tab" aria-selected="false">Resolved (<?php echo $statClosed; ?>)</button>
+        </div>
+        <?php endif; ?>
       </div>
-      <p>Every conversation with the WAAMINI team stays saved here.</p>
 
       <?php if ($statTotal > 0): ?>
-      <div class="sp-ticket-list">
+      <div class="sx-list" id="sxList">
         <?php foreach ($ticketRows as $t):
-          $isActive = ($activeTicketId === (int)$t['id']);
-          $isOpen   = (($t['status'] ?? '') === 'open');
-          $preview  = trim((string)($t['last_msg'] ?? ''));
-          $preview  = $preview === '' ? 'No message yet.' : $preview;
-          $when     = !empty($t['last_at']) ? (string)$t['last_at'] : (string)$t['created_at'];
+          $isOpen = (($t['status'] ?? '') === 'open');
+          $preview = trim($cleanMsg((string)($t['last_msg'] ?? '')));
+          $preview = $preview === '' ? 'No messages yet.' : preg_replace('/\s+/', ' ', $preview);
+          $when = !empty($t['last_at']) ? (string)$t['last_at'] : (string)$t['created_at'];
+          $cat = $supportCategories[(string)($t['category'] ?? '')] ?? '';
+          $pri = (string)($t['priority'] ?? 'normal');
+          $firstReply = !empty($t['first_admin_reply']) ? max(0, strtotime((string)$t['first_admin_reply']) - strtotime((string)$t['created_at'])) : null;
         ?>
-        <a href="support.php?ticket=<?php echo (int)$t['id']; ?>"
-           class="sp-tk-item <?php echo $isActive ? 'active' : ''; ?> <?php echo $isOpen ? 'open' : ''; ?>">
-          <div class="sp-tk-top">
-            <span class="sp-tk-subj"><?php echo htmlspecialchars((string)$t['subject'], ENT_QUOTES, 'UTF-8'); ?></span>
-            <span class="sp-tk-tag <?php echo $isOpen ? 'open' : 'closed'; ?>"><?php echo $isOpen ? 'Open' : 'Closed'; ?></span>
+        <a href="support.php?ticket=<?php echo (int)$t['id']; ?>" class="sx-tk<?php echo $activeTicketId === (int)$t['id'] ? ' is-active' : ''; ?>" data-status="<?php echo $isOpen ? 'open' : 'closed'; ?>">
+          <div class="sx-tk__meta">
+            <span class="sx-tk__id">#TK-<?php echo (int)$t['id']; ?></span>
+            <span class="sx-st <?php echo $isOpen ? 'sx-st--open' : 'sx-st--closed'; ?>"><?php echo $isOpen ? 'Open' : 'Resolved'; ?></span>
+            <?php if ($pri !== 'normal' && isset($supportPriorities[$pri])): ?><span class="sx-chip <?php echo $pri === 'critical' ? 'sx-chip--red' : 'sx-chip--amber'; ?>"><?php echo $h($supportPriorities[$pri][0]); ?></span><?php endif; ?>
+            <?php if ($cat !== ''): ?><span class="sx-cat"><?php echo $h($cat); ?></span><?php endif; ?>
+            <span class="sx-tk__date"><?php echo $h(date('d M, g:i A', strtotime($when))); ?></span>
           </div>
-          <div class="sp-tk-preview">"<?php echo htmlspecialchars(mb_strimwidth($preview, 0, 100, '…'), ENT_QUOTES, 'UTF-8'); ?>"</div>
-          <div class="sp-tk-foot">
-            <span>#<?php echo (int)$t['id']; ?> · <?php echo (int)$t['msg_count']; ?> message<?php echo (int)$t['msg_count'] === 1 ? '' : 's'; ?></span>
-            <span><?php echo htmlspecialchars(date('d M, g:i A', strtotime($when)), ENT_QUOTES, 'UTF-8'); ?></span>
+          <h4><?php echo $h($t['subject']); ?></h4>
+          <p class="sx-tk__pre"><?php echo $h(mb_strimwidth($preview, 0, 140, '…')); ?></p>
+          <div class="sx-tk__foot">
+            <span><?php echo (int)$t['msg_count']; ?> message<?php echo (int)$t['msg_count'] === 1 ? '' : 's'; ?></span>
+            <?php if ($firstReply !== null): ?><b>First reply in <?php echo $h($fmtDur($firstReply)); ?></b><?php elseif ($isOpen): ?><b class="is-wait">Waiting for our reply</b><?php endif; ?>
           </div>
         </a>
         <?php endforeach; ?>
+        <div class="sx-list__empty" id="sxListEmpty">No tickets here.</div>
       </div>
+      <div class="sx-tickets__foot"><?php echo $sx($I['shield'], 15); ?> Every conversation with our team is saved here.</div>
       <?php else: ?>
-      <div class="sp-empty">
-        <div class="sp-empty-ico"><?php echo $_svg('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>', 26); ?></div>
+      <div class="sx-empty">
+        <div class="sx-empty__ic"><?php echo $sx($I['ticket'], 24); ?></div>
         <h3>No tickets yet</h3>
         <p>When you raise a ticket, every reply from our team is collected here.</p>
       </div>
       <?php endif; ?>
-    </div>
+    </section>
 
-    <!-- RIGHT: conversation or new ticket form -->
-    <div class="sp-card sp-form-col">
-      <?php
-      $ticketNotFound = false;
-      $ticket = null;
-
-      if ($activeTicketId > 0):
+    <?php
+    $ticketNotFound = false;
+    $ticket = null;
+    $msgs = null;
+    if ($activeTicketId > 0) {
         $stSup4 = $conn->prepare('SELECT * FROM support_tickets WHERE id=? AND company_id=? LIMIT 1');
         if ($stSup4) {
-          $stSup4->bind_param('ii', $activeTicketId, $companyId);
-          if ($stSup4->execute()) { $ticket = $stSup4->get_result()->fetch_assoc(); }
-          $stSup4->close();
+            $stSup4->bind_param('ii', $activeTicketId, $companyId);
+            if ($stSup4->execute()) { $ticket = $stSup4->get_result()->fetch_assoc(); }
+            $stSup4->close();
         }
-        if (is_array($ticket)):
-          $stSup5 = $conn->prepare('SELECT m.*, u.name as admin_name
-              FROM support_messages m
-              LEFT JOIN users u ON m.sender_id = u.id AND m.sender_type = \'admin\'
-              WHERE m.ticket_id=? ORDER BY m.id ASC');
-          $msgs = null;
-          if ($stSup5) {
-            $stSup5->bind_param('i', $activeTicketId);
-            if ($stSup5->execute()) { $msgs = $stSup5->get_result(); }
-            $stSup5->close();
-          }
-      ?>
-        <div class="sp-convo-hd">
-          <div>
-            <h2><?php echo htmlspecialchars((string)$ticket['subject'], ENT_QUOTES, 'UTF-8'); ?></h2>
-            <div class="sp-convo-meta">Ticket #<?php echo (int)$ticket['id']; ?> · Created <?php echo htmlspecialchars(date('d M Y, h:i A', strtotime((string)$ticket['created_at'])), ENT_QUOTES, 'UTF-8'); ?></div>
-          </div>
-          <div class="sp-convo-actions">
-            <?php if ($ticket['status'] === 'open'): ?>
-              <span class="sp-open-pill"><span class="dot"></span> Open</span>
-            <?php else: ?>
-              <span class="sp-closed-pill"><span class="dot"></span> Closed</span>
-            <?php endif; ?>
-            <a href="support.php" class="sp-new-btn">
-              <?php echo $_svg('<path d="M5 12h14"/><path d="M12 5v14"/>', 13); ?>
-              New
-            </a>
+        if (is_array($ticket)) {
+            $stSup5 = $conn->prepare("SELECT m.*, u.name as admin_name FROM support_messages m LEFT JOIN users u ON m.sender_id = u.id AND m.sender_type = 'admin' WHERE m.ticket_id=? ORDER BY m.id ASC");
+            if ($stSup5) {
+                $stSup5->bind_param('i', $activeTicketId);
+                if ($stSup5->execute()) { $msgs = $stSup5->get_result(); }
+                $stSup5->close();
+            }
+        } else {
+            $ticketNotFound = true;
+        }
+    }
+    ?>
+
+    <?php if (is_array($ticket)):
+      $tOpen = ($ticket['status'] === 'open');
+      $tCat = $supportCategories[(string)($ticket['category'] ?? '')] ?? '';
+      $tPri = (string)($ticket['priority'] ?? 'normal');
+    ?>
+    <section class="sx-card sx-convo" aria-labelledby="sxConvoTitle">
+      <div class="sx-convo__head">
+        <div>
+          <h2 id="sxConvoTitle"><?php echo $h($ticket['subject']); ?></h2>
+          <div class="sx-convo__meta">
+            <span class="sx-tk__id">#TK-<?php echo (int)$ticket['id']; ?></span>
+            <span class="sx-st <?php echo $tOpen ? 'sx-st--open' : 'sx-st--closed'; ?>"><?php echo $tOpen ? 'Open' : 'Resolved'; ?></span>
+            <?php if ($tPri !== 'normal' && isset($supportPriorities[$tPri])): ?><span class="sx-chip <?php echo $tPri === 'critical' ? 'sx-chip--red' : 'sx-chip--amber'; ?>"><?php echo $h($supportPriorities[$tPri][0]); ?></span><?php endif; ?>
+            <?php if ($tCat !== ''): ?><span class="sx-chip"><?php echo $h($tCat); ?></span><?php endif; ?>
+            <span>Created <?php echo $h(date('d M Y, g:i A', strtotime((string)$ticket['created_at']))); ?></span>
           </div>
         </div>
-
-        <div class="sp-stream" id="spStream">
-          <?php if ($msgs):
-            while ($m = $msgs->fetch_assoc()):
-              $isClient = ($m['sender_type'] === 'client'); ?>
-          <div class="sp-msg <?php echo $isClient ? 'me' : 'them'; ?>">
-            <div class="sp-who"><?php echo $isClient ? 'You' : 'WAAMINI Support — ' . htmlspecialchars((string)($m['admin_name'] ?? 'Admin'), ENT_QUOTES, 'UTF-8'); ?></div>
-            <div class="sp-bub"><?php echo nl2br(htmlspecialchars((string)$m['message'], ENT_QUOTES, 'UTF-8')); ?></div>
-            <div class="sp-time"><?php echo htmlspecialchars(date('d M, h:i A', strtotime((string)$m['created_at'])), ENT_QUOTES, 'UTF-8'); ?></div>
-          </div>
-          <?php endwhile;
-          else: ?>
-          <div class="sp-empty" style="background:#fff;">
-            <div class="sp-empty-ico"><?php echo $_svg('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>', 26); ?></div>
-            <h3>No messages yet</h3>
-            <p>Your ticket is in the queue — the team will reply shortly.</p>
-          </div>
-          <?php endif; ?>
+        <a class="sx-btn sx-btn--soft" href="support.php#sxForm"><?php echo $sx($I['plus'], 14); ?> New ticket</a>
+      </div>
+      <div class="sx-stream" id="sxStream">
+        <?php $any = false; if ($msgs): while ($m = $msgs->fetch_assoc()): $any = true; $isClient = ($m['sender_type'] === 'client'); ?>
+        <div class="sx-msg <?php echo $isClient ? 'sx-msg--me' : 'sx-msg--them'; ?>">
+          <div class="sx-msg__who"><?php echo $isClient ? 'You' : 'WAAMINI Support' . (!empty($m['admin_name']) ? ' · ' . $h($m['admin_name']) : ''); ?></div>
+          <div class="sx-msg__bub"><?php echo nl2br($h($cleanMsg((string)$m['message']))); ?></div>
+          <div class="sx-msg__time"><?php echo $h(date('d M, g:i A', strtotime((string)$m['created_at']))); ?></div>
         </div>
-
-        <form method="POST" action="support.php?ticket=<?php echo (int)$activeTicketId; ?>" class="sp-composer">
-          <?php echo csrf_field(); ?>
-          <div class="sp-field" style="flex:1;margin:0;">
-            <textarea name="message" rows="2" placeholder="Type your reply here…" required maxlength="65535"></textarea>
-          </div>
-          <button type="submit" name="send_reply" class="sp-btn-primary">
-            Send <?php echo $_svg('<path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/>', 16); ?>
-          </button>
-        </form>
-
-      <?php
-        else:
-          $ticketNotFound = true;
-        endif;
-      endif;
-
-      if ($activeTicketId <= 0 || !empty($ticketNotFound)): ?>
-
-        <?php if (!empty($ticketNotFound)): ?>
-        <div class="sp-alert err"><?php echo $_svg('<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>', 18); ?> Ticket not found or you do not have access.</div>
+        <?php endwhile; endif; if (!$any): ?>
+        <div class="sx-empty"><div class="sx-empty__ic"><?php echo $sx($I['clock'], 24); ?></div><h3>In the queue</h3><p>Our team will reply here shortly.</p></div>
         <?php endif; ?>
+      </div>
+      <form method="POST" action="support.php?ticket=<?php echo (int)$activeTicketId; ?>" class="sx-composer">
+        <?php echo csrf_field(); ?>
+        <textarea name="message" rows="2" placeholder="<?php echo $tOpen ? 'Write a reply…' : 'Reply to reopen this ticket…'; ?>" required maxlength="65535" aria-label="Your reply"></textarea>
+        <button type="submit" name="send_reply" class="sx-btn sx-btn--primary"><?php echo $sx($I['send'], 15); ?> Send</button>
+      </form>
+    </section>
 
-        <div class="sp-form-head">
-          <div>
-            <h2><?php echo !empty($ticketNotFound) ? 'Open a new ticket' : 'Create a support ticket'; ?></h2>
-            <p>Send a message straight to the WAAMINI team — replies land back in this thread.</p>
-          </div>
-          <span class="sp-replies-tag">Replies in-app</span>
-        </div>
-
-        <form method="POST" action="support.php">
-          <?php echo csrf_field(); ?>
-          <div class="sp-field">
-            <label for="sp_subject">Subject</label>
-            <input type="text" id="sp_subject" name="subject" placeholder="e.g. Need help creating a template" required maxlength="255">
-            <span class="hint">One line that sums up your question or issue.</span>
-          </div>
-          <div class="sp-field">
-            <label for="sp_message">Message detail</label>
-            <textarea id="sp_message" name="message" rows="6" placeholder="Please describe your issue or question in detail — add screenshots' description, campaign name or invoice number if relevant." required maxlength="65535"></textarea>
-          </div>
-          <button type="submit" name="create_ticket" class="sp-btn-primary block">
-            <?php echo $_svg('<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>', 15); ?>
-            Submit ticket
-          </button>
-        </form>
-
-        <div class="sp-urgent">
-          <div class="sp-urgent-ico"><?php echo $_svg('<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>', 12); ?></div>
-          <p><strong>In a hurry?</strong> WhatsApp us on <a href="https://wa.me/919150802906">+91 9150802906</a> for a reply in minutes, or browse the <a href="manual.php">user guide</a> for instant self-help.</p>
-        </div>
-
+    <?php else: ?>
+    <section class="sx-card sx-form" id="sxForm" aria-labelledby="sxFormTitle">
+      <?php if ($ticketNotFound): ?>
+      <div class="sx-alert sx-alert--err" role="alert" style="margin-bottom:16px"><?php echo $sx($I['x'], 18); ?> That ticket was not found. You can open a new one below.</div>
       <?php endif; ?>
-    </div>
+      <div class="sx-form__head">
+        <div>
+          <h2 id="sxFormTitle">Create a support ticket</h2>
+          <p>Your message goes straight to the WAAMINI team. Replies appear in this page.</p>
+        </div>
+        <span class="sx-form__badge">Replies in-app</span>
+      </div>
+      <form method="POST" action="support.php">
+        <?php echo csrf_field(); ?>
+        <div class="sx-grid2">
+          <div class="sx-f">
+            <label for="sxCat">Category <i>*</i></label>
+            <select id="sxCat" name="category" required>
+              <?php foreach ($supportCategories as $k => $label): ?><option value="<?php echo $h($k); ?>"><?php echo $h($label); ?></option><?php endforeach; ?>
+            </select>
+          </div>
+          <div class="sx-f">
+            <label for="sxPri">Urgency <i>*</i></label>
+            <select id="sxPri" name="priority" required>
+              <?php foreach ($supportPriorities as $k => [$label, $hint]): ?><option value="<?php echo $h($k); ?>"><?php echo $h($label . ' · ' . $hint); ?></option><?php endforeach; ?>
+            </select>
+          </div>
+        </div>
+        <div class="sx-f">
+          <label for="sxSubj">Subject <i>*</i></label>
+          <input type="text" id="sxSubj" name="subject" placeholder="e.g. Need help getting my festival template approved" required maxlength="255">
+          <small>One line that sums up your question or issue.</small>
+        </div>
+        <div class="sx-f">
+          <label for="sxMsg">Details <i>*</i></label>
+          <textarea id="sxMsg" name="message" rows="6" placeholder="Describe what you need. Include the campaign or template name, a sample phone number or the invoice number if it helps." required maxlength="65535"></textarea>
+        </div>
+        <button type="submit" name="create_ticket" class="sx-btn sx-btn--primary sx-btn--block" style="padding:14px 18px"><?php echo $sx($I['send'], 16); ?> Submit ticket</button>
+        <div class="sx-advice"><?php echo $sx($I['info'], 16); ?><span><b>Messages not going out right now?</b> WhatsApp us on <a href="https://wa.me/919150802906?text=<?php echo $waText; ?>" target="_blank" rel="noopener noreferrer">+91 91508 02906</a> for the quickest help during support hours.</span></div>
+      </form>
+    </section>
+    <?php endif; ?>
 
   </div>
 
-  <!-- ── Footer ── -->
-  <footer style="text-align:center;padding:4px 0 8px;font-size:12px;color:#94a3b8;font-weight:500;">
-    WAAMINI Help Desk · Powered by <span style="color:#475569;font-weight:700;">7digit.in</span>
-  </footer>
+  <!-- ── Quick answers ── -->
+  <section class="sx-card sx-faq" aria-labelledby="sxFaqTitle">
+    <div class="sx-faq__head">
+      <div><h3 id="sxFaqTitle">Quick answers</h3><p>The questions customers ask us most.</p></div>
+      <a href="manual.php">Browse the full user guide &rarr;</a>
+    </div>
+    <div class="sx-faq__grid">
+      <?php foreach ($faqs as [$q, $a, $href, $cta]): ?>
+      <div class="sx-q">
+        <h4><?php echo $sx($I['help'], 15); ?> <?php echo $h($q); ?></h4>
+        <p><?php echo $h($a); ?></p>
+        <a href="<?php echo $h($href); ?>"><?php echo $h($cta); ?> <?php echo $sx($I['arrow'], 13); ?></a>
+      </div>
+      <?php endforeach; ?>
+    </div>
+  </section>
 
+  <div class="sx-foot">WAAMINI Help Desk · Powered by <b>7digit.in</b></div>
 </div>
 
-<script>
-(function() {
-  var s = document.getElementById('spStream');
+<script nonce="<?php echo $h($_SESSION['_csp_nonce'] ?? ''); ?>">
+(function () {
+  var s = document.getElementById('sxStream');
   if (s) s.scrollTop = s.scrollHeight;
+  var seg = document.querySelector('.sx-seg'); if (!seg) return;
+  var rows = Array.prototype.slice.call(document.querySelectorAll('#sxList .sx-tk')), empty = document.getElementById('sxListEmpty');
+  seg.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-f]'); if (!b) return;
+    var f = b.getAttribute('data-f'), shown = 0;
+    Array.prototype.forEach.call(seg.querySelectorAll('button'), function (x) { var on = x === b; x.classList.toggle('is-on', on); x.setAttribute('aria-selected', on ? 'true' : 'false'); });
+    rows.forEach(function (r) { var show = f === 'all' || r.getAttribute('data-status') === f; r.style.display = show ? '' : 'none'; if (show) shown++; });
+    if (empty) empty.style.display = shown ? 'none' : 'block';
+  });
 })();
 </script>
 
