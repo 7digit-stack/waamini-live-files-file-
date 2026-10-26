@@ -269,9 +269,17 @@ include '../includes/client_header.php';
 .tp-kpi-v{font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-.5px}
 .tp-kpi-l{font-size:12.5px;color:var(--mu);margin-top:4px;font-weight:600}
 
-/* tabs */
-.tp-tabs{display:inline-flex;gap:6px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:5px;margin-bottom:18px;box-shadow:0 12px 30px -24px rgba(18,140,126,.5)}
-.tp-tab{border:0;background:transparent;padding:9px 20px;border-radius:10px;font:700 14px Inter,system-ui,sans-serif;color:var(--tx);cursor:pointer;transition:background .15s,color .15s}
+/* tabs + guide button: one compact row, same height everywhere */
+.tp-tabbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.tp-tabs{display:inline-flex;gap:4px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:4px;box-shadow:0 12px 30px -24px rgba(18,140,126,.5);max-width:100%;overflow-x:auto;scrollbar-width:none}
+.tp-tabs::-webkit-scrollbar{display:none}
+.tp-tab{flex:none;display:inline-flex;align-items:center;gap:7px;height:36px;border:0;background:transparent;padding:0 16px;border-radius:9px;font:700 13.5px Inter,system-ui,sans-serif;color:var(--tx);cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
+.tp-tab em{font-style:normal;font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:99px;background:var(--soft);color:var(--mu)}
+.tp-tab.on em{background:rgba(255,255,255,.2);color:#fff}
+.tp-guide-btn{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:#fff;font:700 13.5px Inter,system-ui,sans-serif;color:var(--gd);cursor:pointer;white-space:nowrap;box-shadow:0 12px 30px -24px rgba(18,140,126,.5);transition:background .15s,color .15s,border-color .15s}
+.tp-guide-btn svg{width:17px;height:17px}
+.tp-guide-btn:hover{border-color:#9ED9BF;background:var(--soft)}
+.tp-guide-btn.on{background:var(--g);border-color:var(--g);color:#fff}
 .tp-tab:hover{background:var(--soft)}
 .tp-tab.on{background:var(--g);color:#fff}
 .tp-pane{display:none}.tp-pane.on{display:block}
@@ -290,7 +298,7 @@ include '../includes/client_header.php';
 .tp-search:focus-within{box-shadow:0 0 0 2px var(--g);background:#fff}
 
 .tp-list{display:flex;flex-direction:column;gap:8px}
-.tp-row{display:grid;grid-template-columns:36px minmax(170px,1.3fr) minmax(200px,2fr) 170px 128px;gap:14px;align-items:center;padding:12px 14px;border-radius:13px;background:var(--soft);transition:background .15s}
+.tp-row{display:grid;grid-template-columns:30px minmax(0,1.25fr) minmax(0,2fr) minmax(120px,.9fr) auto;gap:14px;align-items:center;padding:12px 14px;border-radius:13px;background:var(--soft);transition:background .15s}
 .tp-row:not(.tp-head):hover{background:#E7F7F1}
 .tp-head{background:transparent;padding-top:2px;padding-bottom:2px;font-size:12px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px}
 .tp-row input[type=checkbox]{accent-color:var(--g);width:17px;height:17px;cursor:pointer}
@@ -308,7 +316,12 @@ include '../includes/client_header.php';
 .tp-pill.s-rejected{background:#FDE7E7;color:#c62828}
 .tp-pill.s-local{background:#EEF3F1;color:#5d6f69}
 .tp-hint{font-size:12px;color:var(--mu);margin-top:4px}
-.tp-acts{display:flex;gap:6px;justify-content:flex-end}
+.tp-acts{display:flex;gap:6px;justify-content:flex-end;align-items:center;flex-wrap:nowrap}
+.tp-send{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:10px;background:var(--g);color:#fff;font:700 12.5px Inter,system-ui,sans-serif;text-decoration:none;white-space:nowrap;transition:background .15s}
+.tp-send:hover{background:var(--gd);color:#fff}
+.tp-send svg{width:15px;height:15px;flex:none}
+.tp-send.is-off{background:#E8EFEC;color:#93a39d;cursor:not-allowed}
+.tp-name{min-width:0}
 .tp-ib{width:36px;height:36px;border-radius:10px;border:0;background:#fff;color:var(--tx);display:inline-grid;place-items:center;cursor:pointer;text-decoration:none;transition:background .15s,color .15s}
 .tp-ib:hover{background:var(--g);color:#fff}
 .tp-ib.danger:hover{background:#c62828}
@@ -651,19 +664,33 @@ include '../includes/client_header.php';
 
 /* preview modal */
 .tp-modal{display:none;position:fixed;inset:0;background:rgba(11,20,26,.55);z-index:9999;backdrop-filter:blur(3px);justify-content:center;align-items:center;padding:16px}
-.tp-phone{width:min(380px,100%);background:#efeae2 url(../assets/img/wa-wallpaper.jpg) repeat;background-size:360px auto;border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35);font-family:'Segoe UI',Helvetica,Arial,sans-serif}
+.tp-phone{display:flex;flex-direction:column;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);width:min(380px,100%);background:#efeae2 url(../assets/img/wa-wallpaper.jpg) repeat;background-size:360px auto;border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35);font-family:'Segoe UI',Helvetica,Arial,sans-serif}
 .tp-phone-hd{background:#f0f2f5;padding:12px 16px;display:flex;align-items:center;gap:12px}
 .tp-phone-av{width:38px;height:38px;border-radius:50%;background:var(--g);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
 .tp-phone-hd b{display:block;font-size:15px;color:#111b21}
 .tp-phone-hd small{font-size:12px;color:#667781}
 .tp-phone-x{margin-left:auto;border:0;background:transparent;color:#54656f;cursor:pointer;width:34px;height:34px;border-radius:50%;display:grid;place-items:center}
 .tp-phone-x:hover{background:rgba(11,20,26,.08)}
-.tp-phone-bd{padding:20px 16px 26px;min-height:240px}
+.tp-phone-bd{padding:20px 16px 26px;min-height:200px;flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain}
+.tp-phone-hd{flex:none}
+.tp-phone-bd .tp-msg{max-width:100%}
+.tp-phone-bd .tp-bubble{overflow-wrap:anywhere;word-break:break-word}
+.tp-modal{--g:#128C7E;--gd:#0B6B5E;--ink:#0F2622;--tx:#34453f;--mu:#586a63;--line:#E3EEE9;--soft:#F3FBF7}
+.tp-phone-ft{flex:none;display:none;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;padding:10px 14px;background:#f0f2f5;border-top:1px solid rgba(11,20,26,.08)}
+.tp-phone-ft .tp-btn{height:38px;padding:0 14px;font-size:13px}
+.tp-ft-note{font-size:12.5px;color:#54656f;margin-right:auto}
 
 @media (max-width:1100px){.tp-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.tp-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.tp-3{grid-template-columns:repeat(2,minmax(0,1fr))}.tp-limits{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1280px){
+  .tp-head{display:none}
+  .tp-row{grid-template-columns:30px minmax(0,1fr) auto;grid-template-areas:"chk name st" "body body body" "acts acts acts";row-gap:10px}
+  .tp-row>.c-st{text-align:right}.tp-row>.c-st .tp-hint{display:none}
+  .tp-row>.c-act{justify-content:flex-start;padding-top:10px;border-top:1px dashed var(--line)}
+  .tp-body{-webkit-line-clamp:3}
+}
 @media (max-width:900px){
   .tp-head{display:none}
-  .tp-row{grid-template-columns:30px 1fr auto;grid-template-areas:"chk name acts" "body body body" "st st st";row-gap:10px}
+  .tp-row{grid-template-columns:30px minmax(0,1fr) auto;grid-template-areas:"chk name st" "body body body" "acts acts acts";row-gap:10px}
   .tp-row>.c-chk{grid-area:chk}.tp-row>.c-name{grid-area:name}.tp-row>.c-body{grid-area:body}.tp-row>.c-st{grid-area:st}.tp-row>.c-act{grid-area:acts}
   .tp-2{grid-template-columns:1fr}
 }
@@ -671,6 +698,14 @@ include '../includes/client_header.php';
   .tp-hero{padding:18px}.tp-hero h1{font-size:21px}.tp-hero-actions,.tp-hero-actions .tp-btn{width:100%}
   .tp-kpis,.tp-steps,.tp-3,.tp-limits{grid-template-columns:1fr}
   .tp-search{min-width:0;width:100%}.tp-tools{width:100%}
+  .tp-tabbar{flex-direction:column;align-items:stretch}
+  .tp-tabs{width:100%}.tp-tab{flex:1;justify-content:center;padding:0 10px}
+  .tp-guide-btn{justify-content:center;height:42px}
+  .tp-row>.c-act{flex-wrap:wrap}
+  .tp-send{flex:1;justify-content:center}
+  .tp-row>.c-st{grid-column:1/-1;grid-row:auto;text-align:left}
+  .tp-row{grid-template-areas:"chk name name" "st st st" "body body body" "acts acts acts"}
+  .tp-panel{padding:12px 10px 8px}
 }
 </style>
 
@@ -712,11 +747,16 @@ include '../includes/client_header.php';
     <div class="tp-kpi is-pink"><div class="tp-kpi-ico"><?php echo cn_svg('blacklist'); ?></div><div><div class="tp-kpi-v"><?php echo $counts['rejected']; ?></div><div class="tp-kpi-l">Need changes</div></div></div>
 </div>
 
-<!-- Tabs -->
-<div class="tp-tabs" role="tablist">
-    <button type="button" class="tp-tab<?php echo $startTab === 'list' ? ' on' : ''; ?>" data-pane="list">My templates</button>
-    <button type="button" class="tp-tab<?php echo $startTab === 'guide' ? ' on' : ''; ?>" data-pane="guide">Step-by-step guide</button>
-    <button type="button" class="tp-tab" data-pane="examples">Ready-made examples</button>
+<!-- Tabs + separate guide button -->
+<div class="tp-tabbar">
+    <div class="tp-tabs" role="tablist">
+        <button type="button" class="tp-tab<?php echo $startTab === 'list' ? ' on' : ''; ?>" data-pane="list">My templates <em><?php echo $counts['all']; ?></em></button>
+        <button type="button" class="tp-tab" data-pane="examples">Ready-made examples</button>
+    </div>
+    <button type="button" class="tp-guide-btn<?php echo $startTab === 'guide' ? ' on' : ''; ?>" data-pane="guide" aria-pressed="<?php echo $startTab === 'guide' ? 'true' : 'false'; ?>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+        Template guide
+    </button>
 </div>
 
 <!-- ═════ PANE: LIST ═════ -->
@@ -765,11 +805,17 @@ include '../includes/client_header.php';
             <div class="c-body tp-body"><?php echo htmlspecialchars($body); ?></div>
             <div class="c-st"><span class="tp-pill s-<?php echo $group; ?>"><?php echo $gLabel; ?></span><div class="tp-hint"><?php echo $gHint; ?></div></div>
             <div class="c-act tp-acts">
+                <?php $tpJ = JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP; $tpApproved = ($group === 'approved'); ?>
+                <?php if ($tpApproved): ?>
+                <a href="campaign_create.php?template_id=<?php echo (int)$t['id']; ?>" class="tp-send" title="Create a campaign with this template"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg><span>Create campaign</span></a>
+                <?php else: ?>
+                <span class="tp-send is-off" title="Only approved templates can be used in campaigns" aria-disabled="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg><span>Create campaign</span></span>
+                <?php endif; ?>
                 <button type="button" class="tp-ib" title="Preview" aria-label="Preview"
-                    onclick='previewTemplate(<?php echo json_encode($hdr, JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP); ?>, <?php echo json_encode($body, JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP); ?>, <?php echo json_encode($ftr, JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP); ?>, <?php echo json_encode(strtolower((string)($t['header_type'] ?? 'none')), JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP); ?>, <?php echo json_encode(json_decode((string)($t['buttons'] ?? '[]'), true) ?: [], JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP); ?>)'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg></button>
-                <a href="template_create.php" class="tp-ib" title="Meta doesn't allow editing approved templates. Create a new version instead." aria-label="Create new version"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></a>
-                <button type="submit" form="del_<?php echo (int)$t['id']; ?>" class="tp-ib danger" title="Delete" aria-label="Delete template" onclick="return confirm('Are you sure you want to delete this template?')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
-            </div>
+                    onclick='previewTemplate(<?php echo json_encode($hdr, $tpJ); ?>, <?php echo json_encode($body, $tpJ); ?>, <?php echo json_encode($ftr, $tpJ); ?>, <?php echo json_encode(strtolower((string)($t['header_type'] ?? 'none')), $tpJ); ?>, <?php echo json_encode(json_decode((string)($t['buttons'] ?? '[]'), true) ?: [], $tpJ); ?>, <?php echo json_encode(['id' => (int)$t['id'], 'name' => (string)$t['name'], 'approved' => $tpApproved], $tpJ); ?>)'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg></button>
+                <a href="template_create.php?from=<?php echo (int)$t['id']; ?>" class="tp-ib" title="Edit (opens the form with this template filled in)" aria-label="Edit template"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg></a>
+                <button type="submit" form="del_<?php echo (int)$t['id']; ?>" class="tp-ib danger" title="Delete" aria-label="Delete template" onclick="return confirm('Delete this template? This cannot be undone.')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
+</div>
         </div>
         <?php endforeach; ?>
         <div class="tp-none" id="tpNone">No templates match your search.</div>
@@ -1231,7 +1277,7 @@ include '../includes/client_header.php';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
     window.addEventListener('resize', moveHl);
-    document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('#gdRail,#gdNext,#gdBack,.tp-tab')) setTimeout(moveHl, 30); });
+    document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('#gdRail,#gdNext,#gdBack,.tp-tab,.tp-guide-btn')) setTimeout(moveHl, 30); });
     all();
 })();
 </script>
@@ -1283,6 +1329,7 @@ include '../includes/client_header.php';
             <button type="button" class="tp-phone-x" onclick="document.getElementById('previewModal').style.display='none'" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
         </div>
         <div class="tp-phone-bd"><div class="tp-wa" style="background:none;padding:0" id="previewMsg"></div></div>
+        <div class="tp-phone-ft" id="previewFt"></div>
     </div>
 </div>
 
@@ -1314,7 +1361,15 @@ function tpFmt(t) {
     t = tpEsc(t).replace(/\*(.+?)\*/g, '<b>$1</b>').replace(/(^|[^\w])_(.+?)_(?=$|[^\w])/g, '$1<i>$2</i>').replace(/~(.+?)~/g, '<s>$1</s>');
     return t.replace(/\n/g, '<br>');
 }
-function previewTemplate(header, body, footer, headerType, buttons) {
+function previewTemplate(header, body, footer, headerType, buttons, meta) {
+    var ft = document.getElementById('previewFt');
+    if (ft) {
+        meta = meta || {};
+        ft.innerHTML = meta.id ? ('<a class="tp-btn" href="template_create.php?from=' + encodeURIComponent(meta.id) + '">Edit</a>'
+            + (meta.approved ? '<a class="tp-btn tp-btn--primary" href="campaign_create.php?template_id=' + encodeURIComponent(meta.id) + '">Create campaign</a>'
+                             : '<span class="tp-ft-note">Campaigns can use it once Meta approves it.</span>')) : '';
+        ft.style.display = meta.id ? 'flex' : 'none';
+    }
     var html = '<div class="tp-msg"><div class="tp-bubble">';
     var labels = { image: 'Image', video: 'Video', document: 'Document', location: 'Location' };
     if (labels[headerType]) {
@@ -1336,13 +1391,16 @@ function previewTemplate(header, body, footer, headerType, buttons) {
 (function () {
     var modal = document.getElementById('previewModal');
     modal.addEventListener('click', function (e) { if (e.target === modal) modal.style.display = 'none'; });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal.style.display === 'flex') modal.style.display = 'none'; });
 
-    // Tabs
-    var tabs = document.querySelectorAll('.tp-tab');
+    // Tabs + the separate guide button share one switcher
+    var tabs = document.querySelectorAll('.tp-tab, .tp-guide-btn');
     tabs.forEach(function (t) {
         t.addEventListener('click', function () {
-            tabs.forEach(function (x) { x.classList.toggle('on', x === t); });
-            document.querySelectorAll('.tp-pane').forEach(function (p) { p.classList.toggle('on', p.id === 'pane-' + t.dataset.pane); });
+            var pane = t.dataset.pane;
+            if (t.classList.contains('tp-guide-btn') && t.classList.contains('on')) pane = 'list';   // second click: back to My templates
+            tabs.forEach(function (x) { var on = x.dataset.pane === pane; x.classList.toggle('on', on); if (x.classList.contains('tp-guide-btn')) x.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+            document.querySelectorAll('.tp-pane').forEach(function (p) { p.classList.toggle('on', p.id === 'pane-' + pane); });
         });
     });
 

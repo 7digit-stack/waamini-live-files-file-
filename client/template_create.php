@@ -35,6 +35,53 @@ if (has_feature('whatsapp_flows')) {
     }
 }
 
+/* "Edit" from the Templates list: pre-fill this form with an existing template. Meta does not allow changing an
+   approved template's wording, so the edited copy is submitted as a new template (a new name for Meta-known ones). */
+$tpPrefill = null;
+$tpFromId = (int)($_GET['from'] ?? 0);
+if ($tpFromId > 0 && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $stFrom = $conn->prepare('SELECT * FROM message_templates WHERE id=? AND company_id=? LIMIT 1');
+    if ($stFrom) {
+        $stFrom->bind_param('ii', $tpFromId, $companyId);
+        $stFrom->execute();
+        $src = $stFrom->get_result()->fetch_assoc();
+        $stFrom->close();
+        if ($src) {
+            $srcStatus = strtoupper(trim((string)($src['wa_status'] ?? '')));
+            $onMeta = $srcStatus !== '' && $srcStatus !== 'LOCAL';
+            $name = strtolower((string)$src['name']);
+            if ($onMeta) {   // Meta will not accept the same name again: suggest the next free _vN
+                $taken = [];
+                $stN = $conn->prepare('SELECT name FROM message_templates WHERE company_id=?');
+                if ($stN) { $stN->bind_param('i', $companyId); $stN->execute(); foreach ($stN->get_result()->fetch_all() as $r) $taken[strtolower((string)$r[0])] = true; $stN->close(); }
+                $base = preg_replace('/_v\d+$/', '', $name); $n = 2;
+                while (isset($taken[$base . '_v' . $n])) $n++;
+                $name = substr($base, 0, 500) . '_v' . $n;
+            }
+            $btns = [];
+            foreach ((json_decode((string)($src['buttons'] ?? '[]'), true) ?: []) as $b) {
+                $t = strtolower((string)($b['type'] ?? 'quick_reply'));
+                $t = ['phone_number' => 'phone', 'dynamic_url' => 'url'][$t] ?? $t;
+                if (!in_array($t, ['quick_reply', 'url', 'phone', 'flow'], true)) continue;
+                $btns[] = ['type' => $t, 'text' => (string)($b['text'] ?? ''), 'value' => (string)($b['url'] ?? ($b['phone'] ?? ($b['phone_number'] ?? ($b['flow_id'] ?? ''))))];
+            }
+            $tpPrefill = [
+                'name'        => $name,
+                'oldName'     => (string)$src['name'],
+                'onMeta'      => $onMeta,
+                'category'    => strtolower((string)($src['category'] ?? 'marketing')),
+                'language'    => (string)($src['language'] ?? 'en'),
+                'header_type' => strtolower((string)($src['header_type'] ?? 'none')) ?: 'none',
+                'header_text' => (string)($src['header_text'] ?? ''),
+                'body'        => (string)(($src['body'] ?? '') !== '' ? $src['body'] : ($src['body_text'] ?? '')),
+                'footer'      => (string)(($src['footer'] ?? '') !== '' ? $src['footer'] : ($src['footer_text'] ?? '')),
+                'buttons'     => array_slice($btns, 0, 3),
+                'carousel'    => !empty($src['carousel_cards']),
+            ];
+        }
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_template'])) {
     csrf_verify();
 
@@ -631,6 +678,14 @@ include '../includes/client_header.php';
 
     <!-- LEFT: BUILDER -->
     <div class="mt-col">
+        <?php if ($tpPrefill): ?>
+        <div style="margin:0 0 14px;padding:12px 16px;border-radius:12px;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;font-size:13.5px;line-height:1.55;">
+            <b>Editing &ldquo;<?php echo htmlspecialchars($tpPrefill['oldName'], ENT_QUOTES, 'UTF-8'); ?>&rdquo;.</b>
+            <?php if ($tpPrefill['onMeta']): ?>Meta does not allow changing a template it has already reviewed, so your changes are sent as a new template named <b><?php echo htmlspecialchars($tpPrefill['name'], ENT_QUOTES, 'UTF-8'); ?></b> (you can rename it). The original stays as it is; delete it afterwards if you no longer need it.<?php else: ?>Change anything you need and submit it to Meta for review.<?php endif; ?>
+            <?php if ($tpPrefill['carousel']): ?><br>This is a carousel template: re-add its cards below.<?php endif; ?>
+            <?php if (in_array($tpPrefill['header_type'], ['image', 'video', 'document'], true)): ?><br>Upload the header <?php echo htmlspecialchars($tpPrefill['header_type'], ENT_QUOTES, 'UTF-8'); ?> again; files are not copied.<?php endif; ?>
+        </div>
+        <?php endif; ?>
         <form id="templateForm" method="POST" enctype="multipart/form-data" class="mt-col">
             <?php echo csrf_field(); ?>
             <input type="hidden" name="create_template" value="1">
@@ -1203,6 +1258,35 @@ document.addEventListener('click', function (e) { if (!e.target.closest('#mtDd')
 // init
 toggleFormat();
 updateCounts();
+// "Edit" from the Templates list: fill the form with the template's current content
+(function () {
+    const P = <?php echo json_encode($tpPrefill, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+    if (!P) return;
+    document.addEventListener('DOMContentLoaded', function () {
+        const set = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+        set('tpl_name', P.name);
+        set('tpl_cat', P.category);
+        set('tpl_lang', P.language);
+        set('tpl_body', P.body);
+        set('tpl_footer', P.footer);
+        const hr = document.querySelector('input[name="header_type"][value="' + (P.header_type || 'none') + '"]');
+        if (hr) { hr.checked = true; if (typeof toggleStandardHeader === 'function') toggleStandardHeader(); }
+        set('h_text', P.header_text);
+        (P.buttons || []).forEach(function (b) {
+            if (b.type === 'flow' && (typeof WA_FLOWS === 'undefined' || !WA_FLOWS[b.value])) return;
+            if (typeof addStdButton !== 'function') return;
+            const before = document.querySelectorAll('#std_buttons_container .mt-brow').length;
+            addStdButton(b.type);
+            const rows = document.querySelectorAll('#std_buttons_container .mt-brow');
+            if (rows.length === before) return;
+            const row = rows[rows.length - 1];
+            const t = row.querySelector('input[name="btn_text[]"]'), v = row.querySelector('[name="btn_value[]"]');
+            if (t) t.value = b.text || '';
+            if (v && b.value) v.value = b.value;
+        });
+        if (typeof updatePreview === 'function') updatePreview();
+    });
+})();
 </script>
 
 <?php include '../includes/client_footer.php'; ?>

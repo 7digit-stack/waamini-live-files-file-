@@ -422,7 +422,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_campaign'])) {
 form_done:
 
 include '../includes/client_header.php';
-$postedTpl = (int)($_POST['template_id'] ?? 0);
+$postedTpl = (int)($_POST['template_id'] ?? ($_GET['template_id'] ?? 0));  // ?template_id= from Templates > Create campaign
 ?>
 
 <style>
