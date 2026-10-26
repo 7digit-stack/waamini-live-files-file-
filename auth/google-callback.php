@@ -321,7 +321,9 @@ if (($user['status'] ?? '') !== 'active') {
 // ═══════════════════════════════════════════════════════════════════════
 if (!empty($user['two_factor_enabled']) && (int)$user['two_factor_enabled'] === 1) {
     $_SESSION['pending_2fa_user_id'] = (int)$user['id'];
-    header('Location: ../verify_2fa.php');
+    $_SESSION['pending_2fa_at'] = time();
+    $_SESSION['pending_2fa_email'] = (string)($user['email'] ?? '');
+    header('Location: ../login.php?2fa=1');
     exit;
 }
 
