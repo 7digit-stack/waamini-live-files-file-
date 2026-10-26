@@ -12,7 +12,7 @@ if (!isset($_GET['id'])) {
 $id = intval($_GET['id']);
 
 $campaign = null;
-$cStmt = $conn->prepare("SELECT c.*, mt.name as template_name, mt.body_text, mt.header_text, mt.footer_text, mt.category FROM campaigns c LEFT JOIN message_templates mt ON c.template_id = mt.id WHERE c.id = ?");
+$cStmt = $conn->prepare("SELECT c.*, mt.name as template_name, COALESCE(NULLIF(mt.body_text,''), mt.body) AS body_text, mt.header_text, COALESCE(NULLIF(mt.footer_text,''), mt.footer) AS footer_text, mt.category FROM campaigns c LEFT JOIN message_templates mt ON c.template_id = mt.id WHERE c.id = ?");
 if ($cStmt) {
     $cStmt->bind_param('i', $id);
     $cStmt->execute();

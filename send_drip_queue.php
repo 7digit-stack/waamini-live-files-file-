@@ -6,6 +6,8 @@
  */
 
 require_once __DIR__ . '/config/bootstrap.php';
+require_once __DIR__ . '/includes/cron_guard.php';
+waamini_cron_guard(); // cron (CLI), the main worker chain, or ?key=CRON_SECRET_KEY only
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/includes/whatsapp_api_helper.php';
 require_once __DIR__ . '/includes/drip_message_variator.php';

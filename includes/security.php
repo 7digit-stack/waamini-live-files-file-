@@ -32,12 +32,57 @@ if (!headers_sent()) {
     */
 }
 
-function csrf_get_token(): string {
-    if (empty($_SESSION['csrf_token']) || time() > (int)($_SESSION['csrf_expires'] ?? 0)) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-        $_SESSION['csrf_expires'] = time() + 3600;
+/*
+ * CSRF token.
+ * Preferred: HMAC of the browser's own long-lived "wm_csrf" cookie (set in config/bootstrap.php) with a server
+ * secret. It stays the same when the PHP session ends and "remember me" silently logs the user back in, so a form
+ * that was open across that re-login still saves. Another site can neither read the cookie nor compute the HMAC.
+ * Fallback (no cookie or no secret): one random token per session with a sliding 8-hour window.
+ * Whenever the token changes, the previous one stays valid for 1 hour for forms that are already open.
+ */
+function csrf_secret(): string {
+    static $secret = null;
+    if ($secret !== null) return $secret;
+    foreach (['ENCRYPTION_KEY', 'CRON_SECRET_KEY'] as $k) {
+        $v = (string)($_ENV[$k] ?? getenv($k) ?: '');
+        if (strlen($v) >= 16 && stripos($v, 'CHANGE_ME') === false) return $secret = $v;
     }
-    return (string)$_SESSION['csrf_token'];
+    // No usable key in .env: keep a random secret of our own in storage/ (blocked from the web by .htaccess).
+    $file = dirname(__DIR__) . '/storage/.csrf_secret';
+    $v = is_file($file) ? trim((string)@file_get_contents($file)) : '';
+    if (!preg_match('/^[a-f0-9]{64}$/', $v)) {
+        $v = bin2hex(random_bytes(32));
+        if (@file_put_contents($file, $v, LOCK_EX) === false) return $secret = '';
+        @chmod($file, 0600);
+        $v = trim((string)@file_get_contents($file)) ?: $v;   // another request may have written it first
+    }
+    return $secret = $v;
+}
+
+function csrf_get_token(): string {
+    $now = time();
+    $seed = (string)($_COOKIE['wm_csrf'] ?? '');
+    $secret = csrf_secret();
+    if ($secret !== '' && preg_match('/^[a-f0-9]{64}$/', $seed)) {
+        $token = hash_hmac('sha256', 'csrf|' . $seed, $secret);
+    } elseif (!empty($_SESSION['csrf_token']) && $now <= (int)($_SESSION['csrf_expires'] ?? 0)) {
+        $token = (string)$_SESSION['csrf_token'];
+    } else {
+        $token = bin2hex(random_bytes(32));
+    }
+    if (!empty($_SESSION['csrf_token']) && $_SESSION['csrf_token'] !== $token) {
+        $_SESSION['csrf_prev_token'] = (string)$_SESSION['csrf_token'];
+        $_SESSION['csrf_prev_until'] = $now + 3600;
+    }
+    $_SESSION['csrf_token'] = $token;
+    $_SESSION['csrf_expires'] = $now + 8 * 3600;
+    return $token;
+}
+
+function csrf_token_matches(string $token): bool {
+    if (hash_equals(csrf_get_token(), $token)) return true;
+    $prev = (string)($_SESSION['csrf_prev_token'] ?? '');
+    return $prev !== '' && time() <= (int)($_SESSION['csrf_prev_until'] ?? 0) && hash_equals($prev, $token);
 }
 
 function csrf_token(): string {
@@ -70,7 +115,7 @@ function csrf_verify(?string $providedToken = null): bool {
             ?? ($jsonBody['csrf_token'] ?? null);
     }
 
-    if (!is_string($token) || $token === '' || !hash_equals(csrf_get_token(), $token)) {
+    if (!is_string($token) || $token === '' || !csrf_token_matches($token)) {
         http_response_code(403);
         if (php_sapi_name() !== 'cli') {
             $accept = strtolower((string)($_SERVER['HTTP_ACCEPT'] ?? ''));

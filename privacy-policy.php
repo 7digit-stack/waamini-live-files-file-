@@ -2,7 +2,7 @@
 $page_title = "Privacy Policy";
 $meta_desc = "Privacy Policy for Waamini WhatsApp Business API CRM. Learn how we collect, process, and protect your data.";
 $asyncStylesheets = [
-  'assets/css/landing-neo.css?v=15',
+  'assets/css/landing-neo.css?v=16',
 ];
 $bodyClass = 'lp-neo';
 include 'includes/header.php';

@@ -95,3 +95,4 @@ storage/.wa_chat_schema_v1
 # Kept locally only; they must never reach the web server.
 scratch/
 audit-output/
+.env.bak*

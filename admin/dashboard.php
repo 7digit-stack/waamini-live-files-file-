@@ -17,8 +17,8 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
 if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
     header('Strict-Transport-Security: max-age=31536000; includeSubDomains; preload');
 }
-// Content-Security-Policy for production
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-" . htmlspecialchars($_SESSION['_csp_nonce'] ?? '', ENT_QUOTES) . "' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; upgrade-insecure-requests");
+// Content-Security-Policy comes from .htaccess for every page. A second, stricter header here was
+// combined with it by the browser and blocked GSAP (cdnjs), Google Fonts and inline scripts on the live site.
 
 $serverHealth = getServerHealth($conn);
 

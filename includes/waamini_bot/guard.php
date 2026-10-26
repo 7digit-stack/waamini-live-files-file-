@@ -6,8 +6,11 @@
  */
 class WB_Guard
 {
-    private const PAUSE_FOREVER = '2099-12-31 00:00:00';
+    private const PAUSE_FOREVER = '2099-12-31 00:00:00';   // old "until Resume bot" pauses; now treated as expired
     private const DEBOUNCE_SECONDS = 4;
+    // The bot always comes back on its own: after a person replies in the inbox, and after a handoff.
+    private const STAFF_PAUSE_MINUTES = 10;
+    private const HANDOFF_PAUSE_MINUTES = 30;
 
     /** Replaces the WhatsApp sender. Used by automated tests so no real message is ever sent. */
     public static ?\Closure $senderOverride = null;
@@ -40,14 +43,19 @@ class WB_Guard
         $st->execute();
         $row = $st->get_result()->fetch_assoc();
         if (!$row) { return [false, 'contact_missing']; }
-        if ((int)($row['assigned_to'] ?? 0) > 0 || (int)($row['agent'] ?? 0) > 0) { return [false, 'assigned_to_human']; }
 
-        // Paused for this chat?
+        // Paused for this chat? Pauses always end on their own; old "forever" pauses count as already ended.
         $ps = $c->prepare("SELECT paused_until FROM ai_conversation_state WHERE company_id = ? AND contact_id = ?");
         $ps->bind_param('ii', $companyId, $contactId);
         $ps->execute();
         $pr = $ps->get_result()->fetch_assoc();
-        if ($pr && !empty($pr['paused_until']) && strtotime((string)$pr['paused_until']) > time()) { return [false, 'paused']; }
+        $pauseTs = ($pr && !empty($pr['paused_until'])) ? (int)strtotime((string)$pr['paused_until']) : 0;
+        $hadPause = $pauseTs > 0;
+        $pauseActive = $hadPause && $pauseTs > time() && $pauseTs < strtotime('2099-01-01');
+        if ($pauseActive) { return [false, 'paused']; }
+
+        // Assigned to a person: quiet only while that chat's pause runs. A chat assigned by hand with no pause stays with the agent.
+        if (((int)($row['assigned_to'] ?? 0) > 0 || (int)($row['agent'] ?? 0) > 0) && !$hadPause) { return [false, 'assigned_to_human']; }
 
         // Replies left this month?
         $limits = WB_Store::limitsFor($c, $companyId);
@@ -90,16 +98,16 @@ class WB_Guard
 
     /* ── pause / resume / handoff ────────────────────────────────────────── */
 
-    public static function pause(mysqli $c, int $companyId, int $contactId, string $state = 'escalated'): void
+    public static function pause(mysqli $c, int $companyId, int $contactId, string $state = 'escalated', ?string $until = null): void
     {
-        $until = self::PAUSE_FOREVER;
+        $until = $until ?? date('Y-m-d H:i:s', time() + self::HANDOFF_PAUSE_MINUTES * 60);
         $st = $c->prepare("INSERT INTO ai_conversation_state (company_id, contact_id, state, paused_until) VALUES (?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE state = VALUES(state), paused_until = VALUES(paused_until)");
         $st->bind_param('iiss', $companyId, $contactId, $state, $until);
         $st->execute();
     }
 
-    /** A human replied in the inbox: the bot steps back for this chat until someone presses "Resume bot". */
+    /** A human replied in the inbox: the bot steps back for STAFF_PAUSE_MINUTES, then answers again on its own ("Resume bot" ends it at once). */
     public static function staffReplied(mysqli $c, int $companyId, int $contactId): void
     {
         if ($companyId <= 0 || $contactId <= 0) { return; }
@@ -108,7 +116,7 @@ class WB_Guard
             $has->bind_param('i', $companyId);
             $has->execute();
             if (!$has->get_result()->fetch_row()) { return; }
-            self::pause($c, $companyId, $contactId, 'escalated');
+            self::pause($c, $companyId, $contactId, 'escalated', date('Y-m-d H:i:s', time() + self::STAFF_PAUSE_MINUTES * 60));
             // drop replies that were queued before the human stepped in
             $d = $c->prepare("UPDATE ai_reply_jobs SET status = 'done', last_error = 'staff_replied' WHERE company_id = ? AND contact_id = ? AND status = 'pending'");
             $d->bind_param('ii', $companyId, $contactId);
@@ -353,7 +361,11 @@ class WB_Guard
         if (!$sent) { $res['outcome'] = $sendErr === 'window_closed' ? 'window_closed' : 'send_failed'; $res['error'] = $sendErr; }
 
         // state: handoff pauses, match resets the failure counter, no match counts it
-        if ($sent && $res['handoff']) {
+        if ($sent && $res['handoff'] && (string)$res['reason'] === 'ai_error') {
+            // The AI provider failed (daily quota, outage, timeout). That is not a request for a human:
+            // pause only this chat for 30 minutes, then the bot answers again on its own.
+            self::pause($c, $companyId, $contactId, 'open', date('Y-m-d H:i:s', time() + 30 * 60));
+        } elseif ($sent && $res['handoff']) {
             self::handoff($c, $companyId, $bot, $contactId, (string)$res['reason']);
         } elseif ($sent) {
             $newFail = $res['matched'] ? 0 : $fail + 1;
@@ -457,6 +469,17 @@ class WB_Guard
 
     public static function kickWorker(): void
     {
+        // Shared hosting (e.g. Hostinger) blocks exec(), so a background PHP process can't be started from a web request.
+        // There, finish the HTTP response first (Meta gets its 200 at once) and answer the queued messages in this
+        // same request afterwards. The cron worker stays a safety net; both use the same lock, so nothing is answered twice.
+        if (PHP_SAPI !== 'cli' && strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN' && self::canFinishRequest()) {
+            static $registered = false;
+            if (!$registered) {
+                $registered = true;
+                register_shutdown_function([self::class, 'runAfterResponse']);
+            }
+            return;
+        }
         try {
             $worker = realpath(__DIR__ . '/../../process_waamini_bot.php');
             if (!$worker) { return; }
@@ -472,6 +495,46 @@ class WB_Guard
             }
         } catch (Throwable $e) {
             error_log('[WAAMINI Bot] kickWorker: ' . $e->getMessage());
+        }
+    }
+
+    private static function canFinishRequest(): bool
+    {
+        return function_exists('litespeed_finish_request') || function_exists('fastcgi_finish_request');
+    }
+
+    /** Shutdown handler: send the response to the client (Meta), then answer due reply jobs for up to ~40 s. */
+    public static function runAfterResponse(): void
+    {
+        try {
+            ignore_user_abort(true);
+            @set_time_limit(90);
+            if (function_exists('litespeed_finish_request')) { @litespeed_finish_request(); }
+            elseif (function_exists('fastcgi_finish_request')) { @fastcgi_finish_request(); }
+
+            global $conn;
+            if (!($conn instanceof mysqli)) { return; }
+            $lockPath = __DIR__ . '/../../storage/waamini_bot.lock';
+            $lock = @fopen($lockPath, 'c');
+            if ($lock === false || !flock($lock, LOCK_EX | LOCK_NB)) { return; } // the cron worker is already answering
+            try {
+                $voice = __DIR__ . '/../voice_ai.php';
+                if (is_file($voice)) { require_once $voice; }
+                $deadline = time() + 40; $idle = 0;
+                while (time() < $deadline) {
+                    $work = function_exists('voice_ai_process_due') ? (int)voice_ai_process_due($conn, 3) : 0;
+                    $work += (int)self::processDue($conn, 10);
+                    $p = $conn->query("SELECT COUNT(*) FROM ai_reply_jobs WHERE status IN ('pending','processing') AND run_at <= DATE_ADD(NOW(), INTERVAL 40 SECOND)");
+                    $left = $p ? (int)$p->fetch_row()[0] : 0;
+                    if ($work === 0 && $left === 0) { if (++$idle >= 2) { break; } } else { $idle = 0; }
+                    sleep(1);
+                }
+            } finally {
+                flock($lock, LOCK_UN);
+                fclose($lock);
+            }
+        } catch (Throwable $e) {
+            error_log('[WAAMINI Bot] runAfterResponse: ' . $e->getMessage());
         }
     }
 }

@@ -4,13 +4,13 @@ $meta_desc = "WAAMINI is India's most powerful all-in-one WhatsApp Business CRM.
 $meta_keywords = "WhatsApp CRM India, WhatsApp Marketing Automation, WhatsApp Business API, Waamini CRM, AI Chatbot WhatsApp, Bulk WhatsApp Campaign, WhatsApp Business API India";
 $asyncStylesheets = [
     'assets/css/index.css?v=10gx',
-    'assets/css/landing-neo.css?v=15gx',
+    'assets/css/landing-neo.css?v=16gx',
     'assets/css/hero-flow.css?v=11x',
     'assets/css/marquee-band.css?v=1x',
-    'assets/css/features-hub.css?v=3x',
+    'assets/css/features-hub.css?v=4',
     'assets/css/ai-closer.css?v=1x',
     'assets/css/how-steps.css?v=3',
-    'assets/css/wa-showcase.css?v=6',
+    'assets/css/wa-showcase.css?v=8',
     'assets/css/testimonial-carousel.css?v=1',
     'assets/css/wm-compare.css?v=1',
 ];
@@ -108,7 +108,7 @@ $__hero = cms_hero(); $__stats = cms_stats(); $__faqs = cms_faqs(); $__cta = cms
             <div class="hero-visual-wrap">
                 <!-- WhatsApp lead conversation (open layout, loops continuously) -->
                 <?php
-                $__badge = '<span class="hf-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>';
+                $__badge = '<span class="hf-badge wm-av"><img class="wm-av-img" src="assets/img/waamini-mark.png" alt="" width="36" height="19"></span>';
                 ?>
                 <div class="hero-flow" id="heroFlow" aria-label="WhatsApp message automation example">
 
@@ -325,7 +325,7 @@ $__hero = cms_hero(); $__stats = cms_stats(); $__faqs = cms_faqs(); $__cta = cms
                 </div>
                 <div class="fh-hub" aria-hidden="true">
                     <span class="fh-hub-ring"></span>
-                    <svg width="46" height="46" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c.2 3.4 2.6 5.8 6 6l1.2-1.4-1.9-1-.8.7c-.9-.4-1.6-1.1-2-2l.7-.8-1-1.9z" fill="#25D366"/></svg>
+                    <img src="assets/img/waamini-icon.png" alt="" class="fh-hub-img" width="130" height="130">
                 </div>
                 <div class="fh-col fh-right">
                     <?php foreach ($__hub as $i => $n): if ($n[0] !== 'R') continue; ?>
@@ -771,7 +771,7 @@ $__hero = cms_hero(); $__stats = cms_stats(); $__faqs = cms_faqs(); $__cta = cms
                             <div class="it-status"><span>9:41</span><span style="letter-spacing:1.5px;font-size:8px;">&#9650; &#9679; &#9632;</span></div>
                             <div class="it-header">
                                 <span class="it-back">&#8249;</span>
-                                <div class="it-av"><?php echo $ind['botav']; ?></div>
+                                <div class="it-av<?php echo $ind['botav'] === '' ? ' wm-av' : ''; ?>"><?php if ($ind['botav'] !== ''): echo $ind['botav']; else: ?><img class="wm-av-img" src="assets/img/waamini-mark.png" alt="" width="36" height="19"><?php endif; ?></div>
                                 <div class="it-info">
                                     <strong><?php echo $ind['botname']; ?></strong>
                                     <span><span class="it-dot"></span>online</span>
@@ -942,7 +942,7 @@ $__wmVal = static function (array $v) use ($__wmIc): string {
                 <div class="spanel-right">
                     <div class="ai-chat-preview">
                         <div class="acp-header">
-                            <span class="wa-back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><div class="acp-avatar">W</div>
+                            <span class="wa-back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><div class="acp-avatar wm-av"><img class="wm-av-img" src="assets/img/waamini-mark.png" alt="" width="36" height="19"></div>
                             <div><div class="acp-name">WAAMINI AI</div><div class="acp-status">● online</div></div>
                             <div class="acp-score-badge">Lead Score: <strong>87</strong></div>
                         </div>
@@ -1189,7 +1189,7 @@ $__wmVal = static function (array $v) use ($__wmIc): string {
                 <div class="auto-visual-card">
                     <div class="auto-visual-header">
                         <span class="wa-back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-                        <span class="wa-hav">W</span>
+                        <span class="wa-hav wm-av"><img class="wm-av-img" src="assets/img/waamini-mark.png" alt="" width="36" height="19"></span>
                         <div class="wa-hinfo"><div class="auto-visual-title">WAAMINI AI</div><div class="wa-hstatus">online · replies in 0.3s</div></div>
                         <div class="wa-hicons" aria-hidden="true">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
@@ -1697,7 +1697,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.16/dist/lenis.min.js" nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>"></script>
-<script src="assets/js/lp-theme.js?v=4" nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>"></script>
+<script src="assets/js/lp-theme.js?v=5" nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>"></script>
 
 </main>
 <?php include 'includes/footer.php'; ?>

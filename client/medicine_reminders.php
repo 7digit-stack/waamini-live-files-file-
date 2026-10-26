@@ -11,7 +11,7 @@ if (!has_feature('medicine_reminder')) {
     $currentPage = 'medicine_reminders';
     include '../includes/client_header.php';
     ?>
-    <link rel="stylesheet" href="<?php echo app_url('assets/css/section-ui.css?v=2'); ?>">
+    <link rel="stylesheet" href="<?php echo app_url('assets/css/section-ui.css?v=3'); ?>">
     <div class="su"><div class="su-card" style="align-items:center;text-align:center;padding:48px 24px;">
         <div class="su-ico" style="width:64px;height:64px;"><?php echo $lI('<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>', 28); ?></div>
         <h2 style="justify-content:center;">Medicine reminders are not in your plan</h2>
@@ -111,7 +111,7 @@ $flash = ['added' => 'Reminder added.', 'updated' => 'Reminder updated.', 'delet
 
 include '../includes/client_header.php';
 ?>
-<link rel="stylesheet" href="<?php echo app_url('assets/css/section-ui.css?v=2'); ?>">
+<link rel="stylesheet" href="<?php echo app_url('assets/css/section-ui.css?v=3'); ?>">
 
 <div class="su">
 

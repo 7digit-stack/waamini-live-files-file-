@@ -4,8 +4,11 @@ $meta_desc = "Boost your e-commerce ROI with Waamini's WhatsApp automation. Reco
 $meta_keywords = "E-commerce WhatsApp Marketing, Abandoned Cart Recovery WhatsApp, WhatsApp Business API for Shopify, WooCommerce WhatsApp Bot";
 $asyncStylesheets = [
   'assets/css/industries.css?v=5.0',
-  'assets/css/landing-neo.css?v=15',
-  'assets/css/ind-wa.css?v=1',
+  'assets/css/landing-neo.css?v=16',
+  'assets/css/ind-wa.css?v=2',
+  'assets/css/feature-pages.css?v=2.2',
+  'assets/css/wm-hub.css?v=1',
+  'assets/css/wm-feat.css?v=4',
 ];
 $bodyClass = 'lp-neo';
 include 'includes/header.php';
@@ -78,9 +81,7 @@ include 'includes/header.php';
                 <div class="ind-mockup">
                     <div class="ind-mockup-header">
                         <div class="ind-mockup-brand">
-                            <div class="ind-mockup-dot mdot-eco">
-                                <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                            </div>
+                            <div class="ind-mockup-dot mdot-eco wm-av"><img class="wm-av-img" src="assets/img/waamini-mark.png" alt="" width="36" height="19"></div>
                             Store Assistant
                         </div>
                         <div class="ind-mockup-mac"><span></span><span></span><span></span></div>
@@ -177,51 +178,8 @@ include 'includes/header.php';
             <h2 class="ind-section-title">Built for Hyper-Growth D2C Brands</h2>
             <p class="ind-section-sub">Stop losing customers to crowded email inboxes. Reach them where they're most active — WhatsApp.</p>
         </div>
-        <div class="ind-feature-grid">
-            <div class="ind-feat-card eco-feat">
-                <div class="ind-feat-icon fi-eco">
-                    <svg viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-                </div>
-                <h4>Abandoned Cart Recovery</h4>
-                <p>Automatically send personalized WhatsApp nudges with discount codes to users who leave items in their cart. Recover up to 40% of lost sales.</p>
-            </div>
-            <div class="ind-feat-card eco-feat">
-                <div class="ind-feat-icon fi-eco">
-                    <svg viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                </div>
-                <h4>Order & Shipping Alerts</h4>
-                <p>Send automated order confirmations, shipping updates, and delivery alerts. Reduce "Where is my order?" tickets by 70% without extra staff.</p>
-            </div>
-            <div class="ind-feat-card eco-feat">
-                <div class="ind-feat-icon fi-eco">
-                    <svg viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
-                </div>
-                <h4>COD to Prepaid Conversion</h4>
-                <p>Incentivize COD customers to switch to prepaid with instant WhatsApp coupons. Significantly reduce RTO and last-mile delivery costs.</p>
-            </div>
-            <div class="ind-feat-card eco-feat">
-                <div class="ind-feat-icon fi-eco">
-                    <svg viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>
-                </div>
-                <h4>Automated Review Collection</h4>
-                <p>Send a WhatsApp message 3 days after delivery requesting a photo review. Build 5x more social proof with zero manual effort.</p>
-            </div>
-            <div class="ind-feat-card eco-feat">
-                <div class="ind-feat-icon fi-eco">
-                    <svg viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>
-                </div>
-                <h4>WhatsApp Product Catalog</h4>
-                <p>Showcase your entire product range inside WhatsApp. Let customers browse, select, and place orders without leaving the app.</p>
-            </div>
-            <div class="ind-feat-card eco-feat">
-                <div class="ind-feat-icon fi-eco">
-                    <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                </div>
-                <h4>Re-engagement Campaigns</h4>
-                <p>Win back dormant customers with personalized offers sent at the perfect time. Broadcast new arrivals to opted-in customers in one click.</p>
-            </div>
-        </div>
     </div>
+    <div class="fp"><?php $fp = ['hub' => 'd2c', 'hub_head' => false]; include __DIR__ . '/includes/feature_hub.php'; ?></div>
 </section>
 
 <!-- ═══════ HOW IT WORKS ═══════ -->

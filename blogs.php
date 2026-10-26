@@ -23,7 +23,7 @@ try {
 } catch (Throwable $e) { /* table not yet set up — fall back to static data */ }
 
 $asyncStylesheets = [
-  'assets/css/landing-neo.css?v=15',
+  'assets/css/landing-neo.css?v=16',
 ];
 $bodyClass = 'lp-neo';
 include 'includes/header.php';
@@ -806,6 +806,6 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBlogMod
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.16/dist/lenis.min.js" nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>"></script>
-<script src="assets/js/lp-theme.js?v=4" nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>"></script>
+<script src="assets/js/lp-theme.js?v=5" nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>"></script>
 
 <?php include 'includes/footer.php'; ?>

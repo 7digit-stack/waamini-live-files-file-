@@ -9,6 +9,19 @@
  * - Prevents account flagging for spam/abuse
  */
 
+require_once __DIR__ . '/config/bootstrap.php';
+
+// Only the server's cron (CLI), the admin "send now" buttons (include) or a cron URL with the secret key may run this.
+$csTrusted = defined('WAAMINI_ADMIN_CRON_TRIGGER') || (defined('WAAMINI_TRUSTED_INTERNAL_RUN') && WAAMINI_TRUSTED_INTERNAL_RUN === true);
+if (php_sapi_name() !== 'cli' && !$csTrusted) {
+    $csKey = (string)($_GET['key'] ?? '');
+    if ($csKey === '' || !defined('CRON_SECRET_KEY') || (string)CRON_SECRET_KEY === '' || !hash_equals((string)CRON_SECRET_KEY, $csKey)) {
+        http_response_code(403);
+        exit('Forbidden');
+    }
+    header('Content-Type: text/plain; charset=utf-8');
+}
+
 set_time_limit(55); // Prevent overlaps if run every minute via cron
 ignore_user_abort(true);
 
@@ -109,7 +122,8 @@ try {
                      LIMIT 1) as api_version
             FROM campaign_queue q
                 WHERE (q.status = 'pending' AND q.scheduled_at <= NOW())
-                    OR (q.status = 'failed' AND q.retry_count < 3 AND (q.retry_after IS NULL OR q.retry_after <= NOW())) 
+                    OR (q.status = 'failed' AND q.retry_count < 3 AND (q.retry_after IS NULL OR q.retry_after <= NOW())
+                        AND (q.whatsapp_message_id IS NULL OR q.whatsapp_message_id = ''))
                 ORDER BY q.id ASC
                 LIMIT ? FOR UPDATE SKIP LOCKED";
 
@@ -349,7 +363,8 @@ try {
             }
 
             if ($campaignId) {
-                $stmt_camp = $conn->prepare("UPDATE campaigns SET sent_count = sent_count + 1 WHERE id = ?");
+                // Recount instead of +1: "sent" = recipients whose message WhatsApp accepted, so it can never exceed the audience
+                $stmt_camp = $conn->prepare("UPDATE campaigns SET sent_count = (SELECT COUNT(*) FROM campaign_queue q WHERE q.campaign_id = campaigns.id AND q.whatsapp_message_id IS NOT NULL AND q.whatsapp_message_id <> '') WHERE id = ?");
                 if ($stmt_camp) {
                     $stmt_camp->bind_param("i", $campaignId);
                     $stmt_camp->execute();

@@ -17,9 +17,9 @@ set_time_limit(120);
 require_once __DIR__ . '/db.php';
 set_time_limit(55);
 ini_set('memory_limit', '256M');
-require_once __DIR__ . '/vendor/phpmailer/phpmailer/src/PHPMailer.php';
-require_once __DIR__ . '/vendor/phpmailer/phpmailer/src/SMTP.php';
-require_once __DIR__ . '/vendor/phpmailer/phpmailer/src/Exception.php';
+require_once __DIR__ . '/vendor/PHPMailer/src/PHPMailer.php';
+require_once __DIR__ . '/vendor/PHPMailer/src/SMTP.php';
+require_once __DIR__ . '/vendor/PHPMailer/src/Exception.php';
 require_once __DIR__ . '/includes/mail_settings.php';
 require_once __DIR__ . '/includes/whatsapp_settings.php';
 

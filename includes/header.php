@@ -64,7 +64,11 @@ $isLocalhost = in_array(($_SERVER['HTTP_HOST'] ?? ''), ['localhost', '127.0.0.1'
     <meta property="og:title" content="<?php echo $page_title; ?>">
     <meta property="og:description" content="<?php echo $meta_desc; ?>">
     <meta property="og:image" content="<?php echo htmlspecialchars($cmsOn ? cms_setting('og_image', 'assets/img/og-image.png') : 'assets/img/og-image.png', ENT_QUOTES, 'UTF-8'); ?>">
-    <?php if ($cmsOn && cms_setting('favicon_url') !== ''): ?><link rel="icon" href="<?php echo htmlspecialchars(cms_setting('favicon_url'), ENT_QUOTES, 'UTF-8'); ?>"><?php endif; ?>
+    <?php if ($cmsOn && cms_setting('favicon_url') !== ''): ?><link rel="icon" href="<?php echo htmlspecialchars(cms_setting('favicon_url'), ENT_QUOTES, 'UTF-8'); ?>"><?php else: ?>
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/favicon-192.png"><?php endif; ?>
+    <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
 
     <!-- TWITTER -->
     <meta property="twitter:card" content="summary_large_image">
@@ -96,7 +100,7 @@ $isLocalhost = in_array(($_SERVER['HTTP_HOST'] ?? ''), ['localhost', '127.0.0.1'
           "url": "https://waamini.in/",
           "logo": {
             "@type": "ImageObject",
-            "url": "https://waamini.in/assets/img/logo.png"
+            "url": "https://waamini.com/assets/img/waamini-logo.png"
           },
           "contactPoint": {
             "@type": "ContactPoint",
@@ -357,6 +361,13 @@ $isLocalhost = in_array(($_SERVER['HTTP_HOST'] ?? ''), ['localhost', '127.0.0.1'
       .nav-toggle span { background: #0f172a !important; }
     </style>
 
+    <!-- Brand logo + Waamini WhatsApp profile picture (every public page) -->
+    <style>
+    .logo .logo-img { display: block; height: 32px; width: auto; }
+    @media (max-width: 600px) { .logo .logo-img { height: 26px; } }
+    .wm-av { background: #fff !important; border: 0 !important; border-radius: 50% !important; box-shadow: inset 0 0 0 1px rgba(11,61,54,.10), 0 1px 3px rgba(0,0,0,.18) !important; display: inline-flex !important; align-items: center; justify-content: center; flex: none; overflow: hidden; padding: 0 !important; }
+    .wm-av .wm-av-img { display: block; width: 72%; height: auto; pointer-events: none; }
+    </style>
     <!-- GPU Glitch Fix for Windows/Chromium -->
     <style>
       .main-nav {
@@ -394,13 +405,7 @@ if ($__waUseFullNav):
 <nav class="main-nav nav-pro">
     <div class="container nav-inner">
         <a href="index.php" class="logo" aria-label="Waamini Home">
-            <span class="logo-icon">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M10 2C5.858 2 2.5 4.91 2.5 8.5c0 1.74.75 3.32 1.98 4.49L3.5 16.5l3.72-1.49C8.07 15.65 9.01 15.8 10 15.8c4.142 0 7.5-2.91 7.5-6.5S14.142 2 10 2z" fill="white" opacity="0.95"/>
-                    <path d="M7.5 8.5h5M7.5 11h3" stroke="#25D366" stroke-width="1.6" stroke-linecap="round"/>
-                </svg>
-            </span>
-            <span class="logo-word"><span class="logo-wa">Waa</span><span class="logo-mini">mini</span></span>
+            <img src="assets/img/waamini-logo.png" alt="Waamini" class="logo-img" width="164" height="32">
         </a>
 
         <?php
@@ -477,13 +482,7 @@ if ($__waUseFullNav):
 <nav class="main-nav">
     <div class="container nav-inner">
         <a href="index.php" class="logo" aria-label="Waamini Home">
-            <span class="logo-icon">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M10 2C5.858 2 2.5 4.91 2.5 8.5c0 1.74.75 3.32 1.98 4.49L3.5 16.5l3.72-1.49C8.07 15.65 9.01 15.8 10 15.8c4.142 0 7.5-2.91 7.5-6.5S14.142 2 10 2z" fill="white" opacity="0.95"/>
-                    <path d="M7.5 8.5h5M7.5 11h3" stroke="#128C7E" stroke-width="1.6" stroke-linecap="round"/>
-                </svg>
-            </span>
-            <span class="logo-word"><span class="logo-wa">Waa</span><span class="logo-mini">mini</span></span>
+            <img src="assets/img/waamini-logo.png" alt="Waamini" class="logo-img" width="164" height="32">
         </a>
 
         <!-- Desktop Menu -->

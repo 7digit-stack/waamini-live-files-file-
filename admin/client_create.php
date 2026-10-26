@@ -129,7 +129,7 @@ include '../includes/admin_header.php';
 <div class="alert alert-danger" style="margin-bottom:20px;"><?php echo htmlspecialchars($error); ?></div>
 <?php endif; ?>
 
-<div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;max-width:900px;">
+<div class="cc-layout" style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;max-width:900px;">
 
     <!-- Main form -->
     <div class="glass-card" style="padding:32px;">
@@ -140,7 +140,7 @@ include '../includes/admin_header.php';
             <?php echo csrf_field(); ?>
 
             <!-- Name row -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+            <div class="cc-two" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
                 <div class="form-group" style="margin:0;">
                     <label style="font-size:12px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px;">First Name <span style="color:#e74c3c;">*</span></label>
                     <input type="text" name="first_name" class="form-control"

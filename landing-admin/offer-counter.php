@@ -80,7 +80,7 @@ echo la_flash_html();
     <?php if (!$editRow): ?><a href="?edit=new" class="la-btn la-btn-primary la-btn-sm">+ New Counter</a><?php endif; ?>
 </div>
 
-<?php if ($editRow || $_GET['edit'] ?? '' === 'new'):
+<?php if ($editRow || (($_GET['edit'] ?? '') === 'new')):
     $e = $editRow ?: [];
     $fTitle = $e['title'] ?? '';
     $fSubtitle = $e['subtitle'] ?? '';

@@ -42,3 +42,27 @@ body.sb-collapsed .sidebar-nav{padding-left:10px;padding-right:10px}
 /* the selected menu item is shown by its tinted background only, no vertical bar on the left */
 .nav-item.active::before,.client-sidebar .nav-item.active::before,.admin-sidebar .nav-item.active::before,.nav-item::before{display:none!important;content:none!important;width:0!important}
 .nav-item.active{border-left:0!important;box-shadow:none!important}
+
+/* ── No stray text caret in the panels ─────────────────────────────────
+   Chrome/Edge "caret browsing" (F7) draws a blinking caret in any text you
+   click, which looks like every label is a text box. Hide the caret on
+   static content and keep it only where typing really happens. */
+body { caret-color: transparent; }
+input, textarea, select, [contenteditable="true"], [contenteditable=""],
+.ql-editor, .note-editable, .CodeMirror, .cm-content, .emoji-wysiwyg-editor { caret-color: auto; }
+input[type="checkbox"], input[type="radio"], input[type="range"], input[type="color"],
+input[type="file"], input[type="submit"], input[type="button"], input[type="reset"] { caret-color: transparent; }
+
+/* ── Tables without grid lines (client + admin panels) ──────────────────
+   Rows are separated by soft zebra shading instead of 1px rules.
+   Invoice / quotation documents keep their lines (they get printed). */
+:is(.main-content, .admin-main) table:not(.items-table):not(.totals-table):not(.keep-lines) :is(th, td) {
+  border-top: 0 !important; border-bottom: 0 !important; border-left: 0 !important; border-right: 0 !important;
+}
+:is(.main-content, .admin-main) table:not(.items-table):not(.totals-table):not(.keep-lines) {
+  border-collapse: separate; border-spacing: 0; border: 0;
+}
+:is(.main-content, .admin-main) table:not(.items-table):not(.totals-table):not(.keep-lines) > tbody > tr:nth-child(even) > td { background-color: #f8fafc; }
+:is(.main-content, .admin-main) table:not(.items-table):not(.totals-table):not(.keep-lines) > tbody > tr:hover > td { background-color: #eef4fd; }
+:is(.main-content, .admin-main) table:not(.items-table):not(.totals-table):not(.keep-lines) > tbody > tr > td:first-child { border-radius: 10px 0 0 10px; }
+:is(.main-content, .admin-main) table:not(.items-table):not(.totals-table):not(.keep-lines) > tbody > tr > td:last-child { border-radius: 0 10px 10px 0; }

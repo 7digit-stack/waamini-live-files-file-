@@ -2,7 +2,7 @@
 $page_title = "Data Deletion Instructions";
 $meta_desc = "Learn how to request deletion of your data from Waamini WhatsApp Business CRM platform. Account deletion, data removal, and privacy rights.";
 $asyncStylesheets = [
-  'assets/css/landing-neo.css?v=15',
+  'assets/css/landing-neo.css?v=16',
 ];
 $bodyClass = 'lp-neo';
 include 'includes/header.php';

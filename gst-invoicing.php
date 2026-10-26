@@ -1,6 +1,7 @@
 <?php
 $fp = [
     'slug' => 'gst-invoicing.php',
+    'hub' => 'billing',
     'title' => 'GST Invoicing, Quotes & Payment Links on WhatsApp | Waamini',
     'meta_desc' => 'Create GST invoices and PDF quotes, send payment links and share them on WhatsApp in one click.',
     'meta_keywords' => 'GST invoice WhatsApp, PDF quote, payment link WhatsApp, UPI payment collection India',

@@ -197,7 +197,7 @@ $lI = static function (string $p, int $s = 20): string {
 
 include '../includes/client_header.php';
 ?>
-<link rel="stylesheet" href="<?php echo app_url('assets/css/section-ui.css?v=2'); ?>">
+<link rel="stylesheet" href="<?php echo app_url('assets/css/section-ui.css?v=3'); ?>">
 <style>
 /* ═══════════════════════════════════════════
    WAAMINI Help & Support — redesigned UI

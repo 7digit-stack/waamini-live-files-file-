@@ -124,7 +124,7 @@ $ringC = 2 * M_PI * 34;
 
 include '../includes/client_header.php';
 ?>
-<link rel="stylesheet" href="<?php echo app_url('assets/css/section-ui.css?v=2'); ?>">
+<link rel="stylesheet" href="<?php echo app_url('assets/css/section-ui.css?v=3'); ?>">
 <style>
 .gs-ring { position:relative; width:96px; height:96px; flex:none; }
 .gs-ring svg { width:96px; height:96px; transform:rotate(-90deg); }

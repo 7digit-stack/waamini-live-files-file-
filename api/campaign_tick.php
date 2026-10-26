@@ -242,7 +242,7 @@ if ($campaignId > 0) {
         $upd = $conn->prepare("
             UPDATE campaigns c
             SET
-              c.sent_count = (SELECT COUNT(*) FROM campaign_queue q WHERE q.company_id=c.company_id AND q.campaign_id=c.id AND q.status='sent'),
+              c.sent_count = (SELECT COUNT(*) FROM campaign_queue q WHERE q.company_id=c.company_id AND q.campaign_id=c.id AND q.whatsapp_message_id IS NOT NULL AND q.whatsapp_message_id <> ''),
               c.failed_count = (SELECT COUNT(*) FROM campaign_queue q WHERE q.company_id=c.company_id AND q.campaign_id=c.id AND q.status='failed'),
               c.expired_count = (SELECT COUNT(*) FROM campaign_queue q WHERE q.company_id=c.company_id AND q.campaign_id=c.id AND q.status='expired')
             WHERE c.id=? AND c.company_id=?

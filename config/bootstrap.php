@@ -10,6 +10,8 @@
 if (!defined('APP_ROOT')) {
     define('APP_ROOT', dirname(__DIR__));
 }
+// cron jobs: note when this script ran (Admin > System Report > Cron jobs)
+require_once dirname(__DIR__) . '/includes/cron_runlog.php';
 
 if (!defined('WAAMINI_LOADED')) {
     define('WAAMINI_LOADED', true);
@@ -38,6 +40,21 @@ ob_start();
 require_once APP_ROOT . '/config/env.php';
 \Waamini\Config\Env::load(APP_ROOT . '/.env');
 
+// Cron scripts accept ?key=... when started by URL; only defined when a non-empty key is configured.
+// Older scripts read WAAMINI_CRON_KEY, newer ones CRON_SECRET_KEY: one secret serves both names.
+if (!defined('CRON_SECRET_KEY')) {
+    $cronKey = trim((string)\Waamini\Config\Env::get('CRON_SECRET_KEY', ''));
+    if ($cronKey === '') $cronKey = trim((string)\Waamini\Config\Env::get('WAAMINI_CRON_KEY', ''));
+    if ($cronKey !== '') {
+        define('CRON_SECRET_KEY', $cronKey);
+        if ((string)getenv('WAAMINI_CRON_KEY') === '') {
+            putenv('WAAMINI_CRON_KEY=' . $cronKey);
+            $_ENV['WAAMINI_CRON_KEY'] = $cronKey;
+        }
+    }
+    unset($cronKey);
+}
+
 // Ensure consistent timezone across the app (affects date(), strtotime(), etc.)
 // Default to India timezone for this project if not set.
 $appTz = (string)\Waamini\Config\Env::get('APP_TIMEZONE', 'Asia/Kolkata');
@@ -59,9 +76,14 @@ $host = (string)($_SERVER['HTTP_HOST'] ?? '');
 $host = preg_replace('/:\d+$/', '', $host);
 $cookieDomain = ($host !== '' && filter_var($host, FILTER_VALIDATE_IP) === false && $host !== 'localhost') ? $host : '';
 
+// Session length (seconds of inactivity). The cookie is renewed on every request below, and the server keeps
+// session files at least this long (PHP's default clean-up of 24 minutes was ending sessions mid-form).
+$sessLife = max(1800, (int)\Waamini\Config\Env::get('SESSION_LIFETIME', '3600'));
+ini_set('session.gc_maxlifetime', (string)max($sessLife, 8 * 3600));
+
 if (PHP_VERSION_ID >= 70300) {
     session_set_cookie_params([
-        'lifetime' => (int)\Waamini\Config\Env::get('SESSION_LIFETIME', '3600'),
+        'lifetime' => $sessLife,
         'path' => '/',
         'domain' => $cookieDomain,
         'secure' => $secure,
@@ -119,6 +141,21 @@ if (empty($_SESSION['user_id']) && isset($_COOKIE['remember_me'])) {
             }
         }
     }
+}
+
+// Sliding session: re-send the session cookie with a fresh expiry on every request, so an active user is never
+// cut off. Also give each browser a long-lived CSRF seed (includes/security.php), so form tokens survive a
+// silent "remember me" re-login.
+if (PHP_SAPI !== 'cli' && !headers_sent() && PHP_VERSION_ID >= 70300) {
+    $cookieOpts = ['path' => '/', 'domain' => $cookieDomain, 'secure' => $secure, 'httponly' => true, 'samesite' => $samesite];
+    if (session_status() === PHP_SESSION_ACTIVE && isset($_COOKIE[session_name()])) {
+        setcookie(session_name(), session_id(), ['expires' => time() + $sessLife] + $cookieOpts);
+    }
+    if (!isset($_COOKIE['wm_csrf']) || !preg_match('/^[a-f0-9]{64}$/', (string)$_COOKIE['wm_csrf'])) {
+        $_COOKIE['wm_csrf'] = bin2hex(random_bytes(32));
+    }
+    setcookie('wm_csrf', $_COOKIE['wm_csrf'], ['expires' => time() + 30 * 86400] + $cookieOpts);
+    unset($cookieOpts);
 }
 
 // 5. Global Security Headers (Standard)

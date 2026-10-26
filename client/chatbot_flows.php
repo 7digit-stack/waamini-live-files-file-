@@ -38,7 +38,17 @@ if (isset($_POST['toggle_id'])) {
     $tid = intval($_POST['toggle_id']);
     $row = flow_get($conn, $companyId, $tid);
     $result = $row ? flow_set_status($conn, $companyId, $tid, ($row['status'] ?? 'draft') === 'published' ? 'draft' : 'published') : ['ok' => false];
-    header("Location: chatbot_flows.php?msg=" . (!empty($result['ok']) ? 'updated' : 'invalid'));
+    if (empty($result['ok'])) {
+        // Tell the user exactly why this flow could not go live, next to the flow itself
+        $why = [];
+        foreach ((array)($result['issues'] ?? []) as $is) {
+            if (($is['level'] ?? '') === 'error' && !in_array($is['message'], $why, true)) $why[] = (string)$is['message'];
+        }
+        $_SESSION['cf_toggle_err'] = ['id' => $tid, 'name' => (string)($row['name'] ?? 'This flow'), 'issues' => array_slice($why ?: ['This flow could not be switched on.'], 0, 4)];
+        header("Location: chatbot_flows.php?msg=invalid#flow-" . $tid);
+        exit();
+    }
+    header("Location: chatbot_flows.php?msg=updated#flow-" . $tid);
     exit();
 }
 
@@ -108,6 +118,10 @@ $trigInfo = ['keyword' => ['Keyword', 'key', 'is-info'], 'new_contact' => ['New 
 $fu = chat_followup_get($conn, $companyId);
 $msgMap = ['followup_saved' => 'Auto follow-up saved.', 'deleted' => 'Flow deleted.', 'updated' => 'Flow status updated.', 'invalid' => 'This flow has validation problems. Open it, fix the highlighted nodes, then publish again.'];
 $flash = $msgMap[$_GET['msg'] ?? ''] ?? null;
+// a flow that could not be switched on: shown in red at the top and inside that flow's card (once)
+$toggleErr = (($_GET['msg'] ?? '') === 'invalid' && !empty($_SESSION['cf_toggle_err'])) ? $_SESSION['cf_toggle_err'] : null;
+unset($_SESSION['cf_toggle_err']);
+if ($toggleErr) $flash = null;
 ?>
 
 <div class="db cf">
@@ -123,6 +137,7 @@ $flash = $msgMap[$_GET['msg'] ?? ''] ?? null;
   </div>
 
   <?php if ($flash): ?><div class="cf-toast is-ok" role="status"><?php echo $__ic($I['check'], 18); ?> <span><?php echo $esc($flash); ?></span></div><?php endif; ?>
+  <?php if ($toggleErr): ?><div class="cf-toast is-err" role="alert"><?php echo $__ic($I['alert'], 18); ?> <span>“<?php echo $esc($toggleErr['name']); ?>” can't go live yet. <a href="#flow-<?php echo (int)$toggleErr['id']; ?>">See what to fix</a></span></div><?php endif; ?>
   <?php if ($formError): ?><div class="cf-toast is-err" role="alert"><?php echo $__ic($I['alert'], 18); ?> <span><?php echo $esc($formError); ?></span></div><?php endif; ?>
 
   <div class="db-row db-row--top">
@@ -199,7 +214,7 @@ $flash = $msgMap[$_GET['msg'] ?? ''] ?? null;
     <div class="cf-list" id="cfList">
       <?php foreach ($flows as $f):
           $ti = $trigInfo[$f['trigger_type']] ?? $trigInfo['keyword']; $live = ($f['status'] ?? 'draft') === 'published'; ?>
-        <article class="cf-item" data-q="<?php echo $esc(strtolower($f['name'] . ' ' . ($f['trigger_keyword'] ?? ''))); ?>">
+        <article class="cf-item" id="flow-<?php echo (int)$f['id']; ?>" data-q="<?php echo $esc(strtolower($f['name'] . ' ' . ($f['trigger_keyword'] ?? ''))); ?>">
           <span class="cf-ic"><?php echo $__ic($I[$ti[1]], 20); ?></span>
           <div class="cf-main">
             <b><?php echo $esc($f['name']); ?></b>
@@ -222,6 +237,13 @@ $flash = $msgMap[$_GET['msg'] ?? ''] ?? null;
               <button type="submit" class="cf-ib" title="Delete flow"><?php echo $__ic($I['trash'], 16); ?></button>
             </form>
           </div>
+          <?php if ($toggleErr && (int)$toggleErr['id'] === (int)$f['id']): ?>
+          <div class="cf-err" role="alert">
+            <b>Can't switch on yet. Fix this in the canvas first:</b>
+            <ul><?php foreach ($toggleErr['issues'] as $msg): ?><li><?php echo $esc($msg); ?></li><?php endforeach; ?></ul>
+            <a class="db-btn db-btn--primary cf-btn" href="flow_builder.php?flow_id=<?php echo (int)$f['id']; ?>"><?php echo $__ic($I['grid'], 15); ?> Open canvas to fix</a>
+          </div>
+          <?php endif; ?>
         </article>
       <?php endforeach; ?>
       <div class="db-empty" id="cfNone" style="display:none">No flows match your search.</div>
@@ -291,6 +313,12 @@ $flash = $msgMap[$_GET['msg'] ?? ''] ?? null;
 .cf-del{margin:0}
 .cf-ib{width:38px;height:38px;border:0;border-radius:10px;background:#fff;color:var(--tx);display:grid;place-items:center;cursor:pointer;transition:background .15s,color .15s}
 .cf-ib:hover{background:#FDE4E1;color:#c0372b}
+.cf-item{scroll-margin-top:90px}
+.cf-err{grid-column:1 / -1;padding:12px 14px;border-radius:12px;background:#FDECEA;color:#9b2c22;font-size:13.5px;line-height:1.5}
+.cf-err b{display:block;margin-bottom:4px}
+.cf-err ul{margin:0 0 10px;padding-left:18px}
+.cf-err .cf-btn{display:inline-flex;align-items:center;gap:6px}
+.cf-toast.is-err a{color:inherit;text-decoration:underline}
 .cf-empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:50px 20px 56px}
 .cf-empty>span{width:84px;height:84px;border-radius:50%;background:#E3F7EE;color:#128C7E;display:grid;place-items:center;margin-bottom:6px}
 .cf-empty h3{margin:0;font-size:20px;color:var(--ink)}
@@ -344,6 +372,37 @@ $flash = $msgMap[$_GET['msg'] ?? ''] ?? null;
 .cf-dialog .cf-create svg{color:#fff}
 @media (max-width:1100px){.cf .db-row{grid-template-columns:1fr}.cf-item{grid-template-columns:48px minmax(0,1fr) auto}.cf-nums,.cf-sw,.cf-acts{grid-column:2 / -1}}
 @media (max-width:560px){.cf-opts{grid-template-columns:1fr}}
+/* Phones: each flow is a tidy card — name, then two equal number tiles, then switch + actions on one row */
+@media (max-width:640px){
+  .cf-list{padding:4px 12px 14px;gap:12px}
+  .cf-item{grid-template-columns:44px auto minmax(0,1fr);grid-template-areas:"ic main main" "nums nums nums" "sw sw acts";gap:12px 12px;padding:14px;border-radius:16px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.05),0 6px 18px -12px rgba(18,140,126,.35)}
+  .cf-ic{grid-area:ic;width:44px;height:44px;border-radius:12px;align-self:start}
+  .cf-main{grid-area:main;min-width:0}
+  .cf-main b{font-size:15.5px}
+  .cf-sub{gap:6px;margin-top:5px;font-size:12.5px}
+  .cf-nums{grid-area:nums;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .cf-nums div{min-width:0;padding:10px 8px;border-radius:12px;background:#F4F8F6}
+  .cf-nums b{font-size:19px}
+  .cf-sw{grid-area:sw;align-self:center}
+  .cf-acts{grid-area:acts;justify-content:flex-end;min-width:0}
+  .cf-btn{height:40px;padding:0 14px;white-space:nowrap}
+  .cf-ib{width:40px;height:40px;background:#F4F8F6}
+  .cf-item:hover{box-shadow:0 1px 2px rgba(15,23,42,.05),0 6px 18px -12px rgba(18,140,126,.35)}
+  .cf-search{width:100%;height:44px}
+  .cf-fu{padding:16px}
+  .cf .db-canvas{height:190px}
+  .cf-fu__head{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:start}
+  .cf-fu__head>div{display:contents}
+  .cf-fu__head h2{grid-column:2;align-self:center;font-size:16px}
+  .cf-fu__head p{grid-column:1 / -1;max-width:none}
+  .cf-sw2{grid-column:3;grid-row:1}
+  .cf-fu__act .db-btn{width:100%;justify-content:center}
+}
+/* very narrow phones: actions get their own full row */
+@media (max-width:360px){
+  .cf-item{grid-template-areas:"ic main main" "nums nums nums" "sw sw sw" "acts acts acts"}
+  .cf-acts{justify-content:stretch}.cf-acts .cf-btn{flex:1;justify-content:center}
+}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>

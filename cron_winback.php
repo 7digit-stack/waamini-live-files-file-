@@ -12,6 +12,7 @@ if (PHP_SAPI !== 'cli') {
 set_time_limit(55);
 ini_set('memory_limit', '256M');
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/includes/whatsapp_settings.php';
 $lockFile = sys_get_temp_dir() . '/waamini_winback.lock';
 $lock = fopen($lockFile,'w'); if (!flock($lock,LOCK_EX|LOCK_NB)) die("Running
 ");
@@ -21,33 +22,41 @@ $apiVersion = ($ver_res && $r=$ver_res->fetch_assoc()) ? $r['setting_value'] : '
 
 $sent = 0;
 
-// Get all active companies
+// Companies with win-back switched on and a connected WhatsApp number (credentials live in whatsapp_config, token encrypted)
 $stmt_co = $conn->prepare("
     SELECT c.id as company_id, c.name as business_name,
-           wc.winback_message, wc.is_active,
-           ak.access_token, ak.phone_number_id
+           wb.message AS winback_message, wb.inactive_days,
+           wa.access_token, wa.phone_number_id
     FROM companies c
-    JOIN winback_settings wc ON wc.company_id=c.id AND wc.is_active=1
-    JOIN api_keys ak ON ak.company_id=c.id AND ak.is_active=1
-    WHERE c.status='active'
+    JOIN winback_settings wb ON wb.company_id=c.id AND wb.is_active=1
+    JOIN whatsapp_config wa ON wa.company_id=c.id AND wa.status='active'
+    WHERE c.status='active' AND wa.phone_number_id <> '' AND wa.access_token <> ''
 ");
+if (!$stmt_co) {
+    error_log('[WAAMINI winback] company query failed: ' . $conn->error);
+    flock($lock, LOCK_UN); fclose($lock);
+    exit(1);
+}
 $stmt_co->execute();
 $companies = $stmt_co->get_result();
 
 while ($company = $companies->fetch_assoc()) {
     $cid = $company['company_id'];
+    $company['access_token'] = waamini_whatsapp_decrypt_config_token($company);
+    if ($company['access_token'] === '') continue;
+    $inactiveDays = max(7, (int)($company['inactive_days'] ?? 30));
 
-    // Find contacts inactive 30+ days, not blocked, not already re-engaged this month
+    // Find contacts inactive N+ days (company setting, default 30), not blocked, not already re-engaged in 60 days
     $stmt_ct = $conn->prepare("
         SELECT id, name, phone FROM contacts
         WHERE company_id=?
           AND status NOT IN ('blocked','unsubscribed')
-          AND (last_message_at IS NULL OR last_message_at < DATE_SUB(NOW(), INTERVAL 30 DAY))
+          AND (last_message_at IS NULL OR last_message_at < DATE_SUB(NOW(), INTERVAL ? DAY))
           AND (winback_sent_at IS NULL OR winback_sent_at < DATE_SUB(NOW(), INTERVAL 60 DAY))
           AND opted_in=1
         LIMIT 200
     ");
-    $stmt_ct->bind_param("i", $cid);
+    $stmt_ct->bind_param("ii", $cid, $inactiveDays);
     $stmt_ct->execute();
     $contacts = $stmt_ct->get_result();
 

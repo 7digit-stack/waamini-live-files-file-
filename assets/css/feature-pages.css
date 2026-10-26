@@ -32,6 +32,7 @@
 .fp-phone-top .av svg{width:24px;height:24px}
 .fp-phone-top b{display:block;font-size:14.5px}
 .fp-phone-top span{font-size:11.5px;opacity:.75}
+.fp-phone-top .av{opacity:1}
 .fp-chat{padding:20px 16px 22px;background:#F3FBF7;display:flex;flex-direction:column;gap:10px;min-height:330px}
 .fp-msg{max-width:82%;padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:1.45;box-shadow:0 2px 6px rgba(18,140,126,.07)}
 .fp-msg.in{align-self:flex-start;background:#fff;border-top-left-radius:4px;color:var(--fp-text)}
@@ -39,7 +40,7 @@
 .fp-msg small{display:block;margin-top:4px;font-size:10.5px;opacity:.6;text-align:right}
 .fp-chip{position:absolute;display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:14px;background:#fff;border:1px solid var(--fp-line);box-shadow:0 14px 30px rgba(18,140,126,.18);font-size:12.5px;font-weight:700;color:var(--fp-primary)}
 .fp-chip svg{width:18px;height:18px}
-.fp-chip.c1{top:34px;left:-6px}.fp-chip.c2{bottom:46px;right:-6px}
+.fp-chip.c1{top:92px;left:-6px}.fp-chip.c2{bottom:46px;right:-6px}
 
 /* Stats */
 .fp-stats{padding:34px 0;border-top:1px solid var(--fp-line);border-bottom:1px solid var(--fp-line);background:#fff}

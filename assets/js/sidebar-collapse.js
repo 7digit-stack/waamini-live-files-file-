@@ -13,6 +13,8 @@
   var MAG = '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>';
 
   function get() { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } }
+  /* icon-only mode is a desktop feature: phones and tablets always get the full menu */
+  var WIDE = window.matchMedia('(min-width: 1025px)');
   function set(v) { try { localStorage.setItem(KEY, v ? '1' : '0'); } catch (e) { /* ignore */ } }
 
   /* ── edge toggle ── */
@@ -112,5 +114,7 @@
   sb.addEventListener('scroll', hideTip, {passive: true});
   window.addEventListener('resize', hideTip);
 
-  apply(get());
+  apply(get() && WIDE.matches);
+  var onWide = function () { apply(get() && WIDE.matches); };
+  if (WIDE.addEventListener) { WIDE.addEventListener('change', onWide); } else if (WIDE.addListener) { WIDE.addListener(onWide); }
 })();

@@ -4,8 +4,11 @@ $meta_desc = "Capture 3x more high-intent leads with Waamini's Real Estate Whats
 $meta_keywords = "Real Estate WhatsApp CRM, Property Management WhatsApp, Lead Generation WhatsApp, India Real Estate Bot";
 $asyncStylesheets = [
   'assets/css/industries.css?v=5.0',
-  'assets/css/landing-neo.css?v=15',
-  'assets/css/ind-wa.css?v=1',
+  'assets/css/landing-neo.css?v=16',
+  'assets/css/ind-wa.css?v=2',
+  'assets/css/feature-pages.css?v=2.2',
+  'assets/css/wm-hub.css?v=1',
+  'assets/css/wm-feat.css?v=4',
 ];
 $bodyClass = 'lp-neo';
 include 'includes/header.php';
@@ -78,9 +81,7 @@ include 'includes/header.php';
                 <div class="ind-mockup">
                     <div class="ind-mockup-header">
                         <div class="ind-mockup-brand">
-                            <div class="ind-mockup-dot mdot-re">
-                                <svg viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                            </div>
+                            <div class="ind-mockup-dot mdot-re wm-av"><img class="wm-av-img" src="assets/img/waamini-mark.png" alt="" width="36" height="19"></div>
                             Property Expert
                         </div>
                         <div class="ind-mockup-mac"><span></span><span></span><span></span></div>
@@ -177,51 +178,8 @@ include 'includes/header.php';
             <h2 class="ind-section-title">Built for Premium Real Estate Developers</h2>
             <p class="ind-section-sub">Transform how you sell properties with high-fidelity WhatsApp communication that converts inquiries into closures.</p>
         </div>
-        <div class="ind-feature-grid">
-            <div class="ind-feat-card re-feat">
-                <div class="ind-feat-icon fi-re">
-                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-                </div>
-                <h4>Instant Lead Capture</h4>
-                <p>Never miss a lead from Facebook, Google Ads, or Magicbricks. Send an immediate WhatsApp response with property details and availability.</p>
-            </div>
-            <div class="ind-feat-card re-feat">
-                <div class="ind-feat-icon fi-re">
-                    <svg viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
-                </div>
-                <h4>Site Visit Automation</h4>
-                <p>Let leads book site visits 24/7. Automatically send reminders, Google Maps locations, and contact info for the property manager.</p>
-            </div>
-            <div class="ind-feat-card re-feat">
-                <div class="ind-feat-icon fi-re">
-                    <svg viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-                </div>
-                <h4>Brochure & Floor Plan Sharing</h4>
-                <p>Share high-resolution brochures, floor plans, and price sheets instantly after every inquiry — no more manual emails or delays.</p>
-            </div>
-            <div class="ind-feat-card re-feat">
-                <div class="ind-feat-icon fi-re">
-                    <svg viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                </div>
-                <h4>Smart Agent Routing</h4>
-                <p>Route high-intent leads to your top agents automatically based on location, budget, or preferred property type for faster closing.</p>
-            </div>
-            <div class="ind-feat-card re-feat">
-                <div class="ind-feat-icon fi-re">
-                    <svg viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>
-                </div>
-                <h4>Project Launch Broadcasts</h4>
-                <p>Announce new property launches to your entire opt-in list with personalized WhatsApp messages, images, and payment plan documents.</p>
-            </div>
-            <div class="ind-feat-card re-feat">
-                <div class="ind-feat-icon fi-re">
-                    <svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                </div>
-                <h4>Post-Sale Relationship</h4>
-                <p>Maintain relationships after booking with possession updates, registry reminders, and referral programs to generate word-of-mouth leads.</p>
-            </div>
-        </div>
     </div>
+    <div class="fp"><?php $fp = ['hub' => 'realestate', 'hub_head' => false]; include __DIR__ . '/includes/feature_hub.php'; ?></div>
 </section>
 
 <!-- ═══════ HOW IT WORKS ═══════ -->

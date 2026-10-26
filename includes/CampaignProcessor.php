@@ -147,7 +147,7 @@ class CampaignProcessor {
         // Update campaign counts from queue
         Database::query(
             "UPDATE campaigns SET
-                sent_count = (SELECT COUNT(*) FROM campaign_queue WHERE campaign_id=:id AND status='sent'),
+                sent_count = (SELECT COUNT(*) FROM campaign_queue WHERE campaign_id=:id AND whatsapp_message_id IS NOT NULL AND whatsapp_message_id <> ''),
                 failed_count = (SELECT COUNT(*) FROM campaign_queue WHERE campaign_id=:id AND status='failed')
              WHERE id=:id",
             ['id' => $campaignId]

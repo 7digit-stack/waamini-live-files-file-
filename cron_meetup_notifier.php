@@ -12,6 +12,8 @@
  */
 
 require_once __DIR__ . '/config/bootstrap.php';
+require_once __DIR__ . '/includes/cron_guard.php';
+waamini_cron_guard(); // cron (CLI), the main worker chain, or ?key=CRON_SECRET_KEY only
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/includes/whatsapp_api_helper.php';
 
@@ -97,6 +99,10 @@ function mn_msg_5min(string $name, string $timeNice, string $meetLink, string $b
 
     return "🔔 *{$brand} — Demo Starting Soon*\n\nHello {$name}, your demo starts in approximately 5 minutes.\n\n🕒 *Time:* {$timeNice}\n\n{$meetBlock}\n\nPlease join now. Our team is ready for you. 🙏\n— Team {$brand}";
 }
+
+// Counters for the cron log; a run with nothing due must still report 0, not undefined variables.
+$sent1h = $sent5m = $fail1h = $fail5m = 0;
+$now = date('Y-m-d H:i:s');
 
 // ══════════════════════════════════════════════════════════════
 // 1-HOUR REMINDER: demo within next 60 min (but > 5 min away)

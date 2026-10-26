@@ -4,8 +4,11 @@ $meta_desc = "Empower your school, college, or coaching center with Waamini's Ed
 $meta_keywords = "Education WhatsApp CRM, School Management Bot, Coaching Center Marketing, WhatsApp for Admissions";
 $asyncStylesheets = [
   'assets/css/industries.css?v=5.0',
-  'assets/css/landing-neo.css?v=15',
-  'assets/css/ind-wa.css?v=1',
+  'assets/css/landing-neo.css?v=16',
+  'assets/css/ind-wa.css?v=2',
+  'assets/css/feature-pages.css?v=2.2',
+  'assets/css/wm-hub.css?v=1',
+  'assets/css/wm-feat.css?v=4',
 ];
 $bodyClass = 'lp-neo';
 include 'includes/header.php';
@@ -78,9 +81,7 @@ include 'includes/header.php';
                 <div class="ind-mockup">
                     <div class="ind-mockup-header">
                         <div class="ind-mockup-brand">
-                            <div class="ind-mockup-dot mdot-ed">
-                                <svg viewBox="0 0 24 24"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
-                            </div>
+                            <div class="ind-mockup-dot mdot-ed wm-av"><img class="wm-av-img" src="assets/img/waamini-mark.png" alt="" width="36" height="19"></div>
                             School Bot
                         </div>
                         <div class="ind-mockup-mac"><span></span><span></span><span></span></div>
@@ -177,51 +178,8 @@ include 'includes/header.php';
             <h2 class="ind-section-title">Built for Schools, Colleges & Coaching Centers</h2>
             <p class="ind-section-sub">Bridge the gap between your institution and parents with instant, automated WhatsApp messaging.</p>
         </div>
-        <div class="ind-feature-grid">
-            <div class="ind-feat-card ed-feat">
-                <div class="ind-feat-icon fi-ed">
-                    <svg viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-                </div>
-                <h4>Admission Automation</h4>
-                <p>Qualify and capture admission leads 24/7. Automatically share prospectus, fee structure, and book campus tours via WhatsApp.</p>
-            </div>
-            <div class="ind-feat-card ed-feat">
-                <div class="ind-feat-icon fi-ed">
-                    <svg viewBox="0 0 24 24"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                </div>
-                <h4>Fee Reminders & Collection</h4>
-                <p>Send automated fee reminders with Razorpay payment links. Parents pay directly in WhatsApp — improve collection by 40%.</p>
-            </div>
-            <div class="ind-feat-card ed-feat">
-                <div class="ind-feat-icon fi-ed">
-                    <svg viewBox="0 0 24 24"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
-                </div>
-                <h4>Attendance & Results</h4>
-                <p>Push daily attendance alerts and term results to parents instantly. Keep them updated on their child's progress effortlessly.</p>
-            </div>
-            <div class="ind-feat-card ed-feat">
-                <div class="ind-feat-icon fi-ed">
-                    <svg viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></svg>
-                </div>
-                <h4>Emergency Announcements</h4>
-                <p>Send high-priority broadcasts for school closures, holiday updates, or event reminders to all parents in seconds with 98% open rates.</p>
-            </div>
-            <div class="ind-feat-card ed-feat">
-                <div class="ind-feat-icon fi-ed">
-                    <svg viewBox="0 0 24 24"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
-                </div>
-                <h4>Online Class Reminders</h4>
-                <p>Send Zoom or Google Meet links 15 minutes before every online class. Reduce absenteeism and keep students on track automatically.</p>
-            </div>
-            <div class="ind-feat-card ed-feat">
-                <div class="ind-feat-icon fi-ed">
-                    <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                </div>
-                <h4>Alumni Engagement</h4>
-                <p>Keep graduates connected with batch reunions, job fair announcements, and achievement newsletters sent via WhatsApp broadcast.</p>
-            </div>
-        </div>
     </div>
+    <div class="fp"><?php $fp = ['hub' => 'education', 'hub_head' => false]; include __DIR__ . '/includes/feature_hub.php'; ?></div>
 </section>
 
 <!-- ═══════ HOW IT WORKS ═══════ -->

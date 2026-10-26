@@ -105,7 +105,7 @@ require __DIR__ . '/includes/header.php';
     <?php endif; ?>
 </div>
 
-<?php if ($editRow || $_GET['edit'] ?? '' === 'new'): ?>
+<?php if ($editRow || (($_GET['edit'] ?? '') === 'new')): ?>
 <?php
     $e = $editRow ?: [];
     $fType            = $e['type'] ?? 'info';

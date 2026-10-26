@@ -7,6 +7,7 @@ if (
     && !has_feature('google_sheets')
     && !has_feature('api_webhook')
     && !has_feature('api_webhook_access')
+    && !has_feature('shopify')
 ) {
     header("Location: dashboard.php");
     exit();
@@ -65,6 +66,14 @@ $integrations = [
         'meta' => !empty($co['last_gsheet_sync']) ? 'Last sync ' . date('d M, g:i A', strtotime((string)$co['last_gsheet_sync'])) : '',
         'ts' => !empty($co['last_gsheet_sync']) ? strtotime((string)$co['last_gsheet_sync']) : 0,
         'cta_on' => 'Manage', 'cta_off' => 'Connect sheet',
+    ],
+    [
+        'key' => 'shopify', 'name' => 'Shopify', 'icon' => 'catalog', 'tone' => 'green',
+        'desc' => 'WhatsApp order confirmations, COD checks, shipping updates and abandoned-checkout reminders from your Shopify store.',
+        'allowed' => has_feature('shopify'), 'href' => 'shopify_connect.php',
+        'connected' => $hasRow("SELECT id FROM shopify_stores WHERE company_id=? AND status='active' LIMIT 1"),
+        'meta' => '', 'ts' => 0,
+        'cta_on' => 'Manage', 'cta_off' => 'Connect store',
     ],
     [
         'key' => 'zapier', 'name' => 'Zapier Webhooks', 'icon' => 'zapier', 'tone' => 'purple',

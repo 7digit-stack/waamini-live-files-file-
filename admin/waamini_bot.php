@@ -7,6 +7,10 @@ require_once '../includes/waamini_bot/bootstrap.php';
 $pageTitle = 'WAAMINI Bot Settings';
 $currentPage = 'waamini_bot';
 
+// Every save on this page is "UPDATE ai_platform_settings ... WHERE id = 1". On a fresh database that row
+// may not exist yet, and the updates would silently change nothing ("saved" but no key/model stored).
+$conn->query("INSERT IGNORE INTO ai_platform_settings (id) VALUES (1)");
+
 $flash = $_SESSION['wb_flash'] ?? null;
 unset($_SESSION['wb_flash']);
 $setFlash = static function (bool $ok, string $msg): void { $_SESSION['wb_flash'] = [$ok, $msg]; };

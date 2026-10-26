@@ -239,6 +239,59 @@ function flow_clean_graph(array $graph): array
 }
 
 /**
+ * Fetches a media link the way WhatsApp will and says what is wrong with it, or null when it is fine.
+ * WhatsApp accepts the send first and only fails later when it downloads the file, so a web page link
+ * (e.g. an iStock/Pixabay/Google Images page) shows up as a silent red "!" in the chat.
+ * Returns ['level' => 'error'|'warning', 'message' => ...]. Unreachable from this server = warning only.
+ */
+function flow_media_url_problem(string $kind, string $url): ?array
+{
+    static $memo = [];
+    $url = trim($url);
+    $key = $kind . '|' . $url;
+    if (array_key_exists($key, $memo)) return $memo[$key];
+
+    $cacheKey = 'flow_media_check:' . sha1($key);
+    if (function_exists('wa_cache_get')) {
+        $hit = wa_cache_get($cacheKey, 3600);
+        if (is_array($hit)) return $memo[$key] = ($hit['p'] ?? null);
+    }
+
+    $allowed = [
+        'image' => ['image/jpeg', 'image/png'],
+        'video' => ['video/mp4', 'video/3gpp'],
+    ];
+    $problem = null;
+    $status = 0; $type = '';
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_NOBODY => false, CURLOPT_RANGE => '0-1023', CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true, CURLOPT_MAXREDIRS => 5, CURLOPT_CONNECTTIMEOUT => 4, CURLOPT_TIMEOUT => 6,
+            CURLOPT_USERAGENT => 'WhatsApp/2.0', CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        ]);
+        curl_exec($ch);
+        $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $type = strtolower(trim(explode(';', (string)curl_getinfo($ch, CURLINFO_CONTENT_TYPE))[0]));
+        curl_close($ch);
+    }
+
+    if ($status === 0) {
+        $problem = ['level' => 'warning', 'message' => "Could not open the $kind link to check it. Make sure it is a public link to the file itself."];
+    } elseif ($status >= 400) {
+        $problem = ['level' => 'error', 'message' => "The $kind link does not open (HTTP $status). Use a public link to the file itself."];
+    } elseif ($type === 'text/html' || $type === 'application/xhtml+xml') {
+        $problem = ['level' => 'error', 'message' => "The $kind link is a web page, not a file, so WhatsApp cannot send it. Open the picture, right-click it and choose \"Copy image address\", or upload the file and use that link."];
+    } elseif (isset($allowed[$kind]) && $type !== '' && !in_array($type, $allowed[$kind], true)) {
+        $problem = ['level' => 'error', 'message' => 'WhatsApp only sends ' . ($kind === 'image' ? 'JPG or PNG images' : 'MP4 or 3GP videos') . " but this link is \"$type\". Convert the file and use the new link."];
+    }
+
+    // Only remember definite answers; a network hiccup is re-checked next time.
+    if ($status !== 0 && function_exists('wa_cache_set')) wa_cache_set($cacheKey, ['p' => $problem], 3600);
+    return $memo[$key] = $problem;
+}
+
+/**
  * Publish-time checks. Returns a list of problems; level "error" blocks publishing, "warning" does not.
  *
  * @return array<int,array{node_id:?string,level:string,message:string}>
@@ -282,7 +335,11 @@ function flow_validate(array $nodes, array $edges): array
         if ($type === 'send') {
             $kind = $c['kind'] ?? 'text';
             if (in_array($kind, ['text', 'buttons', 'list'], true) && trim((string)($c['text'] ?? '')) === '') $add($id, 'The message is empty.');
-            if (in_array($kind, ['image', 'video', 'document'], true) && !preg_match('~^https?://~i', (string)($c['media_url'] ?? ''))) $add($id, "Add a public https link for the $kind.");
+            if (in_array($kind, ['image', 'video', 'document'], true)) {
+                $mu = (string)($c['media_url'] ?? '');
+                if (!preg_match('~^https?://~i', $mu)) $add($id, "Add a public https link for the $kind.");
+                elseif (strpos($mu, '{{') === false && ($mp = flow_media_url_problem($kind, $mu))) $add($id, $mp['message'], $mp['level']);
+            }
             if ($kind === 'buttons') {
                 $b = (array)($c['buttons'] ?? []);
                 if (count($b) < 1) $add($id, 'Add at least one reply button.');

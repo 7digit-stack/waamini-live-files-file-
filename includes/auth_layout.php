@@ -71,13 +71,16 @@ function auth_open(string $title, array $nav = []): void
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap">
-<link rel="stylesheet" href="<?php echo auth_e($base); ?>assets/css/auth-split.css?v=1">
+<link rel="stylesheet" href="<?php echo auth_e($base); ?>assets/css/auth-split.css?v=2">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
 </head>
 <body>
 <div class="auth">
   <div class="auth__panel">
     <header class="auth__top">
-      <a class="brand" href="<?php echo auth_e($base); ?>index.php"><span class="brand__dot"></span><span class="brand__name">WAAMINI</span></a>
+      <a class="brand" href="<?php echo auth_e($base); ?>index.php" aria-label="Waamini home"><img class="brand__logo" src="<?php echo auth_e($base); ?>assets/img/waamini-logo.png" alt="Waamini" width="164" height="32"></a>
       <nav class="auth__nav" aria-label="Main">
         <?php foreach ($nav as $n): ?><a href="<?php echo auth_e($n[1]); ?>"><?php echo auth_e($n[0]); ?></a><?php endforeach; ?>
       </nav>
@@ -117,7 +120,7 @@ function auth_close(string $extraScript = ''): void
         <path d="M150 704h120M330 716h90M470 700h130M90 760h70M240 772h150M450 764h110M60 824h110M230 838h80M380 826h160M120 874h140M330 882h100M500 870h110" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity=".28"/>
       </g>
     </svg>
-    <svg class="auth__mark" width="64" height="44" viewBox="0 0 64 44" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6l12 32 15-26 15 26 12-32"/></svg>
+    <img class="auth__mark" src="<?php echo auth_e($base); ?>assets/img/waamini-icon.png" alt="" width="72" height="72">
   </div>
 </div>
 <script nonce="<?php echo $nonce; ?>">

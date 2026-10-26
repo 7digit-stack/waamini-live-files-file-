@@ -29,6 +29,7 @@ $error = '';
 // Per-company add-ons (Ads & Attribution). Stored in companies.features_override, which
 // includes/feature_check.php already applies on top of the plan: missing key = follow the plan.
 $addonFlags = [
+    'feat_shopify'         => ['Shopify', 'Connect a Shopify store: WhatsApp order, COD, shipping and abandoned-checkout messages (Integrations → Shopify).'],
     'feat_ads_attribution' => ['Ad Lead Attribution', 'Which Click-to-WhatsApp ad brought each lead (Ad Leads page, lead source in chat).'],
     'feat_ads_capi'        => ['Conversions API', 'Send sales and qualified leads back to Meta (Conversion Events page).'],
     'feat_ads_insights'    => ['Ad Spend Insights', 'Spend, cost per lead and cost per sale from the ad account. Next release.'],

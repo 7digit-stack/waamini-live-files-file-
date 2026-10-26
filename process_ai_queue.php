@@ -8,6 +8,8 @@
  */
 
 require_once __DIR__ . '/config/bootstrap.php';
+require_once __DIR__ . '/includes/cron_guard.php';
+waamini_cron_guard(); // cron (CLI) or ?key=CRON_SECRET_KEY only: this worker sends WhatsApp replies
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/waamini_ai_agent.php';
 require_once __DIR__ . '/includes/ai_crm_sync.php';
@@ -33,13 +35,16 @@ $apiKey = $_ENV['OPENAI_API_KEY'] ?? getenv('OPENAI_API_KEY') ?: '';
 $waToken = $_ENV['WHATSAPP_ACCESS_TOKEN'] ?? getenv('WHATSAPP_ACCESS_TOKEN') ?: '';
 $waPhoneId = $_ENV['WHATSAPP_PHONE_NUMBER_ID'] ?? getenv('WHATSAPP_PHONE_NUMBER_ID') ?: '';
 
+// Missing AI/WhatsApp keys only skip the AI reply queue below; the chained workers at the end
+// (Flow Builder, drip, demo reminders, watchdog) must still run on every tick.
+$aiReady = true;
 if ($apiKey === '') {
-    qlog('❌ OPENAI_API_KEY not set in .env');
-    exit(1);
+    qlog('⚠️ OPENAI_API_KEY not set in .env - AI reply queue skipped');
+    $aiReady = false;
 }
 if ($waToken === '' || $waPhoneId === '') {
-    qlog('❌ WhatsApp credentials not set in .env');
-    exit(1);
+    qlog('⚠️ WhatsApp credentials not set in .env - AI reply queue skipped');
+    $aiReady = false;
 }
 
 /**
@@ -78,7 +83,7 @@ function sendWhatsAppText(string $phoneId, string $token, string $to, string $bo
 
 qlog('🚀 AI Queue Worker started ' . date('Y-m-d H:i:s'));
 
-try {
+if ($aiReady) try {
     // Process max 5 messages per run
     $stmt = $conn->prepare(
         "SELECT id, company_id, customer_phone, message_text, wamid
@@ -273,17 +278,18 @@ try {
     qlog("🏁 Done: {$ok} replied, {$fail} failed");
 
 } catch (Throwable $e) {
-    qlog('❌ FATAL: ' . $e->getMessage());
-    exit(1);
+    qlog('❌ FATAL: ' . $e->getMessage()); // still run the chained workers below
 }
 
 // Chained workers: demo reminders + drip queue delivery + demo rescheduler + pulse watchdog.
 // Each is include-safe (top-level `return`, own lock) so one failing never blocks the next.
 // cron_pulse_watchdog.php must stay LAST: it may define WAAMINI_QUEUE_WORKER.
 try { flock($lockFile, LOCK_UN); } catch (Throwable $e) {}
+// This run already passed waamini_cron_guard(), so the chained scripts may run even when started by URL.
+if (!defined('WAAMINI_TRUSTED_INTERNAL_RUN')) define('WAAMINI_TRUSTED_INTERNAL_RUN', true);
 // cron_flow_tick.php = Flow Builder delays / "no reply" follow-ups + the account's 1-hour chat auto follow-up. It runs FIRST,
 // before cron_meetup_notifier.php changes the MySQL session time zone.
-foreach (['cron_flow_tick.php', 'cron_meetup_notifier.php', 'send_drip_queue.php', 'cron_demo_rescheduler.php', 'cron_pulse_watchdog.php'] as $w) {
+foreach (['cron_flow_tick.php', 'cron_shopify.php', 'cron_meetup_notifier.php', 'send_drip_queue.php', 'cron_demo_rescheduler.php', 'cron_pulse_watchdog.php'] as $w) {
     try {
         require __DIR__ . '/' . $w;
     } catch (Throwable $e) {

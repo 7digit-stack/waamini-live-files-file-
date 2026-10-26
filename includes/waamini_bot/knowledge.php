@@ -700,7 +700,12 @@ class WB_Knowledge
             ['role' => 'system', 'content' => $sys],
             ['role' => 'user', 'content' => "Website text:\n" . mb_substr($text, 0, 14000)],
         ], null, ['json' => true, 'timeout' => 60, 'max_tokens' => 1500]);
-        if (!$res['ok']) { return [false, 'The AI service could not draft the details right now. You can fill them in by hand.', []]; }
+        if (!$res['ok']) {
+            // Show the provider's reason (keys are already masked by WB_OpenAI) so the admin can act on it.
+            $why = trim((string)($res['error'] ?? ''));
+            error_log('[WAAMINI Bot] draftProfile failed: ' . mb_substr($why, 0, 300));
+            return [false, 'The AI service could not draft the details right now' . ($why !== '' ? ' (' . mb_substr($why, 0, 200) . ')' : '') . '. You can fill them in by hand.', []];
+        }
         $j = self::extractJson((string)($res['data']['choices'][0]['message']['content'] ?? ''));
         if (!is_array($j)) { return [false, 'The AI service returned an unreadable answer. You can fill the details in by hand.', []]; }
         $out = [];

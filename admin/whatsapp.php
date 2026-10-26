@@ -188,6 +188,17 @@ button{font-family:inherit}
 .wa-qr{position:relative;flex:none}
 .wa-pop{position:absolute;left:14px;bottom:8px;z-index:20;min-width:260px;max-height:300px;overflow:auto;background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(11,20,26,.25);padding:6px;display:none}
 .wa-pop.is-open{display:block}
+.wa-emo{width:min(340px,calc(100vw - 28px));min-width:0}
+.wa-emo__g{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;padding:2px 4px 6px}
+.wa-pop .wa-emo__g button{width:auto;padding:6px 0;text-align:center;font-size:22px;line-height:1;border-radius:8px}
+.wa-att{min-width:210px}
+.wa-pop.wa-att button{display:flex;align-items:center;gap:12px;font-size:15px}
+.wa-att i{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;flex:none}
+.wa-file{display:flex;align-items:center;gap:10px;margin:0 16px;padding:8px 12px;border-radius:10px 10px 0 0;background:#e7f8ee;color:#0b6b5e;font-size:13.5px;font-weight:600}
+.wa-file[hidden]{display:none}
+.wa-file span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wa-file button{border:0;background:transparent;font-size:20px;line-height:1;color:#0b6b5e;cursor:pointer}
+.wa-bbl video{display:block;max-width:260px;border-radius:6px;margin-bottom:4px}
 .wa-pop__t{padding:8px 12px 6px;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#667781}
 .wa-pop button{display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-radius:8px;background:transparent;cursor:pointer;font-size:15.5px;color:#111b21}
 .wa-pop button:hover{background:#f0f2f5}
@@ -333,10 +344,12 @@ button{font-family:inherit}
             $__at = (string)($msg['type'] ?? 'text');
             $__am = (string)($msg['media_url'] ?? '');
             if ($__at === 'image' && $__am !== ''):
-                $__isrc = (strpos($__am, 'http') === 0 || strpos($__am, 'uploads/') === 0)
+                $__isrc = (strpos($__am, 'http') === 0 || strpos($__am, 'uploads/') === 0 || strpos($__am, '/uploads/') === 0)
                     ? $h($__am)
                     : '../client/ajax_media_proxy.php?id=' . urlencode($__am); ?>
               <img src="<?php echo $__isrc; ?>" alt="">
+            <?php elseif ($__at === 'video' && $__am !== ''): ?>
+              <video src="<?php echo $h($__am); ?>" controls preload="metadata"></video>
             <?php elseif (($__at === 'audio' || $__at === 'voice') && $__am !== ''): ?>
               <div style="padding:2px 0 6px;min-width:210px"><audio controls preload="none" src="../client/ajax_media_proxy.php?id=<?php echo urlencode($__am); ?>" style="display:block;width:230px;height:36px"></audio></div>
             <?php elseif ($__at === 'document' && $__am !== ''): ?>
@@ -353,6 +366,15 @@ button{font-family:inherit}
     </div>
 
     <div class="wa-qr">
+      <div class="wa-pop wa-emo" id="waEmojiPop" role="dialog" aria-label="Emoji">
+        <div class="wa-pop__t">Emoji</div>
+        <div class="wa-emo__g"><?php foreach (['😀','😁','😂','🤣','😊','😍','😘','😎','🤔','😅','😉','🙂','🙏','👍','👎','👌','👏','🙌','💪','🤝','❤️','💚','💙','🔥','✨','🎉','🎁','✅','❌','⭐','📞','📍','📦','🛒','💰','🕒','📅','📄','👋','😢','😮','😡','🥳','🤩','😇','🙋','💯','➡️'] as $__e): ?><button type="button" data-emoji="<?php echo $__e; ?>"><?php echo $__e; ?></button><?php endforeach; ?></div>
+      </div>
+      <div class="wa-pop wa-att" id="waAttachPop" role="menu">
+        <button type="button" data-pick="image/jpeg,image/png,image/webp,video/mp4,video/3gpp"><i style="background:#007bfc"><?php echo $ic($I['img'] ?? '<rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>', 18); ?></i>Photo or video</button>
+        <button type="button" data-pick=".pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.txt,.zip"><i style="background:#7f66ff"><?php echo $ic('<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>', 18); ?></i>Document</button>
+        <button type="button" data-pick="audio/mpeg,audio/ogg,audio/mp4,audio/aac,.m4a,.amr"><i style="background:#ff8a00"><?php echo $ic('<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>', 18); ?></i>Audio</button>
+      </div>
       <div class="wa-pop" id="waPop" role="menu">
         <div class="wa-pop__t">Quick replies</div>
         <?php foreach ($quick as [$label, $text]): ?>
@@ -361,9 +383,11 @@ button{font-family:inherit}
       </div>
     </div>
 
+    <div class="wa-file" id="waFileChip" hidden><span id="waFileName"></span><button type="button" id="waFileClear" aria-label="Remove file">&times;</button></div>
+    <input type="file" id="waFileInput" hidden>
     <div class="wa-inp">
-      <button type="button" class="wa-ib" title="Emoji"><?php echo $ic($I['smile'], 24); ?></button>
-      <button type="button" class="wa-ib" title="Attach"><?php echo $ic($I['clip'], 22); ?></button>
+      <button type="button" class="wa-ib" id="waEmojiBtn" title="Emoji" aria-haspopup="true"><?php echo $ic($I['smile'], 24); ?></button>
+      <button type="button" class="wa-ib" id="waAttachBtn" title="Attach" aria-haspopup="true"><?php echo $ic($I['clip'], 22); ?></button>
       <button type="button" class="wa-inp__q" id="waQuickBtn" aria-haspopup="true"><?php echo $ic($I['bolt'], 15); ?><span>Quick reply</span></button>
       <input type="text" id="msgInput" class="wa-inp__t" placeholder="Type a message" autocomplete="off">
       <button type="button" class="wa-snd" id="chatSendBtn" title="Send"><?php echo $ic($I['send'], 20); ?></button>
@@ -425,7 +449,82 @@ function appendMsg(text, dir) {
     return tk;
 }
 
+// ── Emoji panel + paperclip (attach) menu ──────────────────────────────
+var waFile = null;
+function waPops() { return document.querySelectorAll('#waEmojiPop, #waAttachPop, #waPop'); }
+function waToggle(id) { waPops().forEach(function (p) { p.classList.toggle('is-open', p.id === id && !p.classList.contains('is-open')); }); }
+(function () {
+    var eb = document.getElementById('waEmojiBtn'), ab = document.getElementById('waAttachBtn');
+    var fi = document.getElementById('waFileInput'), inp = document.getElementById('msgInput');
+    if (eb) eb.addEventListener('click', function (e) { e.stopPropagation(); waToggle('waEmojiPop'); });
+    if (ab) ab.addEventListener('click', function (e) { e.stopPropagation(); waToggle('waAttachPop'); });
+    document.addEventListener('click', function (e) {
+        var em = e.target.closest('#waEmojiPop [data-emoji]');
+        if (em && inp) {
+            var t = em.getAttribute('data-emoji'), s = inp.selectionStart != null ? inp.selectionStart : inp.value.length, en = inp.selectionEnd != null ? inp.selectionEnd : s;
+            inp.value = inp.value.slice(0, s) + t + inp.value.slice(en);
+            inp.focus(); inp.selectionStart = inp.selectionEnd = s + t.length;
+            return;                                           // keep the panel open to add more
+        }
+        var pk = e.target.closest('#waAttachPop [data-pick]');
+        if (pk && fi) { waToggle(''); fi.accept = pk.getAttribute('data-pick'); fi.value = ''; fi.click(); return; }
+        if (!e.target.closest('#waEmojiPop, #waAttachPop')) document.querySelectorAll('#waEmojiPop, #waAttachPop').forEach(function (p) { p.classList.remove('is-open'); });
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') waToggle(''); });
+    if (fi) fi.addEventListener('change', function () { waSetFile(fi.files && fi.files[0] ? fi.files[0] : null); });
+    var clr = document.getElementById('waFileClear');
+    if (clr) clr.addEventListener('click', function () { waSetFile(null); });
+})();
+function waSetFile(f) {
+    waFile = f;
+    var chip = document.getElementById('waFileChip'), inp = document.getElementById('msgInput');
+    if (!chip) return;
+    chip.hidden = !f;
+    document.getElementById('waFileName').textContent = f ? '📎 ' + f.name + ' (' + Math.max(1, Math.round(f.size / 1024)) + ' KB)' : '';
+    if (inp) { inp.placeholder = f ? 'Add a caption (optional)' : 'Type a message'; inp.focus(); }
+    if (!f) { var fi = document.getElementById('waFileInput'); if (fi) fi.value = ''; }
+}
+function appendMedia(type, url, caption, name) {
+    var c = document.getElementById('chatMessages');
+    if (!c) return null;
+    var outer = document.createElement('div'); outer.className = 'wa-msg wa-msg-o';
+    var bbl = document.createElement('div'); bbl.className = 'wa-bbl';
+    var m;
+    if (type === 'image') { m = document.createElement('img'); m.src = url; m.alt = ''; }
+    else if (type === 'video') { m = document.createElement('video'); m.src = url; m.controls = true; m.preload = 'metadata'; }
+    else if (type === 'audio') { m = document.createElement('audio'); m.src = url; m.controls = true; m.style.width = '230px'; }
+    else { m = document.createElement('a'); m.href = url; m.target = '_blank'; m.rel = 'noopener'; m.textContent = '📄 ' + (name || 'Document'); m.style.cssText = 'display:block;padding:2px 0 6px;color:#027eb5;text-decoration:none;font-weight:500'; }
+    bbl.appendChild(m);
+    var txt = document.createElement('span'); txt.className = 'wa-txt'; txt.textContent = caption || ''; bbl.appendChild(txt);
+    var meta = document.createElement('span'); meta.className = 'wa-meta';
+    var ts = document.createElement('span'); ts.textContent = new Date().toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit', hour12: true}); meta.appendChild(ts);
+    var tk = document.createElement('span'); tk.className = 'wa-ticks'; tk.innerHTML = TICK_SENT; meta.appendChild(tk);
+    bbl.appendChild(meta); outer.appendChild(bbl); c.appendChild(outer); scrollBottom();
+    return tk;
+}
+function sendFile() {
+    var inp = document.getElementById('msgInput'), f = waFile, cap = inp ? inp.value.trim() : '';
+    if (!f || !contactId) return;
+    var fd = new FormData();
+    fd.append('action', 'send_media'); fd.append('contact_id', String(contactId)); fd.append('caption', cap); fd.append('_token', csrfToken); fd.append('file', f);
+    var sb = document.getElementById('chatSendBtn'); if (sb) sb.disabled = true;
+    var preview = URL.createObjectURL(f), kind = /^image\//.test(f.type) ? 'image' : (/^video\//.test(f.type) ? 'video' : (/^audio\//.test(f.type) ? 'audio' : 'document'));
+    var tk = appendMedia(kind, preview, cap, f.name);
+    if (inp) inp.value = ''; waSetFile(null);
+    fetch('/admin/chat_api.php', { method: 'POST', headers: {'X-CSRF-Token': csrfToken}, body: fd, credentials: 'same-origin' })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+        if (d.message_id && d.message_id > lastMsgId) lastMsgId = d.message_id;   // the poller must not add it twice
+        if (!d.success) { tk.innerHTML = TICK_FAIL; alert(d.error || 'Could not send the file.'); }
+        else if (d.wa_sent === true) { tk.innerHTML = TICK_DONE; }
+        else { tk.innerHTML = TICK_FAIL; tk.title = d.wa_error || 'Not delivered'; }
+    })
+    .catch(function () { tk.innerHTML = TICK_FAIL; })
+    .then(function () { if (sb) sb.disabled = false; });
+}
+
 function sendMessage(preset) {
+    if (waFile && typeof preset !== 'string') { sendFile(); return; }
     var inp = document.getElementById('msgInput');
     var txt = (typeof preset === 'string' ? preset : inp.value).trim();
     if (!txt || !contactId) return;
@@ -438,6 +537,7 @@ function sendMessage(preset) {
     })
     .then(function (r) { return r.json(); })
     .then(function (data) {
+        if (data.message_id && data.message_id > lastMsgId) lastMsgId = data.message_id;   // the poller must not add it twice
         if (!tk) return;
         if (!data.success) { tk.innerHTML = TICK_FAIL; }
         else if (data.wa_sent === true) { tk.innerHTML = TICK_DONE; }
@@ -453,7 +553,11 @@ if (contactId > 0) {
         .then(function (data) {
             if (data.messages && data.messages.length) {
                 data.messages.forEach(function (m) {
-                    if (m.id > lastMsgId) { appendMsg(m.message_text, m.direction); lastMsgId = m.id; }
+                    if (m.id > lastMsgId) {
+                        if (m.media_url && /^(image|video|audio|document)$/.test(m.type || '') && m.direction === 'outgoing') appendMedia(m.type, m.media_url, m.message_text);
+                        else appendMsg(m.message_text || (m.type && m.type !== 'text' ? '[' + m.type + ']' : ''), m.direction);
+                        lastMsgId = m.id;
+                    }
                 });
             }
         }).catch(function () {});

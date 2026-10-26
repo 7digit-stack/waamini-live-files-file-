@@ -1,0 +1,151 @@
+/* Card artwork for the WhatsApp CRM page's hub (extends wm-hub.css; classes start with "wmc-").
+   Animations are bound to the active card, so each card plays from the start whenever it is shown. */
+.wmc{--wmc-b:#2E7DD7;--wmc-b-bg:#E6F0FB;--wmc-c:#B45309;--wmc-c-bg:#FFF1DC;--wmc-red:#D92D20;--wmc-red-bg:#FEE4E2;--wmc-red-line:#FDA29B}
+.wmc-av{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--wmh-g100);color:var(--wmh-accent);font-size:12.5px;font-weight:800}
+.wmc-av--b{background:var(--wmc-b-bg);color:var(--wmc-b)}
+.wmc-av--c{background:var(--wmc-c-bg);color:var(--wmc-c)}
+@keyframes wmcIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes wmcPop{0%{opacity:0;transform:scale(.6)}70%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+
+/* 0 team inbox */
+.wmc-inbox{display:grid;gap:6px;margin-bottom:12px}
+.wmc-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1.5px solid var(--wmh-line);border-radius:11px;background:var(--wmh-bg);min-width:0}
+.wmc-row__txt{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.3}
+.wmc-row__txt b{font-size:13px;font-weight:700;color:var(--wmh-ink)}
+.wmc-row__txt em{font-style:normal;font-size:12px;color:var(--wmh-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wmc-agent{flex:none;padding:3px 8px;border-radius:99px;background:var(--wmh-g50);border:1px solid var(--wmh-g200);font-size:11px;font-weight:700;color:var(--wmh-accent)}
+.wmc-unread{flex:none;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--wmh-bright);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center}
+.wmc-typing{display:inline-flex!important;align-items:center;gap:3px;color:var(--wmh-accent)!important;font-weight:600}
+.wmc-typing i{width:5px;height:5px;border-radius:50%;background:var(--wmh-bright);animation:wmhDot 1.2s ease-in-out infinite}
+.wmc-typing i:nth-child(2){animation-delay:.15s}.wmc-typing i:nth-child(3){animation-delay:.3s;margin-right:4px}
+.wmh-card.is-active .wmc-row{animation:wmcIn .5s ease both,wmcRowHi 6s ease-in-out infinite;animation-delay:calc(var(--n)*.12s),calc(var(--n)*2s + .7s)}
+@keyframes wmcRowHi{0%,30%,100%{border-color:var(--wmh-line);background:var(--wmh-bg);box-shadow:none}6%,24%{border-color:var(--wmh-g300);background:var(--wmh-g50);box-shadow:0 8px 18px -14px rgba(18,140,126,.6)}}
+.wmh-card.is-active .wmc-unread{animation:wmcPop .45s ease both;animation-delay:calc(var(--n,0)*.12s + .45s)}
+.wmc-status{display:flex;gap:6px;--step:2s;--loop:6s}
+.wmc-status .wmh-pill{flex:1;justify-content:center}
+.wmc-dot{width:8px;height:8px;border-radius:50%;flex:none}
+.wmc-dot--open{background:var(--wmh-bright)}.wmc-dot--pend{background:#F59E0B}.wmc-dot--done{background:var(--wmc-b)}
+
+/* 1 agent assignment */
+.wmc-assign{display:flex;align-items:center;gap:10px;margin:8px 0 12px}
+.wmc-chat{flex:none;display:flex;flex-direction:column;gap:1px;padding:8px 11px;border-radius:11px 11px 11px 3px;background:var(--wmh-g100);line-height:1.3}
+.wmc-chat b{font-size:12.5px;font-weight:800;color:var(--wmh-ink)}
+.wmc-chat em{font-style:normal;font-size:11.5px;color:var(--wmh-text)}
+.wmc-team{flex:none;display:flex;gap:8px}
+.wmc-mate{display:grid;justify-items:center;gap:4px}
+.wmc-mate em{font-style:normal;font-size:11px;font-weight:700;color:var(--wmh-text)}
+.wmc-face{position:relative;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--wmh-g50);border:1.5px solid var(--wmh-g300);color:var(--wmh-accent);font-size:14px;font-weight:800}
+.wmh-card.is-active .wmc-mate{animation:wmcIn .45s ease both;animation-delay:calc(var(--n)*.12s)}
+.wmh-card.is-active .wmc-face{animation:wmcPick 4.5s ease-in-out infinite;animation-delay:calc(var(--n)*1.5s + .6s)}
+.wmc-face::after{content:"Assigned";position:absolute;top:-17px;left:50%;transform:translateX(-50%) scale(.8);padding:2px 6px;border-radius:99px;background:var(--wmh-accent);color:#fff;font-size:9px;font-weight:800;white-space:nowrap;opacity:0}
+.wmh-card.is-active .wmc-face::after{animation:wmcTag 4.5s ease-in-out infinite;animation-delay:inherit}
+@keyframes wmcPick{0%,34%,100%{background:var(--wmh-g50);border-color:var(--wmh-g300);color:var(--wmh-accent)}6%,28%{background:var(--wmh-accent);border-color:var(--wmh-accent);color:#fff}}
+@keyframes wmcTag{0%,34%,100%{opacity:0;transform:translateX(-50%) scale(.8)}8%,28%{opacity:1;transform:translateX(-50%) scale(1)}}
+.wmc-assign .wmh-flow{min-width:24px}
+.wmc-access{display:flex;gap:6px;--step:1.5s;--loop:4.5s;margin-bottom:8px}
+.wmc-access .wmh-pill{flex:1;justify-content:center}
+.wmc-rules{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.wmc-rule{display:flex;align-items:center;gap:6px;min-width:0;padding:7px 9px;border:1.5px dashed var(--wmh-g300);border-radius:9px;background:var(--wmh-g50);font-size:11.5px;font-weight:600;color:var(--wmh-text);white-space:nowrap}
+.wmc-rule .wmh-ico{color:var(--wmh-accent)}
+.wmc-rule b{margin-left:auto;font-weight:800;color:var(--wmh-ink);overflow:hidden;text-overflow:ellipsis}
+.wmh-card.is-active .wmc-rule{animation:wmcIn .45s ease both;animation-delay:calc(1s + var(--k,0)*.15s)}
+.wmc-rule:nth-child(2){--k:1}
+
+/* 2 labels & outcomes */
+.wmc-contact{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--wmh-g200);border-radius:12px;background:var(--wmh-g50);margin-bottom:10px}
+.wmc-contact__txt{display:flex;flex-direction:column;line-height:1.3;min-width:0}
+.wmc-contact__txt b{font-size:13.5px;font-weight:700;color:var(--wmh-ink)}
+.wmc-contact__txt em{font-style:normal;font-size:11.5px;color:var(--wmh-text)}
+.wmc-labels{display:flex;flex-wrap:wrap;gap:6px;flex-basis:100%}
+.wmc-label{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;background:var(--wmh-bg);border:1.5px solid var(--wmh-g300);color:var(--wmh-accent);font-size:11.5px;font-weight:700}
+.wmc-label::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.wmc-label--hot{border-color:var(--wmc-red-line);color:var(--wmc-red);background:var(--wmc-red-bg)}
+.wmc-label--vip{border-color:#F7C97C;color:var(--wmc-c);background:var(--wmc-c-bg)}
+.wmh-card.is-active .wmc-label{animation:wmcLabel 7s ease infinite both;animation-delay:calc(var(--n)*.5s)}
+@keyframes wmcLabel{0%{opacity:0;transform:scale(.6)}6%{opacity:1;transform:scale(1.08)}9%,88%{opacity:1;transform:scale(1)}94%,100%{opacity:0;transform:scale(1)}}
+.wmc-outcome{display:flex;align-items:center;gap:6px}
+.wmc-out{flex:none;display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border-radius:8px;border:1.5px solid var(--wmh-line);background:var(--wmh-bg);font-size:12px;font-weight:700;color:var(--wmh-text)}
+.wmh-card.is-active .wmc-out--won{animation:wmcWon 7s ease infinite both}
+@keyframes wmcWon{0%,28%{background:var(--wmh-bg);border-color:var(--wmh-line);color:var(--wmh-text);transform:scale(1)}32%{transform:scale(1.08)}36%,88%{background:var(--wmh-accent);border-color:var(--wmh-accent);color:#fff;transform:scale(1)}94%,100%{background:var(--wmh-bg);border-color:var(--wmh-line);color:var(--wmh-text)}}
+.wmc-pipe{flex:1;min-width:60px;display:flex;gap:3px;height:8px}
+.wmc-pipe i{width:var(--w);border-radius:4px;background:var(--wmh-bright);transform-origin:left center}
+.wmc-pipe i:nth-child(2){background:#F59E0B}.wmc-pipe i:nth-child(3){background:var(--wmc-red-line)}
+.wmh-card.is-active .wmc-pipe i{animation:wmcGrow .8s cubic-bezier(.22,.9,.3,1) both;animation-delay:calc(2.2s + var(--k,0)*.15s)}
+.wmc-pipe i:nth-child(2){--k:1}.wmc-pipe i:nth-child(3){--k:2}
+@keyframes wmcGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.wmc-legend{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px 14px;margin-top:9px;font-size:11.5px;font-weight:600;color:var(--wmh-text)}
+.wmc-legend span{display:inline-flex;align-items:center;gap:5px}
+.wmc-sw{width:9px;height:9px;border-radius:3px}
+.wmc-sw--won{background:var(--wmh-bright)}.wmc-sw--fup{background:#F59E0B}.wmc-sw--lost{background:var(--wmc-red-line)}
+.wmh-card.is-active .wmc-legend{animation:wmcIn .45s ease both;animation-delay:2.8s}
+
+/* 3 notes & reminders */
+.wmc-note{display:grid;gap:6px;padding:11px 13px;border-radius:12px;background:#FFF8E1;border:1.5px solid #F4DFA0;margin-bottom:10px}
+.wmc-note__head{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:#8A6100}
+.wmc-note__head em{margin-left:auto;font-style:normal;font-size:10.5px;font-weight:600;color:#A88A3A}
+.wmc-note__line{display:block;font-size:13px;line-height:1.45;color:var(--wmh-ink);white-space:nowrap;overflow:hidden;clip-path:inset(0 100% 0 0)}
+.wmh-card.is-active .wmc-note__line{animation:wmcType 7s steps(36,end) infinite both;animation-delay:calc(var(--n)*1.1s + .3s)}
+@keyframes wmcType{0%{clip-path:inset(0 100% 0 0)}14%,90%{clip-path:inset(0 0 0 0)}96%,100%{clip-path:inset(0 100% 0 0)}}
+.wmc-remind{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1.5px solid var(--wmh-g200);border-radius:12px;background:var(--wmh-bg)}
+.wmh-card.is-active .wmc-remind{animation:wmcIn .5s ease both;animation-delay:2.4s}
+.wmc-bell{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--wmh-accent);color:#fff;transform-origin:50% 10%}
+.wmc-bell svg{width:18px;height:18px}
+.wmh-card.is-active .wmc-bell{animation:wmcRing 2.6s ease-in-out infinite;animation-delay:3s}
+@keyframes wmcRing{0%,40%,100%{transform:rotate(0)}5%{transform:rotate(14deg)}10%{transform:rotate(-12deg)}15%{transform:rotate(9deg)}20%{transform:rotate(-6deg)}25%{transform:rotate(3deg)}}
+.wmc-remind__txt{display:flex;flex-direction:column;line-height:1.3;min-width:0;flex:1}
+.wmc-remind__txt b{font-size:13px;font-weight:700;color:var(--wmh-ink)}
+.wmc-remind__txt em{font-style:normal;font-size:11.5px;color:var(--wmh-text)}
+.wmc-set{flex:none;display:inline-flex;align-items:center;gap:4px;padding:5px 9px;border-radius:99px;background:var(--wmh-g100);color:var(--wmh-accent);font-size:11.5px;font-weight:800}
+.wmh-card.is-active .wmc-set{animation:wmcPop .45s ease both;animation-delay:2.9s}
+.wmc-trail{display:flex;gap:6px;margin-top:8px;--step:1.2s;--loop:3.6s}
+.wmc-trail .wmh-pill{flex:1;justify-content:center;padding:6px 4px;font-size:11.5px}
+.wmc-trail .wmh-ico{width:12px;height:12px}
+
+/* 4 AI lead scores */
+.wmc-scores{display:grid;gap:7px;margin-bottom:10px}
+.wmc-lead{position:relative;display:flex;align-items:center;gap:10px;padding:7px 10px;border:1.5px solid var(--wmh-line);border-radius:11px;background:var(--wmh-bg)}
+.wmc-lead:first-child{margin-top:8px}
+.wmc-lead b{flex:none;width:52px;font-size:13px;font-weight:700;color:var(--wmh-ink)}
+.wmc-lead strong{flex:none;width:24px;text-align:right;font-size:14px;font-weight:800;color:var(--wmh-ink);font-variant-numeric:tabular-nums}
+.wmc-bar{flex:1;min-width:40px;height:8px;border-radius:4px;background:var(--wmh-line);overflow:hidden}
+.wmc-bar i{display:block;height:100%;width:100%;border-radius:4px;background:linear-gradient(90deg,var(--wmh-g300),var(--wmh-bright));transform-origin:left center;transform:scaleX(var(--s))}
+.wmc-lead:nth-child(2) .wmc-bar i{background:linear-gradient(90deg,#FCD9A0,#F59E0B)}
+.wmc-lead:nth-child(3) .wmc-bar i{background:linear-gradient(90deg,#D6DEE2,#9AA9B0)}
+.wmh-card.is-active .wmc-lead{animation:wmcIn .45s ease both;animation-delay:calc(var(--n)*.12s)}
+.wmh-card.is-active .wmc-bar i{animation:wmcScore 1.1s cubic-bezier(.22,.9,.3,1) both;animation-delay:calc(var(--n)*.25s + .45s)}
+@keyframes wmcScore{from{transform:scaleX(0)}to{transform:scaleX(var(--s))}}
+.wmc-lead:first-child{border-color:var(--wmh-g300);background:var(--wmh-g50)}
+/* "Call first" sits on the row's top edge, so all three score bars keep the same length and line up */
+.wmc-hot{position:absolute;top:-11px;right:44px;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:99px;background:var(--wmh-accent);color:#fff;font-size:10.5px;font-weight:800;white-space:nowrap;border:2px solid var(--wmh-bg)}
+.wmc-hot .wmh-ico{width:11px;height:11px}
+.wmh-card.is-active .wmc-hot{animation:wmcPop .45s ease both,wmcGlow 2.4s ease-in-out infinite;animation-delay:1.7s,2.2s}
+@keyframes wmcGlow{0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,.45)}50%{box-shadow:0 0 0 6px rgba(37,211,102,0)}}
+.wmc-ai{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--wmh-accent)}
+.wmh-card.is-active .wmc-ai svg{animation:wmhShield 2.4s ease-in-out infinite}
+
+/* 5 import & export */
+.wmc-count{flex:none;display:flex;flex-direction:column;line-height:1.2;padding:7px 11px;border-radius:10px;background:var(--wmh-g100)}
+.wmc-count b{font-size:17px;font-weight:800;color:var(--wmh-ink);font-variant-numeric:tabular-nums}
+.wmc-count em{font-style:normal;font-size:11px;font-weight:600;color:var(--wmh-accent)}
+.wmh-card.is-active .wmc-count{animation:wmcPop .5s ease both;animation-delay:.9s}
+.wmc-groups{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.wmc-groups .wmh-tags{flex-basis:100%}
+.wmc-blocked{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:99px;background:var(--wmc-red-bg);border:1.5px solid var(--wmc-red-line);color:var(--wmc-red);font-size:11.5px;font-weight:700}
+.wmh-card.is-active .wmc-blocked{animation:wmcPop .45s ease both;animation-delay:1.6s}
+.wmc-export{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:9px;background:var(--wmh-accent);color:#fff;font-size:12.5px;font-weight:700}
+.wmh-card.is-active .wmc-export{animation:wmcPop .45s ease both,wmcGlow 2.4s ease-in-out infinite;animation-delay:2s,2.5s}
+
+@media (max-width:480px){
+  .wmc-agent{display:none}
+  .wmc-assign{flex-wrap:wrap;justify-content:center}
+  .wmc-assign .wmh-flow{flex-basis:100%;order:1;display:none}
+  .wmc-hot{right:36px}
+  .wmc-rules{grid-template-columns:1fr}
+  .wmc-lead b{width:44px}
+  .wmc-note__line{white-space:normal}
+}
+@media (prefers-reduced-motion:reduce){
+  .wmc *,.wmc *::before,.wmc *::after{animation:none!important}
+  .wmc .wmc-note__line{clip-path:none}
+  .wmc .wmc-face::after{opacity:0}
+}

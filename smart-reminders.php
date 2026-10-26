@@ -1,6 +1,7 @@
 <?php
 $fp = [
     'slug' => 'smart-reminders.php',
+    'hub' => 'reminders',
     'title' => 'Smart WhatsApp Reminders: Birthday, Fees, Medicine & More | Waamini',
     'meta_desc' => 'Automate birthday wishes, festival greetings, school fee, medicine and vehicle service reminders on WhatsApp.',
     'meta_keywords' => 'WhatsApp reminder, school fee reminder, medicine reminder, birthday wishes WhatsApp, festival greetings',

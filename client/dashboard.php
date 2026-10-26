@@ -49,6 +49,24 @@ $monthMsgs = (int)wa_cache_remember(wa_cache_scoped_key($ns, "dash:monthMsgs:ym=
     }
     return $month;
 });
+// Activity overview donut: outgoing messages of the last 30 days by latest delivery status (cached 60s)
+$actStatus = wa_cache_remember(wa_cache_scoped_key($ns, "dash:act30"), 60, function () use ($conn, $companyId) {
+    $out = ['read' => 0, 'delivered' => 0, 'sent' => 0, 'failed' => 0];
+    $st = $conn->prepare("SELECT LOWER(COALESCE(status,'')) AS s, COUNT(*) AS c FROM messages
+        WHERE company_id=? AND direction='outgoing' AND created_at >= (NOW() - INTERVAL 30 DAY) GROUP BY s");
+    if ($st) {
+        $st->bind_param('i', $companyId);
+        if ($st->execute()) {
+            foreach ($st->get_result()->fetch_all(MYSQLI_ASSOC) as $r) {
+                $k = in_array($r['s'], ['read', 'delivered', 'failed'], true) ? $r['s'] : 'sent'; // sent/accepted/pending = not yet delivered
+                $out[$k] += (int)$r['c'];
+            }
+        }
+        $st->close();
+    }
+    return $out;
+});
+$actTotal = array_sum($actStatus);
 $msgLimit      = get_limit('messages_month');
 $msgPercent    = ($msgLimit > 0) ? min(round(($monthMsgs / $msgLimit) * 100), 100) : 0;
 
@@ -773,130 +791,176 @@ $__chartTotal = (int)array_sum(array_map('intval', $chartData));
       $__ring1_pct = ($msgLimit > 0) ? min(100, (int)round(($monthMsgs / $msgLimit) * 100)) : ($monthMsgs > 0 ? 60 : 5);
       ?>
 
-      <!-- ── WAAMINI Dashboard Ring Chart ── -->
+      <!-- ── Activity overview: messages of the last 30 days by delivery status ── -->
       <style>
-      .wm-flow {
-        --wm-green:#15803D;--wm-yellow:#FACC15;--wm-navy:#1E1B4B;
-        --wm-ink:#1E1B4B;--wm-muted:#64748B;--wm-line:#E5E7EB;
-        background:#FFFFFF;padding:56px 16px;
-        font-family:Inter,"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
-        color:var(--wm-ink);
-      }
-      .wm-flow *,.wm-flow *::before,.wm-flow *::after{box-sizing:border-box}
-      .wm-flow__stage{position:relative;max-width:900px;margin:0 auto}
-      .wm-flow__svg{display:block;width:100%;height:auto;overflow:visible}
-      .wm-flow__steps{list-style:none;margin:0;padding:0}
-      .wm-step{position:absolute;left:1.78%;width:29.33%;transform:translate(var(--wm-x,0px),-50%);padding:14px 16px;border-radius:14px;background:var(--c);color:var(--t)}
-      .wm-step:nth-child(1){top:11.39%}
-      .wm-step:nth-child(2){top:30.83%}
-      .wm-step:nth-child(3){top:50.28%}
-      .wm-step__title{margin:0 0 4px;font-size:15px;font-weight:700;line-height:1.3;letter-spacing:-0.005em}
-      .wm-step__num{margin-right:6px;font-weight:600;opacity:.75;font-variant-numeric:tabular-nums}
-      .wm-step__text{margin:0;font-size:12.5px;line-height:1.45}
-      .wm-flow__title{position:absolute;left:4.5%;top:76%;max-width:36%}
-      .wm-flow__title h2{margin:0 0 6px;font-size:26px;font-weight:800;line-height:1.15;letter-spacing:-0.02em;color:var(--wm-navy)}
-      .wm-flow__title h2 span{color:var(--wm-green)}
-      .wm-flow__title p{margin:0;font-size:14px;line-height:1.45;color:var(--wm-muted)}
-      .wm-ring{fill:none;stroke-linecap:butt}
-      .wm-link{fill:none;stroke-width:1.5}
-      .wm-num{font-size:16px;font-weight:500;fill:#475569;font-variant-numeric:tabular-nums}
-      .wm-core__name{font-size:21px;font-weight:800;letter-spacing:.04em;fill:var(--wm-navy)}
-      .wm-core__sub{font-size:11.5px;font-weight:500;letter-spacing:.06em;fill:var(--wm-muted)}
-      .wm-icon{fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-      .wm-flow [data-i]{transition:opacity .25s ease,transform .25s ease}
-      .wm-ring,.wm-step{cursor:pointer}
-      .wm-core,.wm-core__disc,.wm-icon{transform-box:fill-box;transform-origin:center}
-      .wm-dots{opacity:0}
-      .wm-flow.is-ready .wm-core{opacity:0;transform:scale(.6);transition:transform .6s cubic-bezier(.34,1.56,.64,1),opacity .3s ease}
-      .wm-flow.is-ready .wm-ring{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1.2s cubic-bezier(.22,.61,.36,1),opacity .25s ease;transition-delay:calc(.35s + var(--i) * .2s)}
-      .wm-flow.is-ready .wm-num{opacity:0;transition:opacity .4s ease;transition-delay:calc(.35s + var(--i) * .2s)}
-      .wm-flow.is-ready .wm-icon{transform:scale(0);transition:transform .4s cubic-bezier(.34,1.56,.64,1);transition-delay:calc(1.45s + var(--i) * .2s)}
-      .wm-flow.is-ready .wm-link{stroke-dasharray:1;stroke-dashoffset:-1;transition:stroke-dashoffset .7s ease,opacity .25s ease;transition-delay:calc(1.6s + var(--i) * .2s)}
-      .wm-flow.is-ready .wm-step{opacity:0;--wm-x:-18px;--wm-my:14px;transition:none}
-      .wm-flow.is-ready .wm-dots{transition:opacity .4s ease 3s}
-      .wm-flow.is-in .wm-core{opacity:1;transform:scale(1)}
-      .wm-flow.is-in .wm-ring,.wm-flow.is-in .wm-link{stroke-dashoffset:0}
-      .wm-flow.is-in .wm-num{opacity:1}
-      .wm-flow.is-in .wm-icon{transform:scale(1)}
-      .wm-flow.is-in .wm-step{opacity:1;--wm-x:0px;--wm-my:0px;transition:opacity .5s ease,transform .5s cubic-bezier(.22,.61,.36,1);transition-delay:calc(2s + var(--i) * .2s)}
-      .wm-flow.is-in .wm-dots{opacity:1}
-      .wm-flow.is-ready.is-done [data-i],.wm-flow.is-ready.is-done .wm-icon{transition-delay:0s}
-      .wm-flow.is-done .wm-core__disc{animation:wmBreath 3.2s ease-in-out infinite}
-      @keyframes wmBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
-      .wm-flow.has-active [data-i]:not(.is-active){opacity:.28}
-      .wm-flow.has-active .wm-step.is-active{--wm-x:6px}
-      @media(max-width:820px){
-        .wm-flow{padding:40px 16px}
-        .wm-flow__stage{display:flex;flex-direction:column;gap:20px;max-width:520px}
-        .wm-flow__title{position:static;max-width:none;order:1;text-align:center}
-        .wm-flow__svg{order:2;max-width:420px;margin:0 auto}
-        .wm-flow__steps{order:3;display:grid;gap:12px}
-        .wm-step{position:static;width:auto;transform:translateY(var(--wm-my,0px))}
-        .wm-flow.is-in .wm-step{transition-delay:calc(1.3s + var(--i) * .15s)}
-        .wm-step__title{font-size:16px}.wm-step__text{font-size:14px}
-        .wm-link,.wm-dots{display:none}
-        .wm-num{font-size:22px}.wm-core__sub{font-size:13px}
-      }
-      /* dashboard modifier: remove white bg + outer padding, let the db-card show through */
-      .wm-flow--dashboard{padding:0;background:transparent}
-      .wm-flow--dashboard .wm-flow__stage{max-width:100%}
-      /* override the 3 step-card colours to match dashboard palette */
-      /* green ring  → dashboard teal #128C7E on its own bg */
-      .wm-flow--dashboard .wm-step:nth-child(1){--c:#128C7E;--t:#FFFFFF}
-      /* yellow ring → soft amber that reads on dashboard bg */
-      .wm-flow--dashboard .wm-step:nth-child(2){--c:#075E54;--t:#FFFFFF}
-      /* navy ring   → keep navy, it works on any bg */
-      .wm-flow--dashboard .wm-step:nth-child(3){--c:#0F2622;--t:#FFFFFF}
-      /* title h2 accent span → teal to match dashboard accent */
-      .wm-flow--dashboard .wm-flow__title h2 span{color:#128C7E}
-      @media(max-width:820px){.wm-flow--dashboard{padding:0}}
+      .wd-wrap{display:flex;flex-direction:column;gap:18px;padding:22px 22px 18px;min-width:0;height:100%}
+      .wd-body{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1}
+      .wd-head h2{margin:0 0 4px;font-size:22px;font-weight:800;line-height:1.15;letter-spacing:-.02em;color:#0F2622}
+      .wd-head h2 span{color:#128C7E}
+      .wd-head p{margin:0;font-size:13.5px;line-height:1.5;color:#64748B}
+      .wd-chart{position:relative;width:100%;max-width:250px;aspect-ratio:1;margin:0 auto}
+      .wd-chart svg{width:100%;height:100%;overflow:visible;display:block}
+      .wd-seg{cursor:pointer;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .3s}
+      .wd-dim .wd-seg{opacity:.3}
+      .wd-dim .wd-seg.wd-on{opacity:1}
+      .wd-badge{transform-box:fill-box;transform-origin:center;opacity:0;transform:scale(.4);transition:opacity .35s,transform .45s cubic-bezier(.3,1.6,.5,1)}
+      .wd-center{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;text-align:center}
+      .wd-val{font-size:32px;font-weight:800;color:#0F2622;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+      .wd-lbl{font-size:12px;color:#64748B;margin-top:2px}
+      .wd-loader{opacity:0;transition:opacity .35s}
+      .wd-loading .wd-loader{opacity:1}
+      .wd-spin{transform-box:fill-box;transform-origin:center;animation:wd-spin 1.4s cubic-bezier(.55,.15,.45,.85) infinite}
+      .wd-arc{fill:none;stroke-width:22;stroke-linecap:round;animation:wd-dash 1.4s ease-in-out infinite}
+      .wd-arc:nth-child(2){animation-delay:.1s}.wd-arc:nth-child(3){animation-delay:.2s}.wd-arc:nth-child(4){animation-delay:.3s}
+      .wd-ltxt{display:none;font-size:13px;font-weight:600;color:#64748B}
+      .wd-ltxt i{display:inline-block;width:4px;height:4px;border-radius:50%;background:#64748B;margin-left:3px;animation:wd-pulse 1s infinite}
+      .wd-ltxt i:nth-child(2){animation-delay:.15s}.wd-ltxt i:nth-child(3){animation-delay:.3s}
+      .wd-loading .wd-ltxt{display:block}
+      .wd-loading .wd-val,.wd-loading .wd-lbl{display:none}
+      .wd-empty{font-size:12.5px;color:#64748B;text-align:center;margin-top:8px}
+      .wd-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+      @keyframes wd-spin{to{transform:rotate(360deg)}}
+      @keyframes wd-dash{0%,100%{stroke-dasharray:14 826}50%{stroke-dasharray:150 690}}
+      @keyframes wd-pulse{0%,100%{opacity:1}50%{opacity:.45}}
+      @media (max-width:520px){.wd-chart{max-width:240px}}
+      /* no grid lines between the KPI tiles / chart panel */
+      .db-report .db-kpi,.db-report .db-chart{border:0!important}
+      .db-report .db-kpis{gap:10px;padding:12px}
+      .db-report .db-kpi{border-radius:12px;background:#F7FAF9}
+      @media (prefers-reduced-motion:reduce){.wd-spin,.wd-arc,.wd-ltxt i{animation:none}}
       </style>
-
-      <section class="wm-flow wm-flow--dashboard" id="wmaRingRoot">
-        <div class="wm-flow__stage">
-
-          <svg class="wm-flow__svg" viewBox="0 0 900 720" aria-hidden="true" focusable="false"></svg>
-
-          <ol class="wm-flow__steps">
-            <!-- Ring 01 teal · sweep 215° — dashboard accent #128C7E -->
-            <li class="wm-step" data-sweep="215" data-icon="capture" style="--c:#128C7E;--t:#FFFFFF;">
-              <h3 class="wm-step__title"><span class="wm-step__num">01</span>Messages sent</h3>
-              <p class="wm-step__text"><?php echo number_format($monthMsgs); ?> this month<?php echo $msgLimit > 0 ? ' · ' . $__ring1_pct . '% of plan' : ''; ?></p>
-            </li>
-            <!-- Ring 02 dark green · sweep 250° -->
-            <li class="wm-step" data-sweep="250" data-icon="automate" style="--c:#075E54;--t:#FFFFFF;">
-              <h3 class="wm-step__title"><span class="wm-step__num">02</span>Contacts</h3>
-              <p class="wm-step__text"><?php echo number_format($contactCount); ?> total<?php echo $contactLimit > 0 ? ' · limit ' . number_format($contactLimit) : ''; ?></p>
-            </li>
-            <!-- Ring 03 dark teal · sweep 270° -->
-            <li class="wm-step" data-sweep="270" data-icon="convert" style="--c:#0F2622;--t:#FFFFFF;">
-              <h3 class="wm-step__title"><span class="wm-step__num">03</span>Campaigns</h3>
-              <p class="wm-step__text"><?php echo number_format($campaignCount); ?> created · <?php echo number_format($templateCount); ?> templates ready</p>
-            </li>
-          </ol>
-
-          <div class="wm-flow__title">
-            <h2>Activity <span>overview</span></h2>
-            <p>Your last 30 days at a glance.</p>
-          </div>
-
+      <?php
+      $wdSeries = [
+          ['k' => 'read',      'l' => 'Read',      'h' => 'Opened by the customer', 'c' => '#3478F6'],
+          ['k' => 'delivered', 'l' => 'Delivered', 'h' => 'On the phone, not read yet', 'c' => '#0E8A7A'],
+          ['k' => 'sent',      'l' => 'Sent',      'h' => 'Waiting for the phone', 'c' => '#4CC35E'],
+          ['k' => 'failed',    'l' => 'Failed',    'h' => 'Not delivered', 'c' => '#E5484D'],
+      ];
+      ?>
+      <div class="wd-wrap" id="wdActivity">
+        <div class="wd-head">
+          <h2>Activity <span>overview</span></h2>
+          <p>Messages you sent in the last 30 days and what happened to them.</p>
         </div>
-      </section>
-
-      <style>
-      /* ── dashboard ring: inherit everything from .wm-flow, only override sizing ── */
-      .wm-flow--dashboard {
-        padding: 10px 0 0;
-        background: transparent;
+        <div class="wd-body">
+        <div style="width:100%">
+          <div id="wdDonut" class="wd-chart" role="img" aria-label="<?php echo htmlspecialchars('Messages sent in the last 30 days: ' . implode(', ', array_map(fn($x) => $x['l'] . ' ' . (int)$actStatus[$x['k']], $wdSeries))); ?>"></div>
+          <?php if ($actTotal === 0): ?><p class="wd-empty">No messages sent in the last 30 days yet.</p><?php endif; ?>
+        </div>
+        </div>
+        <table class="wd-sr"><caption>Messages sent in the last 30 days by status</caption>
+          <tr><th>Status</th><th>Messages</th></tr>
+          <?php foreach ($wdSeries as $x): ?><tr><td><?php echo $x['l']; ?></td><td><?php echo (int)$actStatus[$x['k']]; ?></td></tr><?php endforeach; ?>
+        </table>
+      </div>
+      <script nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>">
+      function WaaminiDonut(el, opt){
+        opt = Object.assign({colors:[],labels:[],centerLabel:'Total',autoHighlight:true}, opt||{});
+        const NS='http://www.w3.org/2000/svg', RO=175, RI=105, RM=(RO+RI)/2, GAP=2.2;
+        const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const n = opt.colors.length;
+        let geo=[], segs=[], badges=[], timer, active=-1, loadId=0, values=[];
+        const rad=d=>(d-90)*Math.PI/180, pt=(r,d)=>[r*Math.cos(rad(d)), r*Math.sin(rad(d))];
+        const ease=t=>1-Math.pow(1-t,4), fmt=v=>Number(v).toLocaleString('en-IN');
+        const mk=(tag,attrs,parent)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);parent&&parent.appendChild(e);return e;};
+        function arc(a0,a1){
+          if(a1-a0<0.01) return '';
+          if(a1-a0>=359.9) a1=a0+359.9;
+          const big=a1-a0>180?1:0,[x1,y1]=pt(RO,a0),[x2,y2]=pt(RO,a1),[x3,y3]=pt(RI,a1),[x4,y4]=pt(RI,a0);
+          return `M${x1} ${y1}A${RO} ${RO} 0 ${big} 1 ${x2} ${y2}L${x3} ${y3}A${RI} ${RI} 0 ${big} 0 ${x4} ${y4}Z`;
+        }
+        el.innerHTML='';
+        const svg=mk('svg',{viewBox:'-200 -200 400 400','aria-hidden':'true'},el);
+        mk('circle',{r:RM,fill:'none',stroke:'#EEF4F2','stroke-width':RO-RI},svg);
+        const spin=mk('g',{class:'wd-spin'},mk('g',{class:'wd-loader'},svg));
+        opt.colors.forEach((c,i)=>mk('circle',{class:'wd-arc',r:RM,stroke:c,transform:`rotate(${i*(360/n)-90})`},spin));
+        const ring=mk('g',{},svg), bgrp=mk('g',{},svg);
+        opt.colors.forEach((c,i)=>{
+          const p=mk('path',{class:'wd-seg',fill:c},ring);
+          p.addEventListener('mouseenter',()=>{stopAuto();setActive(i);});
+          p.addEventListener('mouseleave',()=>{setActive(-1);startAuto();});
+          segs.push(p);
+          const w=mk('g',{},bgrp), b=mk('g',{class:'wd-badge'},w);
+          mk('circle',{r:25,fill:'#fff',stroke:c,'stroke-width':3.5},b);
+          const t=mk('text',{'text-anchor':'middle',dy:'5','font-size':14,'font-weight':800,fill:'#0F2622'},b);
+          t.textContent=String(i+1).padStart(2,'0');
+          badges.push(b);
+        });
+        const center=document.createElement('div'); center.className='wd-center';
+        center.innerHTML='<div><div class="wd-ltxt">Loading<i></i><i></i><i></i></div><div class="wd-val">0</div><div class="wd-lbl"></div></div>';
+        el.appendChild(center);
+        const cv=center.querySelector('.wd-val'), cl=center.querySelector('.wd-lbl');
+        function countUp(to,dur=1100){
+          if(reduce){cv.textContent=fmt(to);return;}
+          const s=performance.now();
+          (function f(now){const t=Math.max(0,Math.min(1,(now-s)/dur));cv.textContent=fmt(Math.round(to*ease(t)));if(t<1)requestAnimationFrame(f);})(s);
+        }
+        function setActive(i){
+          if(i>=0 && !geo[i]) return;
+          active=i; svg.classList.toggle('wd-dim',i>=0);
+          segs.forEach((s,k)=>{
+            s.classList.toggle('wd-on',k===i);
+            if(k===i){const [x,y]=pt(10,geo[k].mid);s.style.transform=`translate(${x}px,${y}px)`;} else s.style.transform='';
+          });
+          badges.forEach((b,k)=>{ if(b.style.opacity==='1') b.style.transform=k===i?'scale(1.18)':'scale(1)'; });
+          const total=values.reduce((a,b)=>a+b,0);
+          if(i>=0){cv.textContent=fmt(geo[i].v);cl.textContent=opt.labels[i]+' · '+geo[i].pct+'%';}
+          else{cv.textContent=fmt(total);cl.textContent=opt.centerLabel;}
+          if(opt.onSelect) opt.onSelect(i);
+        }
+        function startAuto(){stopAuto(); if(reduce||!opt.autoHighlight) return; const live=geo.map((g,k)=>g.v>0?k:-1).filter(k=>k>=0); if(live.length<2) return; let p=-1; timer=setInterval(()=>{p=(p+1)%live.length;setActive(live[p]);},2400);}
+        function stopAuto(){clearInterval(timer);}
+        function draw(data){
+          values=data.map(Number); const sum=values.reduce((a,b)=>a+b,0), total=sum||1;
+          let acc=0; geo=values.map(v=>{const a0=acc,a1=acc+v/total*360;acc=a1;const gap=v>0&&v<sum?GAP/2:0;return{a0:a0+gap,a1:a1-gap,mid:(a0+a1)/2,v,pct:Math.round(v/total*100)};});
+          cl.textContent=opt.centerLabel; countUp(sum);
+          const showBadges=()=>{
+            badges.forEach((b,i)=>{
+              if(!geo[i].v || geo[i].pct<4) return;
+              b.querySelector('text').textContent=geo[i].pct+'%';
+              const [x,y]=pt(RM,geo[i].mid); b.parentNode.setAttribute('transform',`translate(${x} ${y})`);
+              setTimeout(()=>{b.style.opacity='1';b.style.transform='scale(1)';}, reduce?0:i*110);
+            });
+            startAuto();
+          };
+          if(reduce){segs.forEach((s,i)=>s.setAttribute('d',arc(geo[i].a0,geo[i].a1)));showBadges();return;}
+          const DUR=1500,STAG=180,END=DUR+STAG*(n-1),start=performance.now();
+          (function frame(now){
+            const e=Math.max(0,now-start), rt=ease(Math.min(1,e/END));
+            ring.setAttribute('transform',`rotate(${-200*(1-rt)}) scale(${0.82+0.18*rt})`);
+            segs.forEach((s,i)=>{const t=ease(Math.max(0,Math.min(1,(e-i*STAG)/DUR)));s.setAttribute('d',arc(geo[i].a0,geo[i].a0+(geo[i].a1-geo[i].a0)*t));});
+            if(e<END) requestAnimationFrame(frame); else {ring.removeAttribute('transform');showBadges();}
+          })(start);
+        }
+        function load(source){
+          const id=++loadId; stopAuto(); active=-1; svg.classList.remove('wd-dim');
+          el.classList.add('wd-loading');
+          segs.forEach(s=>{s.setAttribute('d','');s.style.transform='';});
+          badges.forEach(b=>{b.style.opacity='0';b.style.transform='scale(.4)';});
+          const minWait=new Promise(r=>setTimeout(r,reduce?0:500));
+          Promise.all([Promise.resolve(source),minWait]).then(([data])=>{
+            if(id!==loadId) return;
+            el.classList.remove('wd-loading');
+            setTimeout(()=>{ if(id===loadId) draw(data); },200);
+          }).catch(err=>{ el.classList.remove('wd-loading'); cl.textContent='Could not load'; console.error(err); });
+        }
+        return { load, setActive, stop:stopAuto, startAuto };
       }
-      .wm-flow--dashboard .wm-flow__stage { max-width: 100%; }
-      /* tighten the SVG height inside the card */
-      .wm-flow--dashboard .wm-flow__svg { max-height: 340px; }
-      @media (max-width: 820px) {
-        .wm-flow--dashboard { padding: 6px 0 0; }
-        .wm-flow--dashboard .wm-flow__svg { max-height: 300px; }
-      }
-      </style>
+      (function(){
+        var el=document.getElementById('wdDonut'); if(!el) return;
+        var donut=WaaminiDonut(el,{
+          colors:<?php echo json_encode(array_column($wdSeries, 'c')); ?>,
+          labels:<?php echo json_encode(array_column($wdSeries, 'l')); ?>,
+          centerLabel:'Messages sent'
+        });
+        var data=<?php echo json_encode(array_map(fn($x) => (int)$actStatus[$x['k']], $wdSeries)); ?>;
+        // draw when the card scrolls into view (dashboard is long on phones)
+        if('IntersectionObserver' in window){
+          var io=new IntersectionObserver(function(es){ if(es[0].isIntersecting){ io.disconnect(); donut.load(data); } },{threshold:.25});
+          io.observe(el);
+        } else donut.load(data);
+      })();
+      </script>
       <div class="db-kpis">
         <div class="db-kpi"><div class="db-kpi__ic is-blue"><?php echo cn_svg('contacts'); ?></div><div class="db-kpi__l">Total contacts</div><div class="db-kpi__v"><?php echo number_format($contactCount); ?></div><div class="db-kpi__d"><?php echo $contactLimit > 0 ? 'Limit <span class="db-chip is-flat">' . number_format($contactLimit) . '</span>' : 'No limit on your plan'; ?></div></div>
         <div class="db-kpi"><div class="db-kpi__ic is-amber"><?php echo cn_svg('campaigns'); ?></div><div class="db-kpi__l">Campaigns</div><div class="db-kpi__v"><?php echo number_format($campaignCount); ?></div><div class="db-kpi__d">All time</div></div>
@@ -980,38 +1044,38 @@ $__chartTotal = (int)array_sum(array_map('intval', $chartData));
     ['analytics', 'CRM Analytics',   'Revenue, funnel and agent performance insights.', 'feat_crm_analytics',   'premium_analytics.php'],
     ['voice',     'AI Voice Notes',  'Transcribe and analyse customer voice messages.', 'feat_voice_analyzer',  'premium_voice.php'],
   ];
-  $__premiumOn = 0;
-  foreach ($__premium as $__p) { if (has_feature($__p[3])) $__premiumOn++; }
+  // Only the modules this plan includes are shown; the block is left out when the plan has none.
+  $__premium = array_values(array_filter($__premium, static fn($__p) => has_feature($__p[3])));
+  if ($__premium):
   ?>
   <section class="pdash-upsell">
     <div class="pdash-upsell-head">
       <div>
-        <div class="pdash-upsell-count"><?php echo cn_svg('ai'); ?> <?php echo $__premiumOn; ?> of <?php echo count($__premium); ?> premium modules active</div>
-        <h2 class="pdash-upsell-title">Unlock Premium Business Growth</h2>
-        <p class="pdash-upsell-desc">Automate sales, sync your store and connect your stack to turn WhatsApp conversations into revenue.</p>
+        <div class="pdash-upsell-count"><?php echo cn_svg('ai'); ?> <?php echo count($__premium); ?> premium <?php echo count($__premium) === 1 ? 'module' : 'modules'; ?> active</div>
+        <h2 class="pdash-upsell-title">Your premium modules</h2>
+        <p class="pdash-upsell-desc">Included in your plan. Open a module to set it up or see how it is doing.</p>
       </div>
       <a href="premium_features.php" class="pdash-upsell-btn">Explore all features <span aria-hidden="true">&rarr;</span></a>
     </div>
 
     <div class="pdash-upsell-grid">
-      <?php foreach ($__premium as [$ic, $name, $sub, $flag, $page]): $on = has_feature($flag); ?>
-        <a class="pdash-feat" href="<?php echo $on ? $page : 'premium_features.php'; ?>">
+      <?php foreach ($__premium as [$ic, $name, $sub, $flag, $page]): ?>
+        <a class="pdash-feat" href="<?php echo $page; ?>">
           <div class="pdash-feat-top">
             <span class="pdash-feat-ic"><?php echo cn_svg($ic); ?></span>
-            <?php if ($on): ?><span class="pdash-feat-tag on">Active</span>
-            <?php else: ?><span class="pdash-feat-tag off"><?php echo cn_lock_icon(); ?> Upgrade</span><?php endif; ?>
+            <span class="pdash-feat-tag on">Active</span>
           </div>
           <div>
             <h3 class="pdash-feat-name"><?php echo htmlspecialchars($name); ?></h3>
             <p class="pdash-feat-sub"><?php echo htmlspecialchars($sub); ?></p>
           </div>
-          <span class="pdash-feat-cta"><?php echo $on ? 'Open module' : 'Learn more'; ?> <span aria-hidden="true">&rarr;</span></span>
+          <span class="pdash-feat-cta">Open module <span aria-hidden="true">&rarr;</span></span>
         </a>
       <?php endforeach; ?>
     </div>
 
-    <div class="pdash-upsell-foot"><b>+10 more</b> premium modules including loyalty, PDF quotations, WhatsApp forms and multi-agent chat.</div>
   </section>
+  <?php endif; ?>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>

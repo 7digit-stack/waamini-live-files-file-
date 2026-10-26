@@ -38,7 +38,7 @@ if ($stUpd2) {
 }
 
 // 2. Fetch messages — prepared statement
-$sql = 'SELECT id, direction, type, content, message, media_url, meta_json, status, created_at
+$sql = 'SELECT id, direction, type, content, message, media_url, meta_json, status, error_message, created_at
         FROM messages
         WHERE contact_id=? AND company_id=?';
 $types = 'ii';
@@ -70,11 +70,11 @@ if ($messages && $messages->num_rows > 0) {
 if ($asJson) {
     // Current ticks of the latest sent messages, so ✓ → ✓✓ → blue ✓✓ updates live like WhatsApp.
     $ticks = [];
-    $stT = $conn->prepare("SELECT id, status FROM messages WHERE contact_id=? AND company_id=? AND direction='outgoing' ORDER BY id DESC LIMIT 40");
+    $stT = $conn->prepare("SELECT id, status, error_message FROM messages WHERE contact_id=? AND company_id=? AND direction='outgoing' ORDER BY id DESC LIMIT 40");
     if ($stT) {
         $stT->bind_param('ii', $cid, $companyId);
         $stT->execute();
-        foreach ($stT->get_result()->fetch_all(MYSQLI_ASSOC) as $t) $ticks[(int)$t['id']] = wa_tick_html((string)$t['status']);
+        foreach ($stT->get_result()->fetch_all(MYSQLI_ASSOC) as $t) $ticks[(int)$t['id']] = wa_tick_html((string)$t['status'], (string)($t['error_message'] ?? ''));
     }
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['html' => $html, 'last_id' => $lastIdOut, 'ticks' => (object)$ticks], JSON_UNESCAPED_UNICODE);

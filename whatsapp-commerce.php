@@ -1,6 +1,7 @@
 <?php
 $fp = [
     'slug' => 'whatsapp-commerce.php',
+    'hub' => 'commerce',
     'title' => 'WhatsApp Commerce: Catalog, Checkout & Cart Recovery | Waamini',
     'meta_desc' => 'Sell on WhatsApp with a product catalog, UPI checkout, order tracking, abandoned cart recovery and loyalty rewards.',
     'meta_keywords' => 'WhatsApp store, WhatsApp catalog, WhatsApp checkout UPI, cart recovery WhatsApp',

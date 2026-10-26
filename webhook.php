@@ -894,6 +894,15 @@ class WebhookHandler {
                     $upd->bind_param('ii', $cid, $companyId);
                     $upd->execute();
                 }
+                // Fill in the WhatsApp profile name when the saved name is still empty or just the phone number
+                // (a name edited by the business is never overwritten).
+                if ($name !== $phoneNorm && $name !== '') {
+                    $nm = $conn->prepare("UPDATE contacts SET name=? WHERE id=? AND company_id=? AND (name IS NULL OR name='' OR name=? OR name=?)");
+                    if ($nm) {
+                        $nm->bind_param('siiss', $name, $cid, $companyId, $phoneNorm, $phonePlus);
+                        $nm->execute();
+                    }
+                }
                 return $cid;
             }
         }
@@ -952,6 +961,22 @@ class WebhookHandler {
             $upd->execute();
         }
 
+        // Keep WhatsApp's reason for a failure (e.g. 131053 media download failed), so the chat can say why.
+        if ($statusVal === 'failed' && !empty($status['errors'][0]) && is_array($status['errors'][0])) {
+            $err = $status['errors'][0];
+            $errCode = (string)($err['code'] ?? '');
+            $errText = trim((string)($err['title'] ?? '') . ': ' . (string)($err['error_data']['details'] ?? $err['message'] ?? ''), ': ');
+            $errText = mb_substr($errText, 0, 250);
+            error_log('[WAAMINI webhook] message ' . $messageId . ' failed ' . $errCode . ' ' . $errText);
+            try {
+                $updE = $conn->prepare("UPDATE messages SET error_code=?, error_message=? WHERE whatsapp_message_id=?");
+                if ($updE) {
+                    $updE->bind_param('sss', $errCode, $errText, $messageId);
+                    $updE->execute();
+                }
+            } catch (\Throwable $e) { /* older DBs without the columns */ }
+        }
+
         // Campaign delivery tracking (optional; safe on older DBs)
         try {
             foreach ([
@@ -997,10 +1022,12 @@ class WebhookHandler {
                             $updC->execute();
                         }
                     } elseif ($newStatus === 'failed') {
-                        // Mark queue as failed too (keeps UI consistent)
-                        $updQ2 = $conn->prepare("UPDATE campaign_queue SET status='failed' WHERE whatsapp_message_id=? LIMIT 1");
+                        // Mark queue as failed too (keeps UI consistent). WhatsApp already accepted this message and then
+                        // could not deliver it, so it is final: no automatic resend (retry_count = 3), keep Meta's reason.
+                        $failReason = mb_substr(trim((string)($status['errors'][0]['title'] ?? '') . ': ' . (string)($status['errors'][0]['error_data']['details'] ?? $status['errors'][0]['message'] ?? ''), ': '), 0, 250);
+                        $updQ2 = $conn->prepare("UPDATE campaign_queue SET status='failed', retry_count=3, retry_after=NULL, last_error_message=? WHERE whatsapp_message_id=? LIMIT 1");
                         if ($updQ2) {
-                            $updQ2->bind_param('s', $messageId);
+                            $updQ2->bind_param('ss', $failReason, $messageId);
                             $updQ2->execute();
                         }
                         

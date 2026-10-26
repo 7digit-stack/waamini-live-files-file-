@@ -105,7 +105,7 @@ function trigger_queued_messages($conn, $phone)
                 $stS->execute();
             }
             if ($campaignId) {
-                $stC = $conn->prepare("UPDATE campaigns SET sent_count = sent_count + 1 WHERE id=?");
+                $stC = $conn->prepare("UPDATE campaigns SET sent_count = (SELECT COUNT(*) FROM campaign_queue q WHERE q.campaign_id = campaigns.id AND ((q.whatsapp_message_id IS NOT NULL AND q.whatsapp_message_id <> '') OR q.status = 'sent')) WHERE id=?");
                 if ($stC) {
                     $stC->bind_param("i", $campaignId);
                     $stC->execute();

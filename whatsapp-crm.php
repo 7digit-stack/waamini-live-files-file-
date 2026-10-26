@@ -1,6 +1,7 @@
 <?php
 $fp = [
     'slug' => 'whatsapp-crm.php',
+    'hub' => 'crm',
     'title' => 'WhatsApp CRM, Shared Inbox & Live Chat | Waamini',
     'meta_desc' => 'Manage leads, contacts and conversations in one WhatsApp CRM with a shared team inbox, labels, notes, reminders and AI lead scoring.',
     'meta_keywords' => 'WhatsApp CRM, shared inbox WhatsApp, WhatsApp live chat, lead management India',

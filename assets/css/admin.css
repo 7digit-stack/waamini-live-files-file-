@@ -1381,3 +1381,10 @@ body.sb-collapsed .company-info{display:none}
 body.sb-collapsed .sb-collapse{justify-content:center;gap:0;width:calc(100% - 16px);margin:6px 8px 14px;padding:10px 0}
 body.sb-collapsed .sb-collapse span{display:none}
 @media (max-width:1024px){.sb-collapse{display:none}}
+
+/* ===== Brand logo: full wordmark when open, W app icon when collapsed ===== */
+.sb-logo-full{display:block;height:34px;width:auto;max-width:100%}
+.sb-logo-mini{display:none;width:42px;height:42px;filter:drop-shadow(0 4px 8px rgba(18,140,126,.28))}
+body.sb-collapsed .sb-logo-full{display:none}
+body.sb-collapsed .sb-logo-mini{display:block}
+@media (max-width:1024px){body.sb-collapsed .sb-logo-full{display:block}body.sb-collapsed .sb-logo-mini{display:none}}

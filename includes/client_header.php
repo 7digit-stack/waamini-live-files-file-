@@ -4,7 +4,8 @@ if (!function_exists('cn_svg')) {
     function cn_svg(string $n, string $cls = ''): string {
         $s = 'width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"' . ($cls ? ' class="' . $cls . '"' : '');
         $icons = [
-            'dashboard'   => '<path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/>',
+            'dashboard'   => '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
+            'activity'    => '<path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/>',
             'growth'      => '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
             'ads'         => '<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
             'adleads'     => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/>',
@@ -38,7 +39,7 @@ if (!function_exists('cn_svg')) {
             'pdf'         => '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>',
             'loyalty'     => '<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/>',
             'invoice'     => '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
-            'blacklist'   => '<path d="M22 2 2 22"/>',
+            'blacklist'   => '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>',
             'health'      => '<path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/>',
             'flowbuilder' => '<circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/>',
             'scheduled'   => '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
@@ -79,6 +80,20 @@ if (!function_exists('cn_lock_icon')) {
 if (!function_exists('cn_locked_attrs')) {
     function cn_locked_attrs(bool $locked): string {
         return $locked ? ' onclick="return false;" title="Upgrade your plan to unlock this feature" aria-disabled="true"' : '';
+    }
+}
+if (!function_exists('cn_plan_menu_only')) {
+    /** The client menu shows only what the plan includes: drop locked items, then any section heading left empty. */
+    function cn_plan_menu_only(string $html): string {
+        $out = preg_replace('#[ \t]*<a\b[^>]*\bclass="nav-item\b[^"]*\blocked\b[^"]*"[^>]*>.*?</a>[ \t]*\R?#s', '', $html);
+        if (!is_string($out)) return $html;   // regex failure: keep the menu as it was
+        $title = '<div class="nav-section-title">(?:(?!</div>).)*</div>';
+        do {   // a heading followed only by space/comments and then another heading or the end of the menu is empty
+            $prev = $out;
+            $out = preg_replace('#[ \t]*' . $title . '(?=(?:\s|<!--.*?-->)*(?:<div class="nav-section-title">|$))\s*#s', '', $out);
+            if (!is_string($out)) return $html;
+        } while ($out !== $prev);
+        return $out;
     }
 }
 
@@ -127,6 +142,9 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+    <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(strip_tags($pageTitle ?? 'Dashboard'), ENT_QUOTES); ?> – WAAMINI</title>
@@ -134,8 +152,8 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-    <link rel="stylesheet" href="<?php echo app_url('assets/css/client.css?v=4.2'); ?>">
-    <link rel="stylesheet" href="<?php echo app_url('assets/css/sidebar-pro.css?v=2'); ?>">
+    <link rel="stylesheet" href="<?php echo app_url('assets/css/client.css?v=4.4'); ?>">
+    <link rel="stylesheet" href="<?php echo app_url('assets/css/sidebar-pro.css?v=4'); ?>">
     <?php
     // E-Commerce section pages share one dashboard skin
     $__ecomPages = ['order_dashboard', 'orders', 'catalog', 'catalog_reports', 'premium_abandoned_cart', 'ecommerce', 'pdf_settings'];
@@ -160,6 +178,7 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
     #sidebar{view-transition-name:wm-sidebar}
     @media (prefers-reduced-motion: reduce){@view-transition{navigation:none}}
     </style>
+    <link rel="stylesheet" href="<?php echo app_url('assets/css/mobile.css?v=5'); ?>">
 </head>
 <body<?php echo ($__isEcom || $__isSet) ? ' class="ecom-ui' . ($__isSet ? ' set-ui' : '') . '"' : ''; ?>>
 <script nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>">
@@ -167,7 +186,7 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
   var d = document.documentElement;
   d.classList.add('wm-preload');
   // Remembered collapsed sidebar is applied before the first paint (no expand-then-collapse jump)
-  try { if (localStorage.getItem('wmn_sidebar_collapsed') === '1') document.body.classList.add('sb-collapsed'); } catch (e) {}
+  try { if (localStorage.getItem('wmn_sidebar_collapsed') === '1' && window.matchMedia('(min-width: 1025px)').matches) document.body.classList.add('sb-collapsed'); } catch (e) {}
   if (!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
     d.classList.add('wm-pre');
     setTimeout(function () { d.classList.remove('wm-pre'); }, 1500); // never stay hidden
@@ -193,8 +212,7 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
 
     <div class="sidebar-header">
         <a href="<?php echo app_url('client/dashboard.php'); ?>" class="logo">
-            <div class="logo-icon">W</div>
-            <span class="logo-text">WAAMINI</span>
+            <img class="sb-logo-full" src="/assets/img/waamini-logo.png" alt="Waamini" width="174" height="34"><img class="sb-logo-mini" src="/assets/img/waamini-icon.png" alt="Waamini" width="42" height="42">
         </a>
     </div>
 
@@ -210,6 +228,7 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
     </div>
 
     <nav class="sidebar-nav">
+<?php ob_start(); /* menu items for features outside the plan are removed below (cn_plan_menu_only) */ ?>
 
         <?php $cp = $currentPage ?? ''; ?>
 
@@ -258,11 +277,16 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
             <?php if (!has_feature('campaigns')) echo cn_lock_icon(); ?>
         </a>
 
-        <?php $_hasIntegrations = has_feature('indiamart')||has_feature('fb_lead_ads'); ?>
+        <?php $_hasIntegrations = has_feature('indiamart')||has_feature('fb_lead_ads')||has_feature('google_sheets')||has_feature('api_webhook')||has_feature('api_webhook_access')||has_feature('shopify'); ?>
         <a href="<?php echo $_hasIntegrations ? app_url('client/integrations.php') : '#'; ?>" class="nav-item <?php echo $cp==='integrations'?'active':''; ?> <?php echo $_hasIntegrations?'':'locked'; ?>"<?php echo cn_locked_attrs(!$_hasIntegrations); ?>>
             <span class="icon"><?php echo cn_svg('integrations'); ?></span> Integrations
             <?php if (!$_hasIntegrations) echo cn_lock_icon(); ?>
         </a>
+        <?php if (has_feature('shopify')): ?>
+        <a href="<?php echo app_url('client/shopify_connect.php'); ?>" class="nav-item <?php echo $cp==='shopify'?'active':''; ?>" style="padding-left:32px;font-size:12.5px;">
+            <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span> Shopify
+        </a>
+        <?php endif; ?>
 
         <a href="<?php echo has_feature('contacts') ? app_url('client/contacts.php') : '#'; ?>" class="nav-item <?php echo $cp==='contacts'?'active':''; ?> <?php echo has_feature('contacts')?'':'locked'; ?>"<?php echo cn_locked_attrs(!has_feature('contacts')); ?>>
             <span class="icon"><?php echo cn_svg('contacts'); ?></span> Contacts
@@ -293,11 +317,11 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
             <?php if (!has_feature('ai_chatbot')): ?><?php echo cn_lock_icon(); ?><?php else: ?><span class="badge badge-admin" style="font-size:9px;padding:2px 6px;margin-left:auto;">AI</span><?php endif; ?>
         </a>
         <?php if (has_feature('ai_chatbot')): ?>
-        <a href="<?php echo app_url('client/waamini_bot_knowledge.php'); ?>" class="nav-item <?php echo $cp==='waamini_bot_knowledge'?'active':''; ?>">
-            └ Knowledge
+        <a href="<?php echo app_url('client/waamini_bot_knowledge.php'); ?>" class="nav-item nav-sub <?php echo $cp==='waamini_bot_knowledge'?'active':''; ?>">
+            Knowledge
         </a>
-        <a href="<?php echo app_url('client/waamini_bot_settings.php'); ?>" class="nav-item <?php echo $cp==='waamini_bot_settings'?'active':''; ?>">
-            └ Bot Settings
+        <a href="<?php echo app_url('client/waamini_bot_settings.php'); ?>" class="nav-item nav-sub <?php echo $cp==='waamini_bot_settings'?'active':''; ?>">
+            Bot Settings
         </a>
         <?php endif; ?>
 
@@ -320,7 +344,7 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
         </a>
 
         <a href="<?php echo has_feature('ads_capi') ? app_url('client/ads_capi.php') : '#'; ?>" class="nav-item <?php echo $cp==='ads_capi'?'active':''; ?> <?php echo has_feature('ads_capi')?'':'locked'; ?>"<?php echo cn_locked_attrs(!has_feature('ads_capi')); ?>>
-            <span class="icon"><?php echo cn_svg('dashboard'); ?></span>
+            <span class="icon"><?php echo cn_svg('activity'); ?></span>
             Conversion Events
             <?php if (!has_feature('ads_capi')) echo cn_lock_icon(); ?>
         </a>
@@ -483,6 +507,9 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
             <?php if (!has_feature('medicine_reminder')) echo cn_lock_icon(); ?>
         </a>
 
+        <!-- Plan & Billing -->
+        <div class="nav-section-title"><?php echo cn_svg('billing'); ?> Plan &amp; Billing</div>
+
         <a href="<?php echo app_url('client/billing.php'); ?>" class="nav-item <?php echo $cp==='billing'?'active':''; ?>">
             <span class="icon"><?php echo cn_svg('billing'); ?></span>
             Billing &amp; Wallet
@@ -492,7 +519,6 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
         <a href="<?php echo app_url('client/premium_features.php'); ?>" class="nav-item <?php echo $cp==='premium_features'?'active':''; ?>">
             <span class="icon"><?php echo cn_svg('discover'); ?></span>
             Discover More
-            <span class="badge" style="background:var(--bg-hover);color:var(--text-muted);border:1px solid var(--border);font-size:10px;padding:2px 7px;margin-left:auto;">+14</span>
         </a>
 
         <!-- Help -->
@@ -542,11 +568,21 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
 
         <?php endif; /* !$isRestricted */ ?>
 
+<?php echo cn_plan_menu_only((string)ob_get_clean()); ?>
     </nav>
 </div><!-- .sidebar -->
 
+<?php
+$wmTabs = [
+    ['dashboard', 'Home', app_url('client/dashboard.php'), '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/>'],
+    ['whatsapp', 'Chats', has_feature('whatsapp_chat') ? app_url('client/whatsapp.php') : app_url('client/subscription.php'), '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>'],
+    ['campaigns', 'Campaigns', has_feature('campaigns') ? app_url('client/campaigns.php') : app_url('client/subscription.php'), '<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>', ['campaign_create', 'campaign_view', 'campaign_reports']],
+    ['contacts', 'Contacts', has_feature('contacts') ? app_url('client/contacts.php') : app_url('client/subscription.php'), '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>', ['contact_add', 'contact_groups', 'contact_import', 'contact_bulk']],
+];
+include __DIR__ . '/mobile_tabbar.php';
+?>
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
-<script src="<?php echo app_url('assets/js/sidebar-collapse.js?v=2'); ?>"></script>
+<script src="<?php echo app_url('assets/js/sidebar-collapse.js?v=3'); ?>"></script>
 
 <!-- ═══ TOPBAR ═══ -->
 <div class="topbar client-topbar" id="topbar">
@@ -557,6 +593,10 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
         <h1 class="page-title"><?php echo $pageTitle ?? 'Dashboard'; ?></h1>
     </div>
     <div class="topbar-right">
+        <button type="button" class="topbar-icon-btn" id="fullscreenToggle" title="Full screen" aria-label="Enter full screen" aria-pressed="false" hidden>
+            <svg class="fs-enter" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+            <svg class="fs-exit" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>
+        </button>
         <div class="topbar-user">
             <div class="topbar-avatar"><?php echo strtoupper(substr($_userName, 0, 1)); ?></div>
             <div class="topbar-dropdown">
@@ -576,6 +616,58 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
 </div>
 
 <script>
+/* ── Full screen toggle ──
+   Browsers leave full screen on every page load, and only allow entering it from a click or key press.
+   So the choice is remembered for this tab and full screen comes back on the first interaction of the next page. */
+(function () {
+    var btn = document.getElementById('fullscreenToggle');
+    var root = document.documentElement;
+    var request = root.requestFullscreen || root.webkitRequestFullscreen;
+    if (!btn || !request) return; // e.g. iPhone Safari has no full screen API for pages
+    btn.hidden = false;
+
+    var KEY = 'waamini_fullscreen';
+    var leaving = false;
+    function store(on) { try { on ? sessionStorage.setItem(KEY, '1') : sessionStorage.removeItem(KEY); } catch (e) {} }
+    function wanted() { try { return sessionStorage.getItem(KEY) === '1'; } catch (e) { return false; } }
+    function current() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
+    function enter() { try { var p = request.call(root); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+    function exit() { var f = document.exitFullscreen || document.webkitExitFullscreen; if (f) f.call(document); }
+
+    function paint() {
+        var on = !!current();
+        btn.classList.toggle('is-on', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.setAttribute('aria-label', on ? 'Exit full screen' : 'Enter full screen');
+        btn.title = on ? 'Exit full screen (Esc)' : 'Full screen';
+    }
+
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (current()) { store(false); exit(); } else { store(true); enter(); }
+    });
+
+    function onChange() {
+        // Leaving with Esc or the browser's own control means "off"; leaving because the page is changing does not.
+        if (!current() && !leaving) store(false);
+        paint();
+    }
+    document.addEventListener('fullscreenchange', onChange);
+    document.addEventListener('webkitfullscreenchange', onChange);
+    window.addEventListener('pagehide', function () { leaving = true; });
+    window.addEventListener('beforeunload', function () { leaving = true; });
+
+    if (wanted() && !current()) {
+        var resume = function (e) {
+            if (e.target && e.target.closest && e.target.closest('#fullscreenToggle')) return;
+            if (wanted() && !current()) enter();
+        };
+        document.addEventListener('pointerdown', resume, { once: true, capture: true });
+        document.addEventListener('keydown', resume, { once: true, capture: true });
+    }
+    paint();
+})();
+
 /* ── Stable sidebar scroll: keep active nav item centred in view on every load ── */
 (function() {
     var nav    = document.querySelector('.sidebar-nav');

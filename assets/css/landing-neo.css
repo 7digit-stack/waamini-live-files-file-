@@ -179,20 +179,11 @@ body.lp-neo .popular-badge {
 
 body.lp-neo main#main-content { position: relative; z-index: 1; }
 
-/* ── Custom cursor — simple GSAP tween-follow, dot instant + ring trails
-   (reference §6.8 option B; grown on hover purely via CSS, no JS class) ── */
-@media (hover:hover) and (pointer:fine) { body.lp-neo { cursor: none; } }
-.lp-cursor, .lp-cursor-dot { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 99999; margin: 0; will-change: transform; }
-.lp-cursor { width: 34px; height: 34px; margin: -17px 0 0 -17px; border: 1.5px solid var(--fg); border-radius: 50%; transition: width .25s, height .25s, margin .25s, background .25s; mix-blend-mode: multiply; }
-.lp-cursor-dot { width: 6px; height: 6px; margin: -3px 0 0 -3px; background: var(--accent1); border-radius: 50%; }
-body.lp-neo:has(a:hover, button:hover, .feat-card-modern:hover, .price-card:hover) .lp-cursor { width: 56px; height: 56px; margin: -28px 0 0 -28px; background: var(--glass); }
-@media (pointer: coarse) { .lp-cursor, .lp-cursor-dot { display: none !important; } }
-/* The nav overlay has its own hover-wipe language on every row/button —
-   the small default ring just reads as a stray circle glitch sitting on
-   top of the toggle/rows instead of a deliberate cursor state, so it's
-   hidden entirely while the menu is open rather than tuned to fit. */
-body.lp-neo:has(.wa-nav-overlay.wa-menu-is-open) .lp-cursor,
-body.lp-neo:has(.wa-nav-overlay.wa-menu-is-open) .lp-cursor-dot { display: none !important; }
+/* ── Cursor: the normal system pointer everywhere. The old GSAP circle cursor hid the real pointer
+   (cursor:none), so if GSAP was slow or blocked on the live site there was no cursor at all.
+   Any leftover ring/dot elements from a cached lp-theme.js are kept hidden. ── */
+body.lp-neo { cursor: auto; }
+.lp-cursor, .lp-cursor-dot { display: none !important; }
 
 /* =========================================================================
    TYPOGRAPHY

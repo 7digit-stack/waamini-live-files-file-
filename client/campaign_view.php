@@ -15,7 +15,7 @@ if ($id <= 0) {
 // Fetch Campaign Details with template content for preview
 $campaign = null;
 $cStmt = $conn->prepare("
-    SELECT c.*, mt.name as template_name, mt.body_text, mt.header_text, mt.footer_text, mt.category, mt.header_type AS tpl_header_type, mt.header_link AS tpl_header_link, cg.name as group_name 
+    SELECT c.*, mt.name as template_name, COALESCE(NULLIF(mt.body_text,''), mt.body) AS body_text, mt.header_text, COALESCE(NULLIF(mt.footer_text,''), mt.footer) AS footer_text, mt.buttons AS tpl_buttons, mt.category, mt.header_type AS tpl_header_type, mt.header_link AS tpl_header_link, cg.name as group_name 
     FROM campaigns c 
     LEFT JOIN message_templates mt ON c.template_id = mt.id 
     LEFT JOIN contact_groups cg ON c.group_id = cg.id 
@@ -74,8 +74,17 @@ if (isset($_POST['retry_failed'])) {
         $rows = $conn->prepare("SELECT id, message_payload FROM campaign_queue WHERE campaign_id=? AND company_id=? AND status='failed'");
         $rows->bind_param('ii', $id, $companyId);
         $rows->execute();
+        // Read the rows before preparing the next statement: MySQL refuses a new prepare while a result is still
+        // unread ("commands out of sync"), which made prepare() return false here on the live server.
+        $failedRows = $rows->get_result()->fetch_all(MYSQLI_ASSOC);
+        $rows->close();
         $fix = $conn->prepare("UPDATE campaign_queue SET message_payload=? WHERE id=? AND company_id=?");
-        foreach ($rows->get_result()->fetch_all(MYSQLI_ASSOC) as $q) {
+        if (!$fix) {
+            error_log('[WAAMINI campaign retry] prepare failed: ' . $conn->error);
+            header("Location: campaign_view.php?id=$id&msg=retry_error");
+            exit();
+        }
+        foreach ($failedRows as $q) {
             $p = json_decode((string)$q['message_payload'], true);
             if (!is_array($p)) { continue; }
             $p['header_type'] = $hdrType;
@@ -296,7 +305,25 @@ $statusConfig = [
     'cancelled' => ['color' => '#9e9e9e', 'bg' => 'rgba(158,158,158,0.10)','icon' => '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>', 'label' => 'Cancelled'],
 ];
 $sc = $statusConfig[$campaign['status']] ?? $statusConfig['draft'];
-$logClasses = ['pending' => 'cv-status-pending', 'queued' => 'cv-status-pending', 'processing' => 'cv-status-processing', 'sent' => 'cv-status-sent', 'delivered' => 'cv-status-delivered', 'read' => 'cv-status-read', 'failed' => 'cv-status-failed'];
+/** Meta sends "Title: details" (often saying the same thing twice) - keep the clearer half. */
+function cv_clean_error(string $m): string {
+    $m = trim(preg_replace('/\s+/', ' ', $m));
+    if (preg_match('/^(.{3,}?)\.?:\s+(.{8,})$/s', $m, $p)) { $m = mb_strlen($p[2]) >= mb_strlen($p[1]) * 0.6 ? $p[2] : $p[1]; }
+    return rtrim($m);
+}
+/** What the user should do about a failure, in plain words ('' when there is nothing specific to say). */
+function cv_error_tip(string $m): string {
+    $l = strtolower($m);
+    if (str_contains($l, 'ecosystem') || str_contains($l, '131049')) return 'Meta held this marketing message back because the customer has received many recently. Retrying now will fail again; try in 1-2 days.';
+    if (str_contains($l, 're-engagement') || str_contains($l, '24 hour') || str_contains($l, '131047')) return 'More than 24 hours since the customer last wrote. Only approved templates can be sent.';
+    if (str_contains($l, 'not a valid whatsapp') || str_contains($l, 'undeliverable') || str_contains($l, '131026')) return 'This number cannot receive WhatsApp messages. Retrying will not help.';
+    if (str_contains($l, 'media') || str_contains($l, '131053')) return 'WhatsApp could not download the header file. Use a public https link or upload the file again.';
+    if (str_contains($l, 'rate limit') || str_contains($l, '130429') || str_contains($l, '131056')) return 'Sending limit reached. Wait a few minutes and retry.';
+    if (str_contains($l, 'parameter') || str_contains($l, '132000') || str_contains($l, '132012')) return 'The variables do not match the approved template. Check the template on Meta.';
+    if (str_contains($l, 'paused') || str_contains($l, '132015')) return 'Meta paused this template because of low quality. Pick another template.';
+    return '';
+}
+$logClasses = ['pending' => 'cv-status-pending','queued' => 'cv-status-pending', 'processing' => 'cv-status-processing', 'sent' => 'cv-status-sent', 'delivered' => 'cv-status-delivered', 'read' => 'cv-status-read', 'failed' => 'cv-status-failed'];
 
 // Pagination for queue logs
 $tab = strtolower((string)($_GET['tab'] ?? 'executed'));
@@ -370,7 +397,11 @@ include '../includes/client_header.php';
         </div>
     <?php elseif ($_GET['msg'] === 'retry_needs_media'): ?>
         <div class="cv-toast cv-toast-error" style="background:#FDECEC;color:#A12222;">
-            <span>This template has a <?php echo htmlspecialchars((string)($campaign['tpl_header_type'] ?? 'media')); ?> header. Choose the file (or paste a public https link) next to Retry Failed, then retry. On localhost, uploads need PUBLIC_URL in .env.</span>
+            <span>This template has a <?php echo htmlspecialchars((string)($campaign['tpl_header_type'] ?? 'media')); ?> header. Press Retry failed at the top, choose the file (or paste a public https link), then retry. On localhost, uploads need PUBLIC_URL in .env.</span>
+        </div>
+    <?php elseif ($_GET['msg'] === 'retry_error'): ?>
+        <div class="cv-toast cv-toast-error" style="background:#FDECEC;color:#A12222;">
+            <span>The failed messages could not be prepared for retry. Please try again in a minute.</span>
         </div>
     <?php elseif ($_GET['msg'] === 'recampaigned'): ?>
         <div class="cv-toast cv-toast-success">
@@ -411,22 +442,31 @@ include '../includes/client_header.php';
                 </button>
             </form>
         <?php endif; ?>
-        <?php if (($stats['failed'] ?? 0) > 0): ?>
-            <?php $needsMedia = in_array(strtolower((string)($campaign['tpl_header_type'] ?? '')), ['image', 'video', 'document'], true); ?>
-            <form method="POST" enctype="multipart/form-data" style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:8px;">
+        <?php if (($stats['failed'] ?? 0) > 0):
+            $rtNeedsMedia = in_array(strtolower((string)($campaign['tpl_header_type'] ?? '')), ['image', 'video', 'document'], true);
+            $rtSaved = trim((string)($campaign['media_url'] ?? '')) ?: trim((string)($campaign['tpl_header_link'] ?? ''));
+            $rtAsk = $rtNeedsMedia && !preg_match('#^https://#i', $rtSaved);
+            $rtIcon = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8a6 6 0 0 1 10.2-4.3L14 2v5h-5l1.8-1.8A4 4 0 1 0 12 8h2a6 6 0 0 1-12 0z" fill="currentColor"/></svg>';
+            $rtLabel = 'Retry ' . (int)$stats['failed'] . ' failed'; ?>
+            <?php if (!$rtAsk): ?>
+            <form method="POST" style="display:inline;">
                 <?php echo csrf_field(); ?>
-                <?php if ($needsMedia): ?>
-                    <span style="font-size:12px;color:var(--text-muted);">This template needs a <?php echo htmlspecialchars((string)$campaign['tpl_header_type']); ?>:</span>
-                    <input type="file" name="retry_media_file" accept="image/*,video/mp4,application/pdf" style="font-size:12px;max-width:210px;">
-                    <input type="url" name="retry_media_url" placeholder="or paste https:// link" value="<?php echo htmlspecialchars((string)($campaign['media_url'] ?? '')); ?>" style="height:36px;padding:0 10px;border:1px solid var(--border,#DDEFE7);border-radius:8px;font-size:12px;min-width:200px;">
-                <?php endif; ?>
-                <button type="submit" name="retry_failed" class="cv-btn" style="background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border:none;">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8a6 6 0 0 1 10.2-4.3L14 2v5h-5l1.8-1.8A4 4 0 1 0 12 8h2a6 6 0 0 1-12 0z" fill="currentColor"/></svg>
-                    Retry Failed (<?php echo (int)$stats['failed']; ?>)
-                </button>
+                <button type="submit" name="retry_failed" class="cv-btn cv-btn-outline cv-btn-retry-sm"><?php echo $rtIcon . $rtLabel; ?></button>
             </form>
+            <?php else: ?>
+            <details class="cv-retry-pop">
+                <summary class="cv-btn cv-btn-outline cv-btn-retry-sm"><?php echo $rtIcon . $rtLabel; ?></summary>
+                <form method="POST" enctype="multipart/form-data" class="cv-retry-pop-body">
+                    <?php echo csrf_field(); ?>
+                    <label>This template needs a header <?php echo htmlspecialchars(strtolower((string)$campaign['tpl_header_type'])); ?></label>
+                    <input type="file" name="retry_media_file" accept="image/*,video/mp4,application/pdf">
+                    <input type="url" name="retry_media_url" placeholder="or paste a public https:// link">
+                    <button type="submit" name="retry_failed" class="cv-btn cv-btn-glow"><?php echo $rtLabel; ?></button>
+                </form>
+            </details>
+            <?php endif; ?>
         <?php endif; ?>
-        <a href="campaign_create.php" class="cv-btn cv-btn-outline" style="margin-left:8px;">
+        <a href="campaign_create.php" class="cv-btn cv-btn-outline">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
             Create New
         </a>
@@ -590,17 +630,43 @@ include '../includes/client_header.php';
                     <div style="font-size:10px;color:rgba(255,255,255,0.6);">Business Account</div>
                 </div>
             </div>
+            <?php
+            $pvType  = strtolower(trim((string)($campaign['tpl_header_type'] ?? '')));
+            $pvMedia = trim((string)($campaign['media_url'] ?? '')) ?: trim((string)($campaign['tpl_header_link'] ?? ''));
+            if ($pvMedia !== '' && !preg_match('#^(https?:)?//|^/#i', $pvMedia)) { $pvMedia = '../' . ltrim($pvMedia, './'); }
+            $pvBody  = trim((string)($campaign['body_text'] ?? ''));
+            $pvBtns  = json_decode((string)($campaign['tpl_buttons'] ?? ''), true);
+            $pvBtns  = is_array($pvBtns) ? array_values(array_filter($pvBtns, fn($b) => is_array($b) && trim((string)($b['text'] ?? '')) !== '')) : [];
+            ?>
             <div class="cv-wa-body">
-                <?php if (!empty($campaign['header_text'])): ?>
-                    <div class="cv-wa-header"><?php echo htmlspecialchars($campaign['header_text']); ?></div>
-                <?php endif; ?>
                 <div class="cv-wa-bubble">
-                    <div class="cv-wa-text"><?php echo nl2br(htmlspecialchars($campaign['body_text'] ?? 'No template body')); ?></div>
+                    <?php if (in_array($pvType, ['image', 'video', 'document'], true)): ?>
+                        <div class="cv-wa-media">
+                            <?php if ($pvMedia !== '' && $pvType === 'image'): ?>
+                                <img src="<?php echo htmlspecialchars($pvMedia); ?>" alt="Header image" loading="lazy" onerror="this.parentNode.classList.add('cv-wa-media-empty');this.remove();">
+                            <?php elseif ($pvMedia !== '' && $pvType === 'video'): ?>
+                                <video src="<?php echo htmlspecialchars($pvMedia); ?>" muted playsinline preload="metadata" controls></video>
+                            <?php endif; ?>
+                            <span class="cv-wa-media-label"><?php echo $pvType === 'document' ? '📄 Document' : ($pvType === 'video' ? '🎬 Video' : '🖼 Image'); ?> header<?php echo $pvMedia === '' ? ' (added at send time)' : ''; ?></span>
+                        </div>
+                    <?php elseif (!empty($campaign['header_text'])): ?>
+                        <div class="cv-wa-header"><?php echo htmlspecialchars($campaign['header_text']); ?></div>
+                    <?php endif; ?>
+                    <div class="cv-wa-text"><?php echo $pvBody !== '' ? htmlspecialchars($pvBody) : '<em style="opacity:.6">This template has no body text saved. Open Templates and press Sync to pull it from Meta.</em>'; ?></div>
                     <?php if (!empty($campaign['footer_text'])): ?>
                         <div class="cv-wa-footer"><?php echo htmlspecialchars($campaign['footer_text']); ?></div>
                     <?php endif; ?>
-                    <div class="cv-wa-time"><?php echo date('h:i A'); ?> <span style="color:#53bdeb;"><span style="color:#53bdeb;font-size:12px;font-weight:700">✓✓</span></span></div>
+                    <div class="cv-wa-time"><?php echo date('h:i A'); ?> <span style="color:#53bdeb;font-size:12px;font-weight:700">✓✓</span></div>
                 </div>
+                <?php if ($pvBtns): ?>
+                    <div class="cv-wa-buttons">
+                        <?php foreach (array_slice($pvBtns, 0, 10) as $b):
+                            $bt = strtolower((string)($b['type'] ?? ''));
+                            $ic = $bt === 'url' ? '↗' : ($bt === 'phone' ? '📞' : ($bt === 'copy_code' ? '⧉' : ($bt === 'flow' ? '☰' : '↩'))); ?>
+                            <div class="cv-wa-btn"><span><?php echo $ic; ?></span> <?php echo htmlspecialchars((string)$b['text']); ?></div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -647,52 +713,45 @@ include '../includes/client_header.php';
                     <th>Contact</th>
                     <th>Phone</th>
                     <th>Status</th>
-                    <th>Last Update</th>
-                    <th>Error Details</th>
+                    <th>Last update</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($logs && $logs->num_rows > 0): ?>
                     <?php while ($l = $logs->fetch_assoc()):
-                        $lsc = $logClasses[$l['status']] ?? 'cv-status-pending';
                         $delivery = strtolower((string)($l['wa_delivery_status'] ?? ''));
                         $queueStatus = strtolower((string)($l['status'] ?? ''));
-                        $showStatus = $delivery !== '' ? $delivery : $queueStatus;
-                        
-                        $statusIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
-                        if ($delivery === 'read') $statusIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;flex-shrink:0"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>';
-                        elseif ($delivery === 'delivered') $statusIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;flex-shrink:0"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>';
-                        elseif ($delivery === 'sent' || $queueStatus === 'sent') $statusIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;flex-shrink:0"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>';
-                        elseif ($delivery === 'failed' || $queueStatus === 'failed') $statusIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>';
-                        
+                        $showStatus = ($queueStatus === 'failed' || $delivery === 'failed') ? 'failed' : ($delivery !== '' ? $delivery : $queueStatus);
+                        $svg = fn($inner, $w = 2) => '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' . $w . '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $inner . '</svg>';
+                        $ticks2 = $svg('<path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/>');
+                        $statusIcon = match ($showStatus) {
+                            'read', 'delivered' => $ticks2,
+                            'sent'   => $svg('<path d="M4 12.5l5 5L20 6.5"/>'),
+                            'failed' => $svg('<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" fill="currentColor" stroke="none"/><path d="M12 9v4M12 17h.01" stroke="#fff" stroke-width="2.4"/>'),
+                            'expired' => $svg('<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>'),
+                            default  => $svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+                        };
+                        $rawErr = trim((string)(($l['last_error_message'] ?? '') !== '' ? $l['last_error_message'] : ($l['error_message'] ?? '')));
+                        $err = ($showStatus === 'failed' && $rawErr !== '' && $rawErr !== '—') ? cv_clean_error($rawErr) : '';
                         $ts = $l['wa_delivery_ts'] ?? $l['scheduled_at'] ?? '';
+                        $name = trim((string)($l['contact_name'] ?? ''));
                     ?>
-                    <tr>
+                    <tr<?php echo $showStatus === 'failed' ? ' class="is-failed"' : ''; ?>>
                         <td>
                             <div class="cv-contact-cell">
-                                <div class="cv-contact-avatar"><?php echo strtoupper(substr($l['contact_name'] ?? '?', 0, 1)); ?></div>
-                                <span style="color:var(--text-primary);font-weight:500;"><?php echo htmlspecialchars($l['contact_name'] ?? 'Unknown'); ?></span>
+                                <div class="cv-contact-avatar"><?php echo htmlspecialchars(mb_strtoupper(mb_substr($name !== '' ? $name : '?', 0, 1))); ?></div>
+                                <span class="cv-contact-name"><?php echo htmlspecialchars($name !== '' ? $name : 'Unknown'); ?></span>
                             </div>
                         </td>
-                        <td><code class="cv-phone"><?php echo htmlspecialchars($l['phone']); ?></code></td>
-                        <td>
-                            <div style="display:flex;align-items:center;gap:6px;">
-                                <span style="font-size:16px;"><?php echo $statusIcon; ?></span>
-                                <span class="cv-log-badge <?php echo $logClasses[$showStatus] ?? 'cv-status-pending'; ?>"><?php echo ucfirst($showStatus); ?></span>
-                            </div>
+                        <td class="cv-phone"><?php echo htmlspecialchars((string)$l['phone']); ?></td>
+                        <td class="cv-status-cell">
+                            <span class="cv-st cv-st-<?php echo htmlspecialchars($showStatus); ?>"><?php echo $statusIcon; ?><b><?php echo htmlspecialchars(ucfirst($showStatus)); ?></b><?php if ($err !== ''): ?><span class="cv-st-reason" title="<?php echo htmlspecialchars($rawErr); ?>"> - <?php echo htmlspecialchars(mb_strimwidth($err, 0, 160, '…')); ?></span><?php endif; ?></span>
                         </td>
-                        <td class="cv-date"><?php echo $ts ? date('d M, H:i', strtotime($ts)) : '—'; ?></td>
-                        <td>
-                            <?php if (!empty($l['error_message']) && $l['error_message'] !== '—'): ?>
-                                <span class="cv-error-msg" title="<?php echo htmlspecialchars($l['error_message']); ?>"><?php echo htmlspecialchars(mb_strimwidth($l['error_message'], 0, 50, '...')); ?></span>
-                            <?php else: ?>
-                                <span style="color:var(--text-muted);">—</span>
-                            <?php endif; ?>
-                        </td>
+                        <td class="cv-date"><?php echo $ts ? date('D, j M Y', strtotime($ts)) . '<span>' . date('g:i a', strtotime($ts)) . '</span>' : '—'; ?></td>
                     </tr>
                     <?php endwhile; ?>
                 <?php else: ?>
-                    <tr><td colspan="5" class="cv-empty-log">
+                    <tr><td colspan="4" class="cv-empty-log">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
                         <span>No entries found in this view</span>
                     </td></tr>
@@ -764,9 +823,21 @@ window.addEventListener('load', campaignTickNow);
 .cv-btn-outline { background:var(--bg-input); border:1px solid var(--border); color:var(--text-primary); }
 .cv-btn-outline:hover { background:var(--border); }
 
+/* Retry failed (header button) */
+.cv-btn-retry-sm { color:#c2410c; }
+.cv-btn-retry-sm svg { flex-shrink:0; }
+.cv-retry-pop { position:relative; }
+.cv-retry-pop summary { list-style:none; }
+.cv-retry-pop summary::-webkit-details-marker { display:none; }
+.cv-retry-pop-body { position:absolute; right:0; top:calc(100% + 8px); z-index:50; width:300px; display:flex; flex-direction:column; gap:10px;
+  padding:16px; background:#fff; border-radius:12px; box-shadow:0 12px 32px rgba(15,23,42,.16); }
+.cv-retry-pop-body label { font-size:12.5px; font-weight:600; color:var(--text-primary); }
+.cv-retry-pop-body input[type=url] { height:36px; padding:0 10px; border:1px solid var(--border); border-radius:8px; font-size:13px; }
+.cv-retry-pop-body input[type=file] { font-size:12.5px; }
+.cv-retry-pop-body .cv-btn { justify-content:center; }
 /* Overview: Ring + Stats */
 .cv-overview { display:grid;grid-template-columns:280px 1fr;gap:24px;margin-bottom:28px; }
-.cv-ring-card { background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:28px;display:flex;flex-direction:column;align-items:center;gap:20px; }
+.cv-ring-card { background:var(--bg-card);border:none;box-shadow:0 1px 2px rgba(15,23,42,.04),0 4px 16px rgba(15,23,42,.06);border-radius:var(--radius);padding:28px;display:flex;flex-direction:column;align-items:center;gap:20px; }
 .cv-ring-wrap { position:relative;width:140px;height:140px; }
 .cv-ring-svg { width:100%;height:100%; }
 .cv-ring-progress { transition:stroke-dasharray 1s ease; }
@@ -781,30 +852,29 @@ window.addEventListener('load', campaignTickNow);
 
 /* Stat cards */
 .cv-stat-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:16px; }
-.cv-stat { background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;transition:all .3s; }
-.cv-stat::after { content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent-c);opacity:0;transition:opacity .3s; }
-.cv-stat:hover { border-color:color-mix(in srgb, var(--accent-c) 30%, transparent);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.2); }
-.cv-stat:hover::after { opacity:1; }
+.cv-stat { background:var(--bg-card);border:none;box-shadow:0 1px 2px rgba(15,23,42,.04),0 4px 16px rgba(15,23,42,.06);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;transition:all .3s; }
+.cv-stat:hover { transform:translateY(-2px);box-shadow:0 2px 4px rgba(15,23,42,.05),0 10px 24px rgba(15,23,42,.09); }
 .cv-stat-icon { width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;background:color-mix(in srgb, var(--accent-c) 12%, transparent);color:var(--accent-c); }
 .cv-stat-value { font-size:26px;font-weight:800;color:var(--text-primary);letter-spacing:-0.5px;margin-bottom:2px; }
 .cv-stat-label { font-size:12px;color:var(--text-muted);font-weight:500; }
 
 /* Details Grid */
 .cv-details-grid { display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px; }
-.cv-card { background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;overflow:hidden; }
+.cv-card { background:var(--bg-card);border:none;box-shadow:0 1px 2px rgba(15,23,42,.04),0 4px 16px rgba(15,23,42,.06);border-radius:var(--radius);padding:24px;overflow:hidden; }
 .cv-card-full { grid-column:1/-1; }
-.cv-card-header { display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border); }
+.cv-card-header { display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:16px; }
 .cv-card-header span:last-child:not(:nth-child(2)) { margin-left:auto; }
 
 /* Detail list */
-.cv-detail-list { display:flex;flex-direction:column; }
-.cv-detail-row { display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(42,45,62,0.5); }
-.cv-detail-row:last-child { border-bottom:none; }
+.cv-detail-list { display:flex;flex-direction:column;gap:2px; }
+.cv-detail-row { display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 12px;border-radius:8px; }
+.cv-detail-row:nth-child(odd) { background:#f8fafc; }
+.cv-detail-val { text-align:right; }
 .cv-detail-key { font-size:13px;color:var(--text-muted); }
 .cv-detail-val { font-size:13px;color:var(--text-primary);font-weight:500; }
 
 /* WhatsApp Preview */
-.cv-wa-phone { border-radius:16px;overflow:hidden;border:1px solid var(--border); }
+.cv-wa-phone { border-radius:16px;overflow:hidden; }
 .cv-wa-topbar { display:flex;align-items:center;gap:10px;padding:12px 16px;background:#075e54; }
 .cv-wa-avatar { width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a855f7);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff; }
 .cv-wa-body { background:#0b141a;padding:16px;min-height:160px; }
@@ -814,51 +884,76 @@ window.addEventListener('load', campaignTickNow);
 .cv-wa-text { font-size:13px;color:#e4e6eb;line-height:1.6;white-space:pre-wrap; }
 .cv-wa-footer { font-size:11px;color:rgba(255,255,255,0.4);margin-top:6px;font-style:italic; }
 .cv-wa-time { text-align:right;font-size:10px;color:rgba(255,255,255,0.35);margin-top:4px; }
+.cv-wa-bubble .cv-wa-header { background:none;padding:0;margin-bottom:6px;font-size:14px;font-weight:700; }
+.cv-wa-media { margin:-6px -8px 10px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.06);position:relative;min-height:90px;display:flex;align-items:center;justify-content:center; }
+.cv-wa-media img, .cv-wa-media video { display:block;width:100%;max-height:220px;object-fit:cover; }
+.cv-wa-media img + .cv-wa-media-label, .cv-wa-media video + .cv-wa-media-label { position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,0.55);padding:2px 8px;border-radius:10px; }
+.cv-wa-media-label { font-size:11px;color:rgba(255,255,255,0.75); }
+.cv-wa-buttons { max-width:95%;margin-top:3px;display:flex;flex-direction:column;gap:3px; }
+.cv-wa-btn { background:#1f2c34;border-radius:8px;padding:9px 10px;text-align:center;font-size:13px;font-weight:500;color:#53bdeb; }
+.cv-wa-btn span { opacity:.85;margin-right:4px; }
 
 /* Toolbar */
-.cv-toolbar { display:flex; align-items:center; justify-content:space-between; padding:12px 0; margin-bottom:16px; border-top:1px solid var(--border); border-bottom:1px solid var(--border); gap:16px; flex-wrap:wrap; }
-.cv-tabs { display:flex; gap:6px; }
-.cv-tab { padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; color:var(--text-muted); text-decoration:none; transition:all 0.2s; background:var(--bg-input); border:1px solid var(--border); }
-.cv-tab:hover { color:var(--text-primary); background:var(--border); }
-.cv-tab.active { background:rgba(108,92,231,0.12); color:var(--accent); border-color:rgba(108,92,231,0.25); }
+.cv-toolbar { display:flex; align-items:center; justify-content:space-between; padding:4px 0 0; margin-bottom:16px; gap:16px; flex-wrap:wrap; }
+.cv-tabs { display:inline-flex; gap:4px; padding:4px; background:#f1f5f9; border-radius:10px; }
+.cv-tab { padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; color:var(--text-muted); text-decoration:none; transition:all 0.2s; background:transparent; border:none; }
+.cv-tab:hover { color:var(--text-primary); }
+.cv-tab.active { background:#fff; color:var(--text-primary); box-shadow:0 1px 3px rgba(15,23,42,.1); }
 .cv-toolbar-actions { display:flex; align-items:center; gap:12px; }
 .cv-search-form { display:flex; position:relative; }
-.cv-search-input { background:var(--bg-input); border:1px solid var(--border); border-radius:8px; padding:8px 36px 8px 12px; font-size:13px; color:var(--text-primary); width:240px; }
+.cv-search-input { background:#f1f5f9; border:1px solid transparent; border-radius:8px; padding:8px 36px 8px 12px; font-size:13px; color:var(--text-primary); width:240px; }
 .cv-search-btn { position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; }
-.cv-btn-icon { display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:var(--bg-input); border:1px solid var(--border); color:var(--text-primary); transition:all 0.2s; }
-.cv-btn-icon:hover { background:var(--border); color:var(--accent); }
+.cv-btn-icon { display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:#f1f5f9; border:none; color:var(--text-primary); transition:all 0.2s; }
+.cv-btn-icon:hover { background:#e2e8f0; color:var(--accent); }
 
-/* Log Table */
-.cv-log-count { margin-left:auto;font-size:12px;font-weight:500;color:var(--text-muted);background:var(--bg-input);padding:3px 10px;border-radius:6px; }
+/* Log Table - no grid lines, zebra rows */
+.cv-log-count { margin-left:auto;font-size:12px;font-weight:600;color:var(--text-muted);background:#f1f5f9;padding:4px 10px;border-radius:20px; }
 .cv-log-table-wrap { overflow-x:auto;margin:0 -24px;padding:0 24px; }
-.cv-log-table { width:100%;border-collapse:collapse; }
-.cv-log-table th { text-align:left;padding:12px 16px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);border-bottom:1px solid var(--border);background:rgba(108,92,231,0.03); }
-.cv-log-table td { padding:14px 16px;font-size:13px;border-bottom:1px solid rgba(42,45,62,0.4);color:var(--text-secondary); }
-.cv-log-table tr:last-child td { border-bottom:none; }
-.cv-log-table tr:hover td { background:rgba(108,92,231,0.03); }
+.cv-log-table { width:100%;border-collapse:separate;border-spacing:0; }
+.cv-log-table th { text-align:left;padding:11px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);background:#f8fafc;border:none;white-space:nowrap; }
+.cv-log-table th:first-child { border-radius:10px 0 0 10px; }
+.cv-log-table th:last-child { border-radius:0 10px 10px 0; }
+.cv-log-table td { padding:13px 16px;font-size:13.5px;color:var(--text-secondary);border:none;vertical-align:middle; }
+.cv-log-table tbody tr:nth-child(even) td { background:#f8fafc; }
+.cv-log-table tbody tr:hover td { background:#eef4fd; }
+.cv-log-table tbody td:first-child { border-radius:10px 0 0 10px; }
+.cv-log-table tbody td:last-child { border-radius:0 10px 10px 0; }
 
-.cv-contact-cell { display:flex;align-items:center;gap:10px; }
-.cv-contact-avatar { width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#a855f7);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0; }
-.cv-phone { background:var(--bg-input);padding:3px 8px;border-radius:4px;font-size:12px;color:var(--text-secondary); }
-.cv-date { font-size:12px;color:var(--text-muted); }
-.cv-error-msg { font-size:12px;color:#ff4757;background:rgba(255,71,87,0.08);padding:4px 8px;border-radius:4px;display:inline-block;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.cv-contact-cell { display:flex;align-items:center;gap:10px;min-width:150px; }
+.cv-contact-avatar { width:30px;height:30px;border-radius:50%;background:#e8f0fc;color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0; }
+.cv-contact-name { color:var(--text-primary);font-weight:600; }
+.cv-phone { font-variant-numeric:tabular-nums;color:var(--text-secondary);white-space:nowrap; }
+.cv-date { font-size:13px;color:var(--text-secondary);white-space:nowrap; }
+.cv-date span { display:block;font-size:12px;color:var(--text-muted);margin-top:1px; }
 
-/* Log status badges */
+/* Status: icon + word, failure reason inline (like WhatsApp Manager) */
+.cv-status-cell { min-width:220px;max-width:460px; }
+.cv-st { display:inline;font-size:13.5px;line-height:1.5; }
+.cv-st svg { display:inline-block;vertical-align:-3px;margin-right:6px; }
+.cv-st b { font-weight:600; }
+.cv-st-read { color:#0ea5e9; }
+.cv-st-delivered { color:#64748b; }
+.cv-st-sent { color:#16a34a; }
+.cv-st-failed { color:#e11d48; }
+.cv-st-pending, .cv-st-queued, .cv-st-processing { color:#d97706; }
+.cv-st-expired { color:#94a3b8; }
+.cv-st-reason { font-size:12px;font-weight:500;color:#e11d48;opacity:.9; }
+
+/* kept for other badges on this page */
 .cv-log-badge { display:inline-flex;align-items:center;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600; }
 .cv-status-pending { background:rgba(255,152,0,0.10);color:#ff9800; }
-.cv-status-processing { background:rgba(33,150,243,0.10);color:#2196f3; }
-.cv-status-sent { background:rgba(33,150,243,0.10);color:#2196f3; }
+.cv-status-processing, .cv-status-sent { background:rgba(33,150,243,0.10);color:#2196f3; }
 .cv-status-delivered { background:rgba(0,200,83,0.10);color:#00c853; }
 .cv-status-read { background:rgba(167,139,250,0.10);color:#a78bfa; }
 .cv-status-failed { background:rgba(255,71,87,0.10);color:#ff4757; }
-
-.cv-pagination { display:flex; align-items:center; justify-content:space-between; padding:16px 24px; border-top:1px solid var(--border); margin:16px -24px -24px -24px; background:rgba(108,92,231,0.02); }
+.cv-pagination { display:flex; align-items:center; justify-content:space-between; padding:14px 24px; margin:12px -24px -24px -24px; background:#f8fafc; }
 .cv-pagination-info { font-size:12px; color:var(--text-muted); }
 .cv-pagination-btns { display:flex; gap:8px; }
-.cv-page-btn { padding:6px 14px; border-radius:8px; background:var(--bg-input); border:1px solid var(--border); color:var(--text-primary); font-size:12px; text-decoration:none; font-weight:600; }
-.cv-page-btn:hover { background:var(--border); }
+.cv-page-btn { padding:7px 14px; border-radius:8px; background:#fff; border:none; box-shadow:0 1px 2px rgba(15,23,42,.08); color:var(--text-primary); font-size:12px; text-decoration:none; font-weight:600; }
+.cv-page-btn:hover { color:var(--accent); }
 
-.cv-empty-log { text-align:center;padding:48px 20px !important;color:var(--text-muted);display:flex;flex-direction:column;align-items:center;gap:8px; }
+.cv-empty-log { text-align:center;padding:48px 20px !important;color:var(--text-muted); }
+.cv-empty-log svg, .cv-empty-log span { display:block;margin:0 auto 8px; }
 
 /* Animation */
 @keyframes cvSlideIn { from { opacity:0;transform:translateY(-10px); } to { opacity:1;transform:translateY(0); } }
@@ -872,7 +967,10 @@ window.addEventListener('load', campaignTickNow);
     .cv-header-actions { padding-top:0; }
 }
 @media(max-width:600px) {
-    .cv-stat-grid { grid-template-columns:1fr; }
+    .cv-stat-grid { grid-template-columns:repeat(2,1fr); gap:12px; }
+    .cv-stat { padding:16px; }
+    .cv-stat-icon { width:34px;height:34px;margin-bottom:10px; }
+    .cv-stat-value { font-size:22px; }
     .cv-title { font-size:20px; }
 }
 </style>

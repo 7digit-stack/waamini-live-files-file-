@@ -12,7 +12,8 @@ $currentPage = 'waamini_bot_knowledge';
 $S = WB_Store::settings($conn);
 $bot = WB_Store::bot($conn, $companyId, true);
 $available = WB_Store::platformReady($S) && $bot && $bot['is_admin_enabled'];
-$tab = in_array($_GET['tab'] ?? 'web', ['web', 'docs', 'qa'], true) ? $_GET['tab'] : 'web';
+$tab = (string)($_GET['tab'] ?? 'web');
+if (!in_array($tab, ['web', 'docs', 'qa'], true)) $tab = 'web';
 
 $botId = (int)($bot['id'] ?? 0);
 $sources = []; $qas = [];

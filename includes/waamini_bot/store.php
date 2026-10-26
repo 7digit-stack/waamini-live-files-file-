@@ -90,6 +90,7 @@ TXT;
             return [false, 'Encryption is unavailable on this server, the key was not saved.'];
         }
         $last4 = substr($key, -4);
+        $c->query("INSERT IGNORE INTO ai_platform_settings (id) VALUES (1)"); // the UPDATE below needs the row
         $st = $c->prepare("UPDATE ai_platform_settings SET openai_key_encrypted = ?, key_last4 = ?, key_ok = 0, key_tested_at = NULL, key_error = NULL WHERE id = 1");
         if (!$st) { return [false, 'Could not save the key.']; }
         $st->bind_param('ss', $cipher, $last4);

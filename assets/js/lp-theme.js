@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // pricing.php
         '.wa-conv-type', '.wa-mp-tip-card',
         // support.php
-        '.contact-card',
+        '.contact-card', '.sp-way', '.sp-q', '.sp-form', '.sp-visit',
         // blogs.php
         '.blog-card',
         // ecommerce / education / healthcare / real-estate
@@ -268,26 +268,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 200);
     });
 
-    /* ── pointer:fine-gated effects: cursor + magnetic hover. Touch
-       devices never receive this pointer-only JS. ── */
+    /* ── pointer:fine-gated effects: magnetic hover on buttons. Touch devices never
+       receive this pointer-only JS. (The custom circle cursor was removed: the site uses
+       the normal system pointer.) ── */
     var mm = gsap.matchMedia();
     mm.add('(pointer: fine)', function () {
-        var ring = document.createElement('div');
-        ring.className = 'lp-cursor';
-        var dot = document.createElement('div');
-        dot.className = 'lp-cursor-dot';
-        document.body.appendChild(ring);
-        document.body.appendChild(dot);
-        window.addEventListener('mousemove', function (e) {
-            gsap.to(ring, { x: e.clientX, y: e.clientY, duration: 0.3 });
-            gsap.to(dot, { x: e.clientX, y: e.clientY, duration: 0.1 });
-        }, { passive: true });
-
         // Magnetic hover on buttons — pulls toward the cursor at a small
         // fraction of the offset, elastic snap-back on release.
         var magneticSelectors = [
             '.btn-primary-glow', '.btn-buy', '.it-explore-btn', '.ai-sc-cta',
-            '.btn-cta', '.plan-cta', '.submit-btn', '.ind-btn-primary', '.btn-delete-request'
+            '.btn-cta', '.plan-cta', '.submit-btn', '.ind-btn-primary', '.btn-delete-request', '.sp-send', '.sp-dir'
         ];
         document.querySelectorAll(magneticSelectors.join(',')).forEach(function (el) {
             el.addEventListener('mousemove', function (e) {
@@ -300,10 +290,5 @@ document.addEventListener('DOMContentLoaded', function () {
                 gsap.to(el, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.4)' });
             });
         });
-
-        return function () {
-            ring.remove();
-            dot.remove();
-        };
     });
 });

@@ -74,11 +74,7 @@ $__ico = static fn(string $k) => '<svg aria-hidden="true"><use href="#wma-i-' . 
             <circle class="r-band" cx="200" cy="200" r="128"/>
             <text class="band-text" text-anchor="middle"><textPath href="#wma-arc" startOffset="50%">AUTOMATION PLATFORM</textPath></text>
             <circle class="r-disc" cx="200" cy="200" r="86"/>
-            <path class="bub-back" d="M178 136h60a16 16 0 0 1 16 16v32a16 16 0 0 1-16 16h-34l-18 16v-16h-8a16 16 0 0 1-16-16v-32a16 16 0 0 1 16-16z"/>
-            <path class="bub-front" d="M170 128h60a16 16 0 0 1 16 16v32a16 16 0 0 1-16 16h-34l-18 16v-16h-8a16 16 0 0 1-16-16v-32a16 16 0 0 1 16-16z"/>
-            <circle class="bub-dot" cx="182" cy="160" r="5"/>
-            <circle class="bub-dot d2" cx="200" cy="160" r="5"/>
-            <circle class="bub-dot d3" cx="218" cy="160" r="5"/>
+            <image href="assets/img/waamini-mark.png" x="138" y="138" width="124" height="66" preserveAspectRatio="xMidYMid meet"/>
             <text class="brand" x="200" y="250" text-anchor="middle">WAAMINI</text>
           </svg>
         </div>

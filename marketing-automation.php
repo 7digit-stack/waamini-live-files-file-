@@ -1,6 +1,7 @@
 <?php
 $fp = [
     'slug' => 'marketing-automation.php',
+    'hub' => 'marketing',
     'title' => 'WhatsApp Marketing Automation & Drip Campaigns | Waamini',
     'meta_desc' => 'Automate follow-ups, drip sequences, missed-call replies, review requests and lead nurturing on WhatsApp.',
     'meta_keywords' => 'WhatsApp automation, drip campaign WhatsApp, lead follow up automation, missed call WhatsApp',

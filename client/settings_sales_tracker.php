@@ -79,7 +79,7 @@ $lI = static function (string $p, int $sz = 20): string {
 $trackerOn = (int)($s['is_active'] ?? 1) === 1;
 include '../includes/client_header.php';
 ?>
-<link rel="stylesheet" href="<?php echo app_url('assets/css/section-ui.css?v=2'); ?>">
+<link rel="stylesheet" href="<?php echo app_url('assets/css/section-ui.css?v=3'); ?>">
 
 <div class="su">
 

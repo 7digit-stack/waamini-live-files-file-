@@ -719,8 +719,15 @@
     }
   }
   function openPop(el) {
+    // chat composer popups (.wa-pop) fade in with plain CSS in whatsapp.php; a JS tween there could leave them invisible
+    if (el.classList.contains('wa-pop')) return;
     var origin = el.classList.contains('wa-pop') ? 'bottom left' : 'top right';
-    from([el], { scale: 0.96, opacity: 0, transformOrigin: origin, duration: 0.25, ease: 'power2.out' });
+    // fromTo with an explicit end, not from(): from() animates towards the *current* opacity, so
+    // re-opening a menu while its last fade was still running froze it at ~1% opacity.
+    gsap.killTweensOf(el);
+    gsap.fromTo(el, { scale: 0.96, opacity: 0 },
+      { scale: 1, opacity: 1, transformOrigin: origin, duration: 0.2, ease: 'power2.out',
+        clearProps: 'opacity,transform,scale,transformOrigin' });
   }
 
   function initOverlays() {

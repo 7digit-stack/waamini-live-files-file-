@@ -127,7 +127,7 @@ if ($rs) {
 
 include '../includes/client_header.php';
 ?>
-<link rel="stylesheet" href="<?php echo app_url('assets/css/section-ui.css?v=2'); ?>">
+<link rel="stylesheet" href="<?php echo app_url('assets/css/section-ui.css?v=3'); ?>">
 <style>
 .gc-hero { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:24px; align-items:center; }
 .gc-glogo { width:20px; height:20px; flex:none; }
@@ -167,7 +167,7 @@ include '../includes/client_header.php';
 <?php endif; ?>
 <?php if (!$serverReady): ?>
 <?php
-    $suggestedRedirect = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'your-site.com') . app_url('auth/google-callback.php');
+    $suggestedRedirect = (((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || strtolower((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https') ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'your-site.com') . app_url('auth/google-callback.php');
     $missingKeys = [];
     if ($envId === '') $missingKeys[] = 'GOOGLE_CLIENT_ID';
     if ($envSecret === '') $missingKeys[] = 'GOOGLE_CLIENT_SECRET';
@@ -184,7 +184,7 @@ include '../includes/client_header.php';
     <span class="hint" style="font-size:12.5px;color:#586a63">Tip: while the Google app is in "Testing" mode, add each client's Google email under OAuth consent screen &rarr; Test users, or publish the app so any Google account can sign in.</span>
 </section>
 <?php elseif ($hostMismatch): ?>
-<div class="su-alert err" style="margin-bottom:18px"><?php echo $lI('<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>', 18); ?> <span>Google is set up for <strong><?php echo htmlspecialchars($redirectHost); ?></strong> but you are on <strong><?php echo htmlspecialchars($thisHost); ?></strong>, so Google will show "redirect_uri_mismatch". The administrator must set GOOGLE_REDIRECT_URI to <code><?php echo htmlspecialchars(((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? '') . app_url('auth/google-callback.php')); ?></code> and add the same address in Google Cloud under Authorized redirect URIs.</span></div>
+<div class="su-alert err" style="margin-bottom:18px"><?php echo $lI('<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>', 18); ?> <span>Google is set up for <strong><?php echo htmlspecialchars($redirectHost); ?></strong> but you are on <strong><?php echo htmlspecialchars($thisHost); ?></strong>, so Google will show "redirect_uri_mismatch". The administrator must set GOOGLE_REDIRECT_URI to <code><?php echo htmlspecialchars((((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || strtolower((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https') ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? '') . app_url('auth/google-callback.php')); ?></code> and add the same address in Google Cloud under Authorized redirect URIs.</span></div>
 <?php endif; ?>
 
 <div class="su-grid">

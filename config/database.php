@@ -9,6 +9,7 @@ use PDO;
 use PDOException;
 
 require_once __DIR__ . '/env.php';
+require_once dirname(__DIR__) . '/includes/cron_runlog.php';   // cron jobs: note when this script ran
 
 class Database {
     private static ?PDO $instance = null;
@@ -46,7 +47,10 @@ class Database {
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
             PDO::ATTR_PERSISTENT => filter_var(Env::get('DB_PERSISTENT', 'false'), FILTER_VALIDATE_BOOLEAN),
-            PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci'
+            // Same SQL mode as db.php, so queries behave the same on every host (see DB_SQL_MODE there)
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci, SESSION sql_mode = '"
+                . (preg_match('/^[A-Z_,]*$/', (string)Env::get('DB_SQL_MODE', '')) && Env::get('DB_SQL_MODE', '') !== '' ? Env::get('DB_SQL_MODE', '') : 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION') . "'"
+                . ", time_zone = '" . date('P') . "'" // same clock as PHP date() (see db.php)
         ];
 
         try {

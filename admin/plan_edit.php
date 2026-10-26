@@ -40,6 +40,8 @@ $_newCols = [
     'feat_ads_capi'          => "TINYINT(1) NOT NULL DEFAULT 0",
     'feat_ads_insights'      => "TINYINT(1) NOT NULL DEFAULT 0",
     'feat_ads_builder'       => "TINYINT(1) NOT NULL DEFAULT 0",
+    // Shopify add-on (off by default)
+    'feat_shopify'           => "TINYINT(1) NOT NULL DEFAULT 0",
 ];
 foreach ($_newCols as $_col => $_def) {
     try {
@@ -147,10 +149,10 @@ if (isset($_POST['save'])) {
     $featNotifications = intval($_POST['feat_notifications'] ?? 0);
     $feat2fa = intval($_POST['feat_2fa'] ?? 0);
     $adsFlags = [];
-    foreach (['feat_ads_attribution', 'feat_ads_capi', 'feat_ads_insights', 'feat_ads_builder'] as $_af) { $adsFlags[$_af] = intval($_POST[$_af] ?? 0) ? 1 : 0; }
+    foreach (['feat_ads_attribution', 'feat_ads_capi', 'feat_ads_insights', 'feat_ads_builder', 'feat_shopify'] as $_af) { $adsFlags[$_af] = intval($_POST[$_af] ?? 0) ? 1 : 0; }
     $saveAdsFlags = static function (int $planId) use ($conn, $adsFlags): void {
-        $st = $conn->prepare("UPDATE subscription_plans SET feat_ads_attribution=?, feat_ads_capi=?, feat_ads_insights=?, feat_ads_builder=? WHERE id=?");
-        if ($st) { $st->bind_param('iiiii', $adsFlags['feat_ads_attribution'], $adsFlags['feat_ads_capi'], $adsFlags['feat_ads_insights'], $adsFlags['feat_ads_builder'], $planId); $st->execute(); }
+        $st = $conn->prepare("UPDATE subscription_plans SET feat_ads_attribution=?, feat_ads_capi=?, feat_ads_insights=?, feat_ads_builder=?, feat_shopify=? WHERE id=?");
+        if ($st) { $st->bind_param('iiiiii', $adsFlags['feat_ads_attribution'], $adsFlags['feat_ads_capi'], $adsFlags['feat_ads_insights'], $adsFlags['feat_ads_builder'], $adsFlags['feat_shopify'], $planId); $st->execute(); }
     };
 
     $monthlyEnabled = isset($_POST['monthly_enabled']) ? 1 : 0;
@@ -263,6 +265,7 @@ if (!$plan) {
         'feat_ads_capi' => 0,
         'feat_ads_insights' => 0,
         'feat_ads_builder' => 0,
+        'feat_shopify' => 0,
     ];
 }
 
@@ -492,7 +495,7 @@ endforeach; ?>
                 <?php
 $toolFeatures = [
     ['feat_gst_invoice', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>', 'GST Invoices', '#0984e3'],
-    ['feat_blacklist', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M22 2 2 22"/></svg>', 'Blacklist', '#e74c3c'],
+    ['feat_blacklist', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>', 'Blacklist', '#e74c3c'],
     ['feat_wa_health', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>', 'WA Health Monitor', '#00b894'],
     ['feat_chatbot_builder', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>', 'Chatbot Builder', '#6c5ce7'],
     ['feat_scheduled_msg', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>', 'Scheduled Messages', '#fdcb6e'],
@@ -542,6 +545,30 @@ foreach ($adsFeatures as $f):
 endforeach; ?>
             </div>
             <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">Ad Lead Attribution shows which Click-to-WhatsApp ad brought each lead. Turn it on for single companies under Companies → Edit → Add-ons.</div>
+        </div>
+
+        <!-- Shopify add-on -->
+        <div style="margin-top:16px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2px;"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg> Shopify add-on</div>
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;">
+                <?php
+$shopifyFeatures = [
+    ['feat_shopify', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>', 'Shopify', '#5E8E3E', 'WhatsApp order, COD, shipping and abandoned-checkout messages from the client\'s Shopify store'],
+];
+foreach ($shopifyFeatures as $f):
+    $checked = ($plan[$f[0]] ?? 0) ? 'checked' : '';
+?>
+                <div class="feature-toggle-card <?php echo $checked ? 'active' : ''; ?>" data-feature="<?php echo htmlspecialchars($f[0]); ?>" title="<?php echo htmlspecialchars($f[4]); ?>">
+                    <input type="hidden" name="<?php echo $f[0]; ?>" value="0">
+                    <input type="checkbox" name="<?php echo $f[0]; ?>" id="<?php echo $f[0]; ?>" <?php echo $checked; ?> style="display:none;" value="1">
+                    <div class="feature-icon" style="background:<?php echo htmlspecialchars($f[3], ENT_QUOTES, 'UTF-8'); ?>20;color:<?php echo htmlspecialchars($f[3], ENT_QUOTES, 'UTF-8'); ?>;"><?php echo $f[1]; ?></div>
+                    <div class="feature-name"><?php echo htmlspecialchars($f[2], ENT_QUOTES, 'UTF-8'); ?></div>
+                    <div class="feature-check"><?php if ($checked): ?><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><path d="M20 6 9 17l-5-5"/></svg><?php endif; ?></div>
+                </div>
+                <?php
+endforeach; ?>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">Lets clients connect their Shopify store (Integrations → Shopify) for WhatsApp order, COD, shipping and abandoned-checkout messages. Turn it on for single companies under Companies → Edit → Add-ons.</div>
         </div>
 
         <!-- Message Limit -->

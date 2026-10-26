@@ -144,7 +144,36 @@ function wa_chat_render_body(array $m): string
         return $out . '</div>';
     }
 
+    // types that have no text of their own: show what they are instead of an empty bubble
+    if ($type === 'sticker') {
+        return $media !== ''
+            ? '<img class="wa-sticker" src="' . $src($media) . '" alt="Sticker" loading="lazy">'
+            : '<div class="wa-message-text wa-msg-note">Sticker</div>';
+    }
+    if ($type === 'reaction') {
+        return '<div class="wa-message-text wa-msg-note">' . ($text !== '' ? 'Reacted ' . wa_chat_h($text) . ' to a message' : 'Removed a reaction') . '</div>';
+    }
+    if (preg_match('/^\[location(?::(-?[\d.]+),(-?[\d.]+))?\]$/', $text, $loc)) {
+        $label = '📍 Location';
+        return !empty($loc[1])
+            ? '<div class="wa-message-text"><a href="https://www.google.com/maps?q=' . rawurlencode($loc[1] . ',' . $loc[2]) . '" target="_blank" rel="noopener noreferrer">' . $label . '</a></div>'
+            : '<div class="wa-message-text">' . $label . '</div>';
+    }
+    if ($text === '[contact]') {
+        return '<div class="wa-message-text wa-msg-note">👤 Contact card</div>';
+    }
+    if ($type === 'order') {
+        return '<div class="wa-message-text">🛒 Order received</div>';
+    }
+
     if ($text !== '' && !in_array($text, ['[image]', '[video]'], true)) $out .= '<div class="wa-message-text">' . wa_chat_format($text) . '</div>';
+
+    if ($out === '') {
+        $what = ['image' => '📷 Photo', 'video' => '🎥 Video', 'document' => '📄 Document'][$type] ?? '';
+        $out = '<div class="wa-message-text wa-msg-note">'
+             . ($what !== '' ? $what . ' (file not available)' : 'This message can only be seen in the WhatsApp app')
+             . '</div>';
+    }
     return $out;
 }
 
@@ -155,7 +184,7 @@ function wa_chat_row_html(array $m): string
     $ts = strtotime((string)($m['created_at'] ?? ''));
     $body = wa_chat_render_body($m);
     $isMedia = in_array((string)($m['type'] ?? ''), ['image', 'video'], true) && !empty($m['media_url']) && strpos($body, 'wa-message-text') === false;
-    $tick = $isOut && function_exists('wa_tick_html') ? wa_tick_html((string)($m['status'] ?? 'sent')) : '';
+    $tick = $isOut && function_exists('wa_tick_html') ? wa_tick_html((string)($m['status'] ?? 'sent'), (string)($m['error_message'] ?? '')) : '';
     return '<div class="wa-message-row ' . ($isOut ? 'outgoing' : 'incoming') . '" data-msgid="' . (int)($m['id'] ?? 0) . '"'
         . ' data-day="' . ($ts ? date('Y-m-d', $ts) : '') . '" data-daylabel="' . ($ts && function_exists('wa_day_label') ? wa_chat_h(wa_day_label($ts)) : '') . '">'
         . '<div class="wa-message-bubble' . ($isMedia ? ' media-only' : '') . '">' . $body

@@ -6,6 +6,7 @@
 .wf-top{position:relative;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:24px;padding-bottom:36px;margin-bottom:40px;border-bottom:1px solid rgba(255,255,255,.1)}
 .wf-brand{display:flex;flex-direction:column;gap:12px;max-width:420px}
 .wf-logo{display:inline-flex;align-items:center;gap:10px;text-decoration:none}
+.wf-logo-img{display:block;height:40px;width:auto}
 .wf-logo-ic{width:40px;height:40px;border-radius:12px;background:#128C7E;display:inline-flex;align-items:center;justify-content:center}
 .wf-logo-word{font-family:'Exo 2','Inter',sans-serif;font-style:italic;font-weight:800;text-transform:uppercase;font-size:26px;letter-spacing:.4px;color:#fff;line-height:1}
 .wf-tag{margin:0;font-size:14.5px;line-height:1.6;color:rgba(255,255,255,.66)}
@@ -38,8 +39,7 @@
         <div class="wf-top">
             <div class="wf-brand">
                 <a href="index.php" class="wf-logo" aria-label="Waamini Home">
-                    <span class="wf-logo-ic"><svg width="22" height="22" viewBox="0 0 20 20" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M10 2C5.858 2 2.5 4.91 2.5 8.5c0 1.74.75 3.32 1.98 4.49L3.5 16.5l3.72-1.49C8.07 15.65 9.01 15.8 10 15.8c4.142 0 7.5-2.91 7.5-6.5S14.142 2 10 2z" fill="white" opacity="0.95"/><path d="M7.5 8.5h5M7.5 11h3" stroke="#128C7E" stroke-width="1.6" stroke-linecap="round"/></svg></span>
-                    <span class="wf-logo-word">Waamini</span>
+                    <img src="assets/img/waamini-logo.png" alt="Waamini" class="wf-logo-img" width="205" height="40">
                 </a>
                 <p class="wf-tag">India's WhatsApp CRM and automation platform. Automate replies, run campaigns and close more deals from one dashboard.</p>
             </div>

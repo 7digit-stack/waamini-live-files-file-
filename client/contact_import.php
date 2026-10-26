@@ -298,27 +298,74 @@ include '../includes/client_header.php';
         <div class="ci-tabs" role="tablist" aria-label="Import source">
             <button type="button" class="ci-tab is-on" data-tab="csv" role="tab" aria-selected="true">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-                Upload CSV file</button>
+                Upload CSV<span class="ci-long"> file</span></button>
             <button type="button" class="ci-tab" data-tab="chats" role="tab" aria-selected="false">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
-                From WhatsApp chats <em><?php echo number_format($sync['chat']); ?></em></button>
+                <span class="ci-lbl">From<span class="ci-long"> WhatsApp</span> chats</span> <em><?php echo number_format($sync['chat']); ?></em></button>
         </div>
 
         <div class="ci-pane" data-pane="csv">
 
         <!-- Format guide -->
-        <div style="background:rgba(0,184,148,0.06);border:1px solid rgba(0,184,148,0.18);padding:16px 20px;border-radius:10px;margin-bottom:24px;">
-            <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:10px;">CSV Column Format</div>
-            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center;">
-                <?php foreach(['name','phone_number','email','group_name','custom_field'] as $col): ?>
-                <div style="background:var(--bg-dark);border-radius:6px;padding:8px 4px;font-size:11px;font-weight:600;color:var(--primary);"><?php echo $col; ?></div>
+        <?php $ciCols = [
+            ['phone_number', true,  '9876543210',        'Also read as: phone, mobile'],
+            ['name',         false, 'Rahul Kumar',       ''],
+            ['email',        false, 'rahul@example.com', ''],
+            ['group_name',   false, 'Diwali offer',      'New groups are created for you'],
+            ['custom_field', false, 'VIP',               'Also read as: tags, notes'],
+        ]; ?>
+        <div class="ci-fmt">
+            <div class="ci-fmt-h">
+                <div>
+                    <b>CSV column format</b>
+                    <span>Put these headers in the first row. Only <code>phone_number</code> is required.</span>
+                </div>
+                <a href="contact_import.php?download_template=1" class="ci-fmt-dl"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> Sample CSV</a>
+            </div>
+            <div class="ci-cols" role="table" aria-label="CSV columns">
+                <div class="ci-col ci-col-head" role="row"><span role="columnheader">Column</span><span role="columnheader">Example</span><span role="columnheader">Notes</span></div>
+                <?php foreach ($ciCols as [$col, $req, $ex, $note]): ?>
+                <div class="ci-col" role="row">
+                    <span role="cell"><code><?php echo $col; ?></code><em class="<?php echo $req ? 'is-req' : ''; ?>"><?php echo $req ? 'Required' : 'Optional'; ?></em></span>
+                    <span role="cell" class="ci-ex"><?php echo htmlspecialchars($ex); ?></span>
+                    <span role="cell" class="ci-note"><?php echo htmlspecialchars($note); ?></span>
+                </div>
                 <?php endforeach; ?>
             </div>
-            <p style="font-size:11px;color:var(--text-muted);margin-top:10px;margin-bottom:0;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;flex-shrink:0"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg> <strong>phone_number</strong> is required. Numbers without a country code get the code you pick below, so <code>9876543210</code>, <code>09876543210</code> and <code>+91 98765 43210</code> all match the same WhatsApp chat. Existing contacts are updated, not duplicated.
-                Other columns are optional. The <strong>group_name</strong> column auto-creates groups if they don't exist.
-            </p>
+            <p class="ci-fmt-tip">Numbers without a country code get the code you pick below, so <code>9876543210</code>, <code>09876543210</code> and <code>+91 98765 43210</code> all match the same WhatsApp chat. Existing contacts are updated, not duplicated.</p>
         </div>
+        <style>
+        .ci-fmt{background:#F4FBF8;border-radius:16px;padding:18px;margin-bottom:24px}
+        .ci-fmt-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+        .ci-fmt-h b{display:block;font-size:15px;font-weight:700;color:var(--text-primary)}
+        .ci-fmt-h span{display:block;margin-top:3px;font-size:13px;color:var(--text-muted);line-height:1.45}
+        .ci-fmt code{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;font-weight:600;color:#0B6B5E;background:#E3F5EE;padding:2px 7px;border-radius:6px}
+        .ci-fmt-dl{display:inline-flex;align-items:center;gap:6px;flex:none;height:36px;padding:0 14px;border-radius:10px;background:#fff;color:#0B6B5E;font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+        .ci-fmt-dl:hover{background:#E3F5EE}
+        .ci-cols{background:#fff;border-radius:12px;overflow:hidden}
+        .ci-col{display:grid;grid-template-columns:minmax(170px,1.1fr) minmax(120px,1fr) minmax(0,1.3fr);gap:12px;align-items:center;padding:11px 14px;font-size:13px}
+        .ci-col:nth-child(even){background:#F8FBFA}
+        .ci-col-head{padding:9px 14px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);background:#EEF5F2!important}
+        .ci-col>span:first-child{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+        .ci-col em{font-style:normal;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:#EEF2F1;color:#64748B}
+        .ci-col em.is-req{background:#FFF1E6;color:#C2410C}
+        .ci-ex{color:var(--text-primary);font-variant-numeric:tabular-nums}
+        .ci-note{color:var(--text-muted);font-size:12.5px}
+        .ci-fmt-tip{margin:12px 0 0;font-size:12.5px;line-height:1.55;color:var(--text-muted)}
+        @media (max-width:640px){
+          .ci-fmt{padding:14px;border-radius:14px}
+          .ci-fmt-h{flex-direction:column;gap:10px}
+          .ci-fmt-dl{width:100%;justify-content:center;height:40px}
+          .ci-col-head{display:none}
+          .ci-col{grid-template-columns:1fr auto;grid-template-areas:"name ex" "note note";gap:4px 10px;padding:12px}
+          .ci-col>span:first-child{grid-area:name}
+          .ci-ex{grid-area:ex;text-align:right;font-size:12.5px;color:var(--text-secondary)}
+          .ci-note{grid-area:note}
+          .ci-note:empty{display:none}
+          .ci-col:nth-child(even){background:transparent}
+          .ci-col+.ci-col{box-shadow:inset 0 1px 0 #EEF3F1}
+        }
+        </style>
 
         <form method="POST" enctype="multipart/form-data">
             <?php echo csrf_field(); ?>
@@ -546,6 +593,7 @@ include '../includes/client_header.php';
 .ci-tab em{font-style:normal;padding:2px 8px;border-radius:999px;background:#E3F7EE;color:#0B6B5E;font-size:12px}
 .ci-tab.is-on{background:#fff;color:#0F2622;box-shadow:0 1px 3px rgba(15,38,34,.12)}
 .ci-tab.is-on svg{color:#128C7E}
+@media (max-width:640px){.ci-tabs{gap:4px;padding:4px}.ci-tab{gap:6px;height:42px;padding:0 6px;font-size:13px;white-space:nowrap;min-width:0}.ci-tab svg{display:none}.ci-long{display:none}.ci-tab{overflow:hidden}.ci-lbl{overflow:hidden;text-overflow:ellipsis}.ci-tab em{flex:none}.ci-tab em{padding:1px 7px;font-size:11.5px}}
 .ci-lead{margin:0 0 8px;font-size:13.5px;line-height:1.55;color:#5F6F6A}
 .ci-side .cs-box{padding:0;background:transparent}
 </style>

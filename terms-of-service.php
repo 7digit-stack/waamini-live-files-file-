@@ -2,7 +2,7 @@
 $page_title = "Terms of Service";
 $meta_desc = "Terms of Service for Waamini WhatsApp Business API CRM. Legal guidelines for using our platform and official WhatsApp API.";
 $asyncStylesheets = [
-  'assets/css/landing-neo.css?v=15',
+  'assets/css/landing-neo.css?v=16',
 ];
 $bodyClass = 'lp-neo';
 include 'includes/header.php';

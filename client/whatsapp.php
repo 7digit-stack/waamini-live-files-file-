@@ -377,6 +377,11 @@ $lastInboundAt = null;
 if ($activeContactId > 0) {
     $adsCols = ads_columns_ready($conn) ? ', lead_source, lead_stage, won_value' : '';
     $stC = $conn->prepare("SELECT id, name, phone, chat_labels, notes, assigned_to, group_id, email, client_company, city, ai_lead_score, ai_sentiment, language, ai_score_updated{$adsCols} FROM contacts WHERE id=? AND company_id=? LIMIT 1");
+    if (!$stC) {
+        // A missing optional column (schema not migrated) must not stop the chat from opening.
+        error_log('[WAAMINI whatsapp] contact query failed, using basic columns: ' . $conn->error);
+        $stC = $conn->prepare("SELECT * FROM contacts WHERE id=? AND company_id=? LIMIT 1");
+    }
     if ($stC) {
         $stC->bind_param("ii", $activeContactId, $companyId);
         $stC->execute();
@@ -447,7 +452,7 @@ if ($activeContactId > 0) {
         }
 
         $stM = $conn->prepare("
-          SELECT id, direction, type, content, message, media_url, meta_json, status, created_at
+          SELECT id, direction, type, content, message, media_url, meta_json, status, error_message, created_at
           FROM messages
           WHERE company_id=? AND contact_id=?
           ORDER BY id DESC
@@ -717,7 +722,9 @@ $emojis = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇'
 .wa-composer-note{padding:10px 0;color:var(--wa-sub);font-size:14px;text-align:center}
 
 .wa-pop{display:none;position:absolute;bottom:66px;left:16px;background:#fff;border-radius:16px;box-shadow:0 2px 5px rgba(11,20,26,.26),0 2px 10px rgba(11,20,26,.16);z-index:70}
-.wa-pop.show{display:block}
+.wa-pop.show{display:block;opacity:1;animation:waPopIn .16s ease-out}
+@keyframes waPopIn{from{opacity:0;transform:translateY(6px) scale(.97)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.wa-pop.show{animation:none}}
 .wa-attach{padding:8px;min-width:230px}
 .wa-attach button{display:flex;align-items:center;gap:14px;width:100%;border:0;background:none;padding:9px 12px;border-radius:10px;font-size:14.5px;color:var(--wa-ink);cursor:pointer;text-align:left}
 .wa-attach button:hover{background:var(--wa-hover)}
@@ -834,11 +841,94 @@ $emojis = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇'
   .wa-crm-sidebar.open{position:fixed;z-index:10000;width:100%}
   .wa-hd-right .wa-bot-pill{padding:0 10px}
 }
+
+/* message types without text (sticker, reaction, contact card, missing file) */
+.wa-sticker{display:block;width:128px;max-width:100%;height:auto;margin:2px 0 14px}
+.wa-msg-note{color:var(--wa-sub);font-style:italic}
+
+/* ══════════════════════════════════════════════════════════════════════
+   PHONE (≤768px) — looks and works like the WhatsApp app.
+   Desktop is untouched: every rule below lives inside this media query.
+   ══════════════════════════════════════════════════════════════════════ */
+@media (max-width:768px){
+  body:has(.wa-app){overflow:hidden}
+  .wa-app{position:fixed;left:0;right:0;bottom:0;top:var(--topbar-height,64px);height:auto;min-height:0;
+          border-radius:0;box-shadow:none;z-index:5;background:#fff;font-size:15px}
+  .wa-rail{display:none}
+
+  /* ── 1. Chat list (no chat open): the list is the whole screen ───────── */
+  .wa-app.no-chat .wa-sidebar{position:static;left:auto;width:100%;min-width:0;max-width:none;height:100%;transition:none}
+  .wa-app.no-chat .wa-chat-area{display:none}
+  .wa-app.no-chat .wa-side-h .wa-mobile-back{display:none!important}
+  .wa-side-h{height:58px;padding:0 8px 0 18px}
+  .wa-side-h h1{font-size:25px;font-weight:700;color:#1daa61;letter-spacing:-.3px}
+  .wa-search{padding:2px 16px 12px}
+  .wa-search-box{height:46px;border-radius:24px;padding:0 16px;gap:14px;background:#f0f2f5}
+  .wa-search-box svg{width:20px;height:20px}
+  .wa-search-box input{font-size:16px}
+  .wa-filters{padding:0 16px 8px;gap:8px}
+  .wa-chip{padding:7px 14px;border-radius:20px;font-size:14.5px;background:#fff;color:#3b4a54;box-shadow:inset 0 0 0 1px #d1d7db}
+  .wa-chip.on{background:#d9fdd3;color:#0a5c36;box-shadow:none;font-weight:600}
+  .wa-contact-list{padding-bottom:96px}
+  .wa-contact-item{height:76px;margin:0;border-radius:0;padding:0 16px;gap:14px}
+  .wa-contact-item.active{background:transparent}
+  .wa-contact-item:active{background:#f0f2f5}
+  .wa-contact-list .wa-avatar{width:52px;height:52px;font-size:18px}
+  .wa-contact-name{font-size:17px;font-weight:500}
+  .wa-contact-reltime{font-size:12.5px}
+  .wa-contact-item.has-unread .wa-contact-reltime{color:#1daa61;font-weight:700}
+  .wa-contact-sub-row{margin-top:4px}
+  .wa-contact-snippet{font-size:15px}
+  .wa-unread-badge{min-width:22px;height:22px;border-radius:11px;font-size:12.5px;font-weight:700;background:#25d366}
+  /* "new chat" becomes WhatsApp's floating green button */
+  .wa-app.no-chat .wa-side-h .acts a.wa-ib{position:fixed;right:18px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:30;
+          width:58px;height:58px;border-radius:18px;background:#1daa61;color:#fff;box-shadow:0 4px 14px rgba(11,20,26,.25)}
+  .wa-app.no-chat .wa-side-h .acts a.wa-ib svg{width:24px;height:24px}
+
+  /* ── 2. Open chat: full screen, panel top bar hidden ──────────────────── */
+  body:has(.wa-app.has-chat) .topbar{display:none!important}
+  .wa-app.has-chat{top:0;background:var(--wa-chat)}
+  .wa-app.has-chat .wa-sidebar{width:100vw}
+  .wa-chat-header{height:60px;padding:0 6px 0 2px;gap:6px;background:#fff;box-shadow:0 1px 0 rgba(11,20,26,.06);position:relative;z-index:3}
+  .wa-chat-header .wa-avatar{width:40px;height:40px}
+  .wa-chat-title .name{font-size:17px;font-weight:600}
+  .wa-chat-title .sub{font-size:12.5px}
+  .wa-hd-right{gap:0}
+  .wa-hd-right .wa-bot-pill{height:30px;font-size:12px}
+
+  /* AI analysis: one quiet line instead of a big yellow block */
+  .wa-ai-bar{flex-wrap:nowrap;gap:8px;padding:6px 12px;font-size:12px;overflow:hidden}
+  .wa-ai-bar > span:first-child{font-size:10.5px}
+  #aiLeadReason{min-width:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #aiLeadApply,#aiLeadRefresh{flex:none}
+
+  /* messages */
+  .wa-chat-messages{padding:6px 2px 10px;background-size:330px auto}
+  .wa-sysmsg span{font-size:12px;max-width:92%}
+  .wa-date-sep span{font-size:12.5px}
+  .wa-message-row{padding:0 10px}
+  .wa-message-bubble{max-width:84%;font-size:15.5px;line-height:21px;padding:6px 8px 8px 9px;border-radius:9px}
+  .wa-message-meta{font-size:11.5px}
+  .wa-message-bubble.media-only{max-width:78%}
+
+  /* composer: white pill (emoji · text · attach) + round green send */
+  .wa-chat-input{background:transparent;padding:6px 6px calc(8px + env(safe-area-inset-bottom))}
+  .wa-closed-note{font-size:12px;border-radius:10px;margin:0 2px 6px}
+  .wa-cmp{position:relative;gap:6px;align-items:flex-end}
+  .wa-cmp-box{min-height:50px;border-radius:26px;padding:4px 46px 4px 4px;box-shadow:0 1px 1.5px rgba(11,20,26,.12)}
+  .wa-cmp-box textarea{font-size:16px;line-height:21px;padding:10px 4px;height:42px}
+  .wa-cmp>#waBtnAttach{position:absolute;right:60px;bottom:5px;margin:0;z-index:2;width:40px;height:40px}
+  .wa-cmp>#waBtnAttach:hover{background:transparent}
+  .wa-send{width:50px;height:50px;background:#1daa61}
+  .wa-send svg{width:23px;height:23px}
+  .wa-attach{left:8px;right:8px;width:auto}
+  .wa-scroll-down{right:12px}
+}
 </style>
 
 <div class="sidebar-overlay" id="waSidebarOverlay" style="display:none;"></div>
 
-<div class="wa-app" id="waApp">
+<div class="wa-app<?php echo $activeContact ? ' has-chat' : ' no-chat'; ?>" id="waApp" data-wm-skip>
   <!-- Navigation rail, like WhatsApp Web -->
   <nav class="wa-rail" aria-label="Inbox navigation">
     <a class="wa-ib on" href="whatsapp.php" title="Chats" aria-label="Chats"><?php echo $ico['chats']; ?><?php if ($tabCounts['all'] && ($railUnread = array_sum(array_map(fn($c) => (int)$c['unread_count'], $contacts)))): ?><span class="wa-rail-dot"><?php echo $railUnread > 99 ? '99+' : $railUnread; ?></span><?php endif; ?></a>
@@ -989,7 +1079,7 @@ $emojis = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇'
   ?>
   <main class="wa-chat-area">
     <header class="wa-chat-header">
-      <button type="button" class="wa-ib wa-mobile-back" onclick="toggleWaSidebar(true)" aria-label="Back to chats"><?php echo $ico['back']; ?></button>
+      <a class="wa-ib wa-mobile-back" href="whatsapp.php?tab=<?php echo $h($filterTab); ?>" aria-label="Back to chats"><?php echo $ico['back']; ?></a>
       <?php echo $avatar($hdrName, $hdrDisplay); ?>
       <div class="wa-chat-title" onclick="toggleWaCrm(true)" title="Contact info">
         <div class="name"><?php echo $h($hdrDisplay); ?></div>
@@ -1119,6 +1209,67 @@ $emojis = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇'
           <div class="total"><span>Total</span><b id="quoteFinalTotal">₹0.00</b></div>
           <button type="button" class="go" id="quoteSend">Send quotation</button>
         </div>
+        <script nonce="<?php echo $waNonce; ?>">
+        // Composer controls (+ menu, emoji, file pickers, quick replies, payment, quotation).
+        // Kept in their own small script right after the composer, so an error anywhere else on
+        // the page can never stop the + menu from opening.
+        (function () {
+          var ids = ['waAttachMenu', 'waEmojiPop', 'waQuickPopover', 'waPayPop', 'waQuotePop'];
+          var pops = ids.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+          var file = document.getElementById('waMediaFile');
+          var input = document.getElementById('messageInput');
+          function closeAll() { pops.forEach(function (p) { p.classList.remove('show'); }); }
+          function toggle(id) {
+            pops.forEach(function (p) {
+              var open = p.id === id && !p.classList.contains('show');
+              // clear anything an animation left behind, so an open menu is always fully visible
+              if (open) { p.style.opacity = ''; p.style.transform = ''; p.style.visibility = ''; }
+              p.classList.toggle('show', open);
+            });
+          }
+          function chip(f) {
+            var c = document.getElementById('waFileChip'), n = document.getElementById('waFileName');
+            if (!c) return;
+            c.style.display = f ? 'flex' : 'none';
+            if (n) n.textContent = f ? '📎 ' + (f.name || 'attachment') : '';
+            if (!f && file) file.value = '';
+          }
+          var attach = document.getElementById('waBtnAttach'), emoji = document.getElementById('waBtnEmoji');
+          if (attach) attach.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); toggle('waAttachMenu'); });
+          if (emoji) emoji.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); toggle('waEmojiPop'); });
+          document.addEventListener('click', function (e) {
+            if (!e.target.closest || !e.target.closest('.wa-pop')) closeAll();
+          });
+          pops.forEach(function (p) {
+            var x = p.querySelector('[data-close]');
+            if (x) x.addEventListener('click', function () { p.classList.remove('show'); });
+          });
+          document.querySelectorAll('#waAttachMenu [data-attach]').forEach(function (b) {
+            b.addEventListener('click', function (e) {
+              e.stopPropagation();
+              var k = b.getAttribute('data-attach');
+              if (k === 'doc' || k === 'media') {
+                closeAll();
+                if (!file) return;
+                file.accept = k === 'doc' ? '.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.ppt,.pptx' : 'image/*,video/*';
+                file.click();
+              } else if (k === 'product') {
+                closeAll();
+                if (input) {
+                  input.value += (input.value ? '\n' : '') + 'View our catalog: ' + window.location.origin + '/client/catalog.php';
+                  input.focus();
+                  input.dispatchEvent(new Event('input'));
+                }
+              } else {
+                toggle({ quick: 'waQuickPopover', pay: 'waPayPop', quote: 'waQuotePop' }[k]);
+              }
+            });
+          });
+          if (file) file.addEventListener('change', function () { chip(file.files && file.files[0] ? file.files[0] : null); });
+          var clear = document.getElementById('waFileClear');
+          if (clear) clear.addEventListener('click', function () { chip(null); });
+        })();
+        </script>
       <?php else: ?>
         <div class="wa-composer-note">Sending is turned off for this account.</div>
       <?php endif; ?>
@@ -1337,7 +1488,7 @@ document.addEventListener('click', e => {
   b.textContent = 'Copied'; setTimeout(() => { b.textContent = 'Copy'; }, 1500);
 });
 // Phones: with no chat open, show the chat list straight away.
-if (window.innerWidth <= 768 && !<?php echo $activeContact ? 'true' : 'false'; ?>) toggleWaSidebar(true);
+// phones: with no chat open the chat list already fills the screen (see the phone CSS), so no slide-in panel
 
 // Chat list search + Unread filter
 (function () {
@@ -1423,26 +1574,7 @@ function waInsert(txt) {
 }
 const pops = ['waAttachMenu', 'waEmojiPop', 'waQuickPopover', 'waPayPop', 'waQuotePop'].map(id => document.getElementById(id)).filter(Boolean);
 function waPop(id) { pops.forEach(p => p.classList.toggle('show', p.id === id && !p.classList.contains('show'))); }
-document.getElementById('waBtnAttach')?.addEventListener('click', e => { e.stopPropagation(); waPop('waAttachMenu'); });
-document.getElementById('waBtnEmoji')?.addEventListener('click', e => { e.stopPropagation(); waPop('waEmojiPop'); });
-document.addEventListener('click', e => { if (!e.target.closest('.wa-pop')) pops.forEach(p => p.classList.remove('show')); });
-pops.forEach(p => p.querySelector('[data-close]')?.addEventListener('click', () => p.classList.remove('show')));
-document.querySelectorAll('#waAttachMenu [data-attach]').forEach(b => b.addEventListener('click', e => {
-  e.stopPropagation();
-  const k = b.dataset.attach;
-  if (k === 'doc' || k === 'media') {
-    pops.forEach(p => p.classList.remove('show'));
-    mediaInput.accept = k === 'doc' ? '.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.ppt,.pptx' : 'image/*,video/*';
-    mediaInput.click();
-  } else if (k === 'product') {
-    pops.forEach(p => p.classList.remove('show'));
-    waInsert((msgInput.value ? '\n' : '') + 'View our catalog: ' + window.location.origin + '/client/catalog.php');
-  } else {
-    waPop({ quick: 'waQuickPopover', pay: 'waPayPop', quote: 'waQuotePop' }[k]);
-  }
-}));
-mediaInput?.addEventListener('change', () => setAttachment(mediaInput.files && mediaInput.files[0] ? mediaInput.files[0] : null));
-document.getElementById('waFileClear')?.addEventListener('click', () => setAttachment(null));
+// + menu, emoji and file pickers are wired in the small script right after the composer
 document.querySelectorAll('#waEmojiPop .wa-emoji-grid button').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); waInsert(b.textContent); }));
 document.querySelectorAll('#waQuickPopover .wa-qr-item').forEach(el => el.addEventListener('click', () => {
   msgInput.value = el.getAttribute('data-qr') || ''; waAutoGrow(); msgInput.focus(); pops.forEach(p => p.classList.remove('show'));

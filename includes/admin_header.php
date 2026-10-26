@@ -9,11 +9,14 @@ if (!isset($currentPage))
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+    <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $pageTitle; ?> &ndash; WAAMINI Admin</title>
-    <link rel="stylesheet" href="../assets/css/admin.css?v=10">
-    <link rel="stylesheet" href="../assets/css/sidebar-pro.css?v=2">
+    <link rel="stylesheet" href="../assets/css/admin.css?v=11">
+    <link rel="stylesheet" href="../assets/css/sidebar-pro.css?v=4">
     <style>
     /* Real-time registration toasts */
     #wmn-toast-stack{position:fixed;bottom:24px;right:24px;z-index:99999;display:flex;flex-direction:column-reverse;gap:10px;pointer-events:none;}
@@ -44,6 +47,7 @@ if (!isset($currentPage))
     #sidebar{view-transition-name:wm-sidebar}
     @media (prefers-reduced-motion: reduce){@view-transition{navigation:none}}
     </style>
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=5">
 </head>
 <body>
 <script nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>">
@@ -51,7 +55,7 @@ if (!isset($currentPage))
   var d = document.documentElement;
   d.classList.add('wm-preload');
   // Remembered collapsed sidebar is applied before the first paint (no expand-then-collapse jump)
-  try { if (localStorage.getItem('wmn_sidebar_collapsed') === '1') document.body.classList.add('sb-collapsed'); } catch (e) {}
+  try { if (localStorage.getItem('wmn_sidebar_collapsed') === '1' && window.matchMedia('(min-width: 1025px)').matches) document.body.classList.add('sb-collapsed'); } catch (e) {}
   if (!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
     d.classList.add('wm-pre');
     setTimeout(function () { d.classList.remove('wm-pre'); }, 1500); // never stay hidden
@@ -63,11 +67,8 @@ if (!isset($currentPage))
 </script>
 <!-- SIDEBAR -->
 <aside class="admin-sidebar" id="sidebar">
-    <a href="/index.php" class="sidebar-brand" style="text-decoration: none;">
-        <div class="logo-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M13 8H7"/><path d="M17 12H7"/></svg>
-        </div>
-        <h2 style="margin:0;color:#fff;">WAAMINI</h2>
+    <a href="/index.php" class="sidebar-brand" style="text-decoration: none;" aria-label="Waamini home">
+        <img class="sb-logo-full" src="/assets/img/waamini-logo.png" alt="Waamini" width="174" height="34"><img class="sb-logo-mini" src="/assets/img/waamini-icon.png" alt="Waamini" width="42" height="42">
     </a>
     <nav class="sidebar-nav">
         <div class="nav-section-title">Main</div>
@@ -116,6 +117,9 @@ if (!isset($currentPage))
         <div class="nav-section-title">Configurations</div>
         <a href="/admin/google_setup.php" class="nav-item <?php echo $currentPage === 'google_setup' ? 'active' : ''; ?>">
             <span class="icon"><svg viewBox="0 0 24 24"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg></span> Google Login (Meet)
+        </a>
+        <a href="/admin/settings_shopify.php" class="nav-item <?php echo $currentPage === 'settings_shopify' ? 'active' : ''; ?>">
+            <span class="icon"><svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span> Shopify app
         </a>
         <a href="/admin/settings.php" class="nav-item <?php echo $currentPage === 'settings' ? 'active' : ''; ?>">
             <span class="icon"><svg viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></span> Overview
@@ -186,7 +190,7 @@ if (isset($conn)) {
         </a>
     </nav>
 </aside>
-<script src="../assets/js/sidebar-collapse.js?v=2"></script>
+<script src="../assets/js/sidebar-collapse.js?v=3"></script>
 
 <script>
 // Standard sidebar: submenu expand/collapse is pure CSS (checkbox + label),
@@ -577,4 +581,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <div id="wmn-toast-stack" aria-live="polite" aria-atomic="false"></div>
 
+<?php
+$wmTabs = [
+    ['dashboard', 'Home', '/admin/dashboard.php', '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/>'],
+    ['companies', 'Vendors', '/admin/companies.php', '<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h1"/><path d="M14 9h1"/><path d="M9 13h1"/><path d="M14 13h1"/><path d="M10 21v-4h4v4"/>', ['users', 'client_view', 'client_create', 'company_add', 'company_edit', 'user_add', 'user_edit']],
+    ['subscriptions', 'Plans', '/admin/subscriptions.php', '<rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>', ['plans', 'plan_edit', 'subscription_add', 'subscription_view', 'subscriptions_manual', 'revenue', 'coupons']],
+    ['support_inbox', 'Support', '/admin/support_inbox.php', '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>'],
+];
+include __DIR__ . '/mobile_tabbar.php';
+?>
 <main class="admin-main">

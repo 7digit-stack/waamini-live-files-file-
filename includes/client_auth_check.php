@@ -10,6 +10,21 @@ include_once __DIR__ . '/../config/bootstrap.php';
 // Dynamic app base path — works at document root AND in any subdirectory
 if (!function_exists('app_url')) {
     function app_url(string $path = ''): string {
+        // Production: APP_URL in .env is the source of truth when it is the site being visited
+        // (e.g. APP_URL=https://waamini.com -> base ''). Symlinked hosting folders can't confuse it.
+        static $envBase = false;
+        if ($envBase === false) {
+            $envBase = null;
+            $appUrl = (string)($_ENV['APP_URL'] ?? getenv('APP_URL') ?: '');
+            $host = strtolower(preg_replace('/:\d+$/', '', (string)($_SERVER['HTTP_HOST'] ?? '')));
+            $u = $appUrl !== '' ? parse_url($appUrl) : false;
+            if ($u && !empty($u['host']) && $host !== ''
+                && preg_replace('/^www\./', '', strtolower($u['host'])) === preg_replace('/^www\./', '', $host)) {
+                $envBase = rtrim((string)($u['path'] ?? ''), '/');
+            }
+        }
+        if ($envBase !== null) return $envBase . '/' . ltrim($path, '/');
+
         // Base = URL path (SCRIPT_NAME) minus the script's path inside the app,
         // computed from the filesystem. E.g.:
         //   /waamini/client/dashboard.php -> /waamini   (subdirectory install)
@@ -29,7 +44,8 @@ if (!function_exists('app_url')) {
         if ($base === null) {
             // Fallback (symlinked/aliased installs): first URL segment if it is a directory
             $parts = explode('/', trim($script, '/'));
-            $base  = count($parts) > 1 ? '/' . $parts[0] : '';
+            $appDirs = ['client', 'admin', 'api', 'auth', 'landing-admin', 'includes', 'assets'];
+            $base  = (count($parts) > 1 && !in_array(strtolower($parts[0]), $appDirs, true)) ? '/' . $parts[0] : '';
         }
         return rtrim($base, '/') . '/' . ltrim($path, '/');
     }

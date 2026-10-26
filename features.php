@@ -4,7 +4,7 @@ $meta_desc = "Explore Waamini's powerful WhatsApp Business CRM features: Bulk ca
 $meta_keywords = "WhatsApp Campaign Management, WhatsApp Bot Builder, WhatsApp CRM Features, WhatsApp Business API Solutions";
 $asyncStylesheets = [
   'assets/css/features.css?v=10',
-  'assets/css/landing-neo.css?v=15',
+  'assets/css/landing-neo.css?v=16',
 ];
 $bodyClass = 'lp-neo';
 $pageCriticalCss = <<<'CSS'
@@ -721,7 +721,7 @@ include 'includes/header.php';
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.16/dist/lenis.min.js" nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>"></script>
-<script src="assets/js/lp-theme.js?v=4" nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>"></script>
+<script src="assets/js/lp-theme.js?v=5" nonce="<?php echo htmlspecialchars($_SESSION['_csp_nonce'] ?? ''); ?>"></script>
 
 <?php include 'includes/footer.php'; ?>
 

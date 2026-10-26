@@ -13,6 +13,8 @@
   function uid(p) { return (p || 'n') + '_' + Math.random().toString(36).slice(2, 10); }
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  // phones: palette is a bottom dock and the step editor a bottom sheet (see flow-canvas.css)
+  function PHONE() { return !!(window.matchMedia && window.matchMedia('(max-width:640px)').matches); }
   function h(html) { var d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; }
 
   var SV = function (p) { return '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>'; };
@@ -123,17 +125,24 @@
   }
   function fit() {
     var b = bbox(); var r = view.getBoundingClientRect();
-    if (!b) { S.view = { x: 260, y: 120, z: 1 }; applyView(); return; }
-    var padL = 250, padR = insp.classList.contains('is-open') ? 390 : 60, pad = 70;
+    var phone = PHONE();
+    if (!b) { S.view = phone ? { x: Math.max(12, (r.width - NODE_W) / 2), y: 40, z: 1 } : { x: 260, y: 120, z: 1 }; applyView(); return; }
+    var padL = phone ? 14 : 250, padR = phone ? 14 : (insp.classList.contains('is-open') ? 390 : 60);
+    var padT = phone ? 24 : 70, padB = phone ? 96 : 70;
     var w = b.x2 - b.x1, hh = b.y2 - b.y1;
-    var z = clamp(Math.min((r.width - padL - padR) / w, (r.height - pad * 2) / hh), 0.35, 1);
+    var z = clamp(Math.min((r.width - padL - padR) / w, (r.height - padT - padB) / hh), phone ? 0.45 : 0.35, 1);
     S.view.z = z;
     S.view.x = padL + ((r.width - padL - padR) - w * z) / 2 - b.x1 * z;
-    S.view.y = (r.height - hh * z) / 2 - b.y1 * z;
+    S.view.y = padT + ((r.height - padT - padB) - hh * z) / 2 - b.y1 * z;
     applyView();
   }
   function centerOn(n) {
     var r = view.getBoundingClientRect();
+    if (PHONE()) {
+      // keep the step in the part of the screen the bottom sheet does not cover
+      S.view.x = r.width / 2 - (n.x + NODE_W / 2) * S.view.z;
+      S.view.y = (insp.classList.contains('is-open') ? r.height * 0.16 : r.height * 0.4) - (n.y + 60) * S.view.z; applyView(); return;
+    }
     S.view.x = r.width / 2 - (n.x + NODE_W / 2) * S.view.z - (insp.classList.contains('is-open') ? 180 : 0) + 100;
     S.view.y = r.height / 2 - (n.y + 60) * S.view.z; applyView();
   }
@@ -273,6 +282,7 @@
     Object.keys(S.nodes).forEach(function (id) { renderNode(S.nodes[id]); });
     renderEdges(); applyView();
     $('#fbEmpty').style.display = Object.keys(S.nodes).length ? 'none' : 'block';
+    if (PHONE()) $('#fbEmpty').textContent = 'Tap a step below to start your flow';
   }
 
   /* ── minimap ──────────────────────────────────────────────────────────── */
@@ -434,6 +444,35 @@
 
   /* ── pointer interaction ──────────────────────────────────────────────── */
   var downPos = null;
+  // Two-finger pinch to zoom (phones and tablets). Runs before the normal handlers and stops them while pinching.
+  var touches = {}, pinch = null;
+  view.addEventListener('pointerdown', function (ev) {
+    if (ev.pointerType !== 'touch') return;
+    touches[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
+    var ids = Object.keys(touches);
+    if (ids.length === 2) {
+      var a = touches[ids[0]], b = touches[ids[1]];
+      pinch = { d: Math.max(10, Math.hypot(a.x - b.x, a.y - b.y)), z: S.view.z };
+      S.pan = null; S.drag = null; S.link = null; S.box = null;
+      view.classList.remove('is-pan', 'is-linking');
+      ev.stopImmediatePropagation();
+    }
+  }, true);
+  view.addEventListener('pointermove', function (ev) {
+    if (!touches[ev.pointerId]) return;
+    touches[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
+    if (!pinch) return;
+    var ids = Object.keys(touches); if (ids.length < 2) return;
+    var a = touches[ids[0]], b = touches[ids[1]];
+    zoomAt(pinch.z * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d, (a.x + b.x) / 2, (a.y + b.y) / 2);
+    ev.stopImmediatePropagation();
+  }, true);
+  function endTouch(ev) {
+    delete touches[ev.pointerId];
+    if (pinch && Object.keys(touches).length < 2) { pinch = null; markViewDirty(); }
+  }
+  view.addEventListener('pointerup', endTouch, true);
+  view.addEventListener('pointercancel', endTouch, true);
   view.addEventListener('pointerdown', function (ev) {
     if (ev.button !== 0 && ev.button !== 1) return;
     hideMenu();
@@ -952,7 +991,8 @@
       setSave('Saved');
       if (created) { S.dirty = true; save(); }
       else { api('validate', { graph: graphPayload() }).then(function (vr) { if (vr.ok) applyIssues(vr.issues); }); }
-      selectOnly(Object.keys(S.nodes).length === 1 ? Object.keys(S.nodes)[0] : null);
+      // a one-step flow opens its editor straight away on desktop; on phones the sheet would cover the canvas
+      selectOnly(!PHONE() && Object.keys(S.nodes).length === 1 ? Object.keys(S.nodes)[0] : null);
       syncLinked(true);
     }).catch(function () { setSave('Could not load', true); });
   }

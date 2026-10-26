@@ -31,13 +31,13 @@ if (!function_exists('wa_day_label')) {
 
 if (!function_exists('wa_tick_html')) {
     /** Delivery ticks for outgoing messages: clock, single, double grey, double blue, failed. */
-    function wa_tick_html(string $status): string {
+    function wa_tick_html(string $status, string $reason = ''): string {
         $svg = static function (string $inner, int $w = 16, int $h = 11): string {
             return '<svg width="' . $w . '" height="' . $h . '" viewBox="0 0 ' . $w . ' ' . $h . '" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' . $inner . '</svg>';
         };
         $status = strtolower($status);
         if ($status === 'failed') {
-            return '<span class="wa-tick failed" title="Failed to send">!</span>';
+            return '<span class="wa-tick failed" title="' . htmlspecialchars($reason !== '' ? 'Failed to send: ' . $reason : 'Failed to send', ENT_QUOTES) . '">!</span>';
         }
         if (in_array($status, ['queued', 'pending', 'sending', 'processing'], true)) {
             return '<span class="wa-tick" title="Sending">' . $svg('<circle cx="6" cy="5.5" r="4.2"/><polyline points="6 3.2 6 5.6 7.6 6.5"/>', 12, 11) . '</span>';

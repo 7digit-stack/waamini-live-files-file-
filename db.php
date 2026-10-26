@@ -16,6 +16,8 @@ if (!defined('WAAMINI_LOADED')) {
     // Allow includes from legacy endpoints that don't load bootstrap.php.
     define('WAAMINI_LOADED', true);
 }
+// cron jobs: note when this script ran (Admin > System Report > Cron jobs)
+require_once __DIR__ . '/includes/cron_runlog.php';
 
 // Ensure env is loaded even for legacy scripts that include db.php directly
 if (file_exists(__DIR__ . '/config/env.php')) {
@@ -129,3 +131,16 @@ if (!($conn instanceof mysqli) || $conn->connect_error) {
 
 // UTF-8MB4 for emoji and full Unicode
 @$conn->set_charset('utf8mb4');
+
+// Same SQL mode on every server. Hosts such as Hostinger enable ONLY_FULL_GROUP_BY / STRICT_TRANS_TABLES by
+// default; many queries (e.g. "SELECT g.* ... GROUP BY g.id") were written and tested without them and fail there.
+// Override with DB_SQL_MODE in .env if needed.
+$dbSqlMode = (string)($_ENV['DB_SQL_MODE'] ?? getenv('DB_SQL_MODE') ?: 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION');
+if (!preg_match('/^[A-Z_,]*$/', $dbSqlMode)) $dbSqlMode = 'NO_ENGINE_SUBSTITUTION';
+@$conn->query("SET SESSION sql_mode = '" . $dbSqlMode . "'");
+
+// MySQL NOW() must use the same clock as PHP date(). Hostinger's MySQL runs in UTC while the app runs in
+// Asia/Kolkata; mixed values (run_at from PHP, NOW() from MySQL) made queued AI replies wait ~5.5 hours.
+$appTzDb = (string)($_ENV['APP_TIMEZONE'] ?? getenv('APP_TIMEZONE') ?: 'Asia/Kolkata'); // legacy scripts skip bootstrap.php
+if (date_default_timezone_get() !== $appTzDb) { @date_default_timezone_set($appTzDb); }
+@$conn->query("SET time_zone = '" . date('P') . "'");

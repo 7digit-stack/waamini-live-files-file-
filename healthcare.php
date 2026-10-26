@@ -4,8 +4,8 @@ $meta_desc = "Modernize your clinic or hospital with Waamini's Healthcare WhatsA
 $meta_keywords = "Healthcare WhatsApp CRM, Clinic Appointment Bot, Patient Management WhatsApp, Hospital Marketing Automation";
 $asyncStylesheets = [
   'assets/css/industries.css?v=5.0',
-  'assets/css/landing-neo.css?v=15',
-  'assets/css/ind-wa.css?v=1',
+  'assets/css/landing-neo.css?v=16',
+  'assets/css/ind-wa.css?v=2',
 ];
 $bodyClass = 'lp-neo';
 include 'includes/header.php';
@@ -78,9 +78,7 @@ include 'includes/header.php';
                 <div class="ind-mockup">
                     <div class="ind-mockup-header">
                         <div class="ind-mockup-brand">
-                            <div class="ind-mockup-dot mdot-hc">
-                                <svg viewBox="0 0 24 24"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>
-                            </div>
+                            <div class="ind-mockup-dot mdot-hc wm-av"><img class="wm-av-img" src="assets/img/waamini-mark.png" alt="" width="36" height="19"></div>
                             Clinic Assistant
                         </div>
                         <div class="ind-mockup-mac"><span></span><span></span><span></span></div>

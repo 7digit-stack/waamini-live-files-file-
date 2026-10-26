@@ -153,21 +153,33 @@ function is_subscription_expired() {
         return $expiredCache[$cid];
     }
 
-    // Return cached result if still valid (1 hour TTL)
+    // Session cache: an active result is kept for 1 hour; an expired result only for 60 seconds, so a client
+    // whose subscription the admin has just added or renewed gets access straight away instead of an hour later.
     $cacheKey = '_sub_expired_' . $cid;
     $cacheTs   = '_sub_checked_at_' . $cid;
-    if (isset($_SESSION[$cacheKey], $_SESSION[$cacheTs]) && (time() - $_SESSION[$cacheTs]) < 3600) {
-        $expiredCache[$cid] = (bool)$_SESSION[$cacheKey];
-        return $expiredCache[$cid];
+    if (isset($_SESSION[$cacheKey], $_SESSION[$cacheTs])) {
+        $ttl = $_SESSION[$cacheKey] ? 60 : 3600;
+        if ((time() - $_SESSION[$cacheTs]) < $ttl) {
+            $expiredCache[$cid] = (bool)$_SESSION[$cacheKey];
+            return $expiredCache[$cid];
+        }
     }
 
-    // Cache miss — query the DB
+    // Cache miss — query the DB. A subscription with no end date (lifetime, or added without one) never expires,
+    // so it is picked first; otherwise the one that ends last.
     try {
-        $stmt = $conn->prepare("SELECT expires_at FROM subscriptions WHERE company_id = ? AND status IN ('active','trial') ORDER BY expires_at DESC LIMIT 1");
+        $stmt = $conn->prepare("SELECT expires_at FROM subscriptions WHERE company_id = ? AND status IN ('active','trial')
+            ORDER BY (expires_at IS NULL OR expires_at < '1971-01-01') DESC, expires_at DESC LIMIT 1");
         $stmt->bind_param("i", $cid);
         $stmt->execute();
         $res = $stmt->get_result()->fetch_assoc();
-        $expired = (!$res) ? true : strtotime($res['expires_at']) < strtotime(date('Y-m-d'));
+        if (!$res) {
+            $expired = true;
+        } else {
+            $end = trim((string)($res['expires_at'] ?? ''));
+            $endTs = ($end === '' || strpos($end, '0000-00-00') === 0) ? false : strtotime($end);
+            $expired = ($endTs !== false && $endTs > 0) ? date('Y-m-d', $endTs) < date('Y-m-d') : false;
+        }
     } catch (\Exception $e) {
         $expired = false; // can't verify — assume active so pages don't get blocked
     }
@@ -247,6 +259,8 @@ function has_feature($feature)
         'ads_capi' => 'feat_ads_capi',
         'ads_insights' => 'feat_ads_insights',
         'ads_builder' => 'feat_ads_builder',
+        // Shopify add-on (plan flag, or per company via companies.features_override)
+        'shopify' => 'feat_shopify',
     ];
 
     $col = $map[$feature] ?? $feature;

@@ -1,0 +1,312 @@
+/* ════════════════════════════════════════════════════════════════════
+   WAAMINI panel - phone layout (client + admin)
+   Loaded after every other panel stylesheet. Page styles live inline in
+   each page, so selectors here start with "html body" to win on
+   specificity instead of piling up !important.
+   ════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+
+  /* ── 1. Stat / KPI tiles: two per row instead of one ─────────────────── */
+  html body :is(.db-kpis, .su-kpis, .cp-kpis, .tp-kpis, .stk-kpis, .sb-kpis, .ph-kpis, .loy-kpis,
+                .la-kpis, .ct-kpis, .cs-kpis, .cg-kpis, .br-kpis, .ads-kpis,
+                .stats-grid, .oc-stats, .zp-stats, .wf-stats, .sp-metrics, .om-stats, .odash-kpi-grid,
+                .ig-stats, .ga-stat-grid, .fe-stats, .dc-stats, .db-stats, .au-stats, .cv-stat-grid) {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+  html body :is(.db-kpis, .su-kpis, .cp-kpis, .tp-kpis, .stk-kpis, .sb-kpis, .ph-kpis, .loy-kpis,
+                .la-kpis, .ct-kpis, .cs-kpis, .cg-kpis, .br-kpis, .ads-kpis,
+                .stats-grid, .oc-stats, .zp-stats, .wf-stats, .sp-metrics, .om-stats, .odash-kpi-grid,
+                .ig-stats, .ga-stat-grid, .fe-stats, .dc-stats, .db-stats, .au-stats, .cv-stat-grid) > * {
+    min-width: 0;
+    margin: 0 !important;
+    padding: 14px !important;
+    border-radius: 14px;
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    text-align: left;
+  }
+  /* an odd last tile fills the row instead of leaving a hole */
+  html body :is(.db-kpis, .su-kpis, .cp-kpis, .tp-kpis, .stk-kpis, .sb-kpis, .ph-kpis, .loy-kpis,
+                .la-kpis, .ct-kpis, .cs-kpis, .cg-kpis, .br-kpis, .ads-kpis,
+                .stats-grid, .oc-stats, .zp-stats, .wf-stats, .sp-metrics, .om-stats, .odash-kpi-grid,
+                .ig-stats, .ga-stat-grid, .fe-stats, .dc-stats, .db-stats, .au-stats, .cv-stat-grid) > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+  /* tile icon + numbers sized for half-width tiles */
+  html body :is(.ct-kpi-ico, .tp-kpi-ico, .cp-kpi-ico, .br-kpi-ico, .db-kpi__ic, .cv-stat-icon) {
+    width: 34px !important; height: 34px !important; margin: 0 !important; border-radius: 10px !important;
+  }
+  html body :is(.ct-kpi-v, .tp-kpi-v, .cp-kpi-v, .br-kpi-v, .db-kpi__v, .cv-stat-value, .stat-value, .stat-number) {
+    font-size: 22px !important; line-height: 1.1 !important;
+  }
+  html body :is(.ct-kpi-l, .tp-kpi-l, .cp-kpi-l, .br-kpi-l, .db-kpi__l, .cv-stat-label) {
+    font-size: 12px !important; line-height: 1.3 !important;
+  }
+
+  /* ── 2. Page headers: tighter, actions as a neat 2-column button grid ── */
+  html body :is(.au-hero, .br-hero, .cc-hero, .cg-hero, .cp-hero, .ct-hero, .drip-hero, .ga-hero,
+                .ig-hero, .la-hero, .tp-hero, .wf-hero, .ah-hero) {
+    padding: 18px !important;
+    gap: 14px !important;
+    border-radius: 16px !important;
+  }
+  html body :is(.au-hero, .br-hero, .cc-hero, .cg-hero, .cp-hero, .ct-hero, .drip-hero, .ga-hero,
+                .ig-hero, .la-hero, .tp-hero, .wf-hero, .ah-hero) h1 {
+    font-size: 20px !important;
+  }
+  html body :is(.au-hero, .br-hero, .cc-hero, .cg-hero, .cp-hero, .ct-hero, .drip-hero, .ga-hero,
+                .ig-hero, .la-hero, .tp-hero, .wf-hero, .ah-hero) p {
+    font-size: 13.5px !important;
+  }
+  /* the icon + title block: icon smaller, text gets the room */
+  html body :is(.ct-hero-ico, .tp-hero-ico, .cp-hero-ico, .br-hero-ico, .cg-hero-ico, .au-hero-ico,
+                .drip-hero-ico, .ga-hero-ico, .ig-hero-ico, .la-hero-ico, .wf-hero-ico, .cc-hero-ico) {
+    width: 42px !important; height: 42px !important; border-radius: 12px !important; align-self: flex-start;
+  }
+  html body :is(.ct-acts, .cg-acts, .au-hero-actions, .drip-hero-actions, .ga-hero-actions, .tp-hero-actions, .wf-hero-actions) {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  html body :is(.ct-acts, .cg-acts, .au-hero-actions, .drip-hero-actions, .ga-hero-actions, .tp-hero-actions, .wf-hero-actions) > * {
+    width: 100% !important; min-width: 0; margin: 0 !important;
+    justify-content: center; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  html body :is(.ct-acts, .cg-acts, .au-hero-actions, .drip-hero-actions, .ga-hero-actions, .tp-hero-actions, .wf-hero-actions) svg { flex-shrink: 0; }
+  /* the main action (primary / last odd one) gets the full row */
+  html body :is(.ct-acts, .cg-acts, .au-hero-actions, .drip-hero-actions, .ga-hero-actions, .tp-hero-actions, .wf-hero-actions) > :is([class*="primary"], [class*="--main"]) {
+    grid-column: 1 / -1; order: -1;
+  }
+  html body :is(.ct-acts, .cg-acts, .au-hero-actions, .drip-hero-actions, .ga-hero-actions, .tp-hero-actions, .wf-hero-actions):not(:has([class*="primary"])) > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  /* ── 3. Generic safety: nothing wider than the phone ─────────────────── */
+  html body .main-content :is(img, video, iframe, canvas) { max-width: 100%; }
+  html body .main-content :is(h1, h2, h3, h4, p, li, label) { overflow-wrap: break-word; }
+  html body .main-content :is(input, select, textarea) { max-width: 100%; }
+  /* search boxes in filter bars stop forcing a fixed width */
+  html body .main-content :is(.cr-search, .bl-search, .ct-search, .cp-search, .tp-search) {
+    min-width: 0 !important; max-width: 100% !important; width: 100% !important; flex: 1 1 100% !important;
+  }
+
+  /* ── 4. Tab strips scroll sideways instead of wrapping into 3 lines ──── */
+  html body :is(.tp-tabs, .cv-tabs, .st-tabs, .set-tabs, .tabs-nav) {
+    display: flex !important; flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  html body :is(.tp-tabs, .cv-tabs, .st-tabs, .set-tabs, .tabs-nav)::-webkit-scrollbar { display: none; }
+  html body :is(.tp-tabs, .cv-tabs, .st-tabs, .set-tabs, .tabs-nav) > * { flex: 0 0 auto !important; white-space: nowrap; }
+
+  /* ── 5. Cards & spacing: consistent 12px rhythm ─────────────────────── */
+  html body .main-content { padding-left: 12px !important; padding-right: 12px !important; }
+  html body :is(.card, .db-card, .form-card) { border-radius: 16px; }
+  html body :is(.card-body) { padding: 16px !important; }
+  html body :is(.card-header) { padding: 14px 16px !important; flex-wrap: wrap; gap: 8px; }
+
+  /* ── 7. Grid children may shrink (stops cards growing past the screen) ─ */
+  html body .main-content :is(.grid-container, .db-row, .db-report, .su-grid, .row, [class*="-split"], [class*="-grid"]) > * { min-width: 0; }
+  html body .main-content .preview-mockup { margin: 10px !important; padding: 18px !important; }
+
+  /* ── 8. Card headers with a title + search: search drops under the title ─ */
+  html body .db-card__head { flex-wrap: wrap !important; gap: 10px !important; }
+  html body .db-card__head > :is(label, form, .db-search, [class$="-search"]) { flex: 1 1 100% !important; width: 100% !important; max-width: none !important; }
+
+  /* ── 9. Classic .page-header: subtitle under the title, buttons below ─ */
+  html body .page-header h2 { display: flex !important; flex-wrap: wrap; align-items: center; gap: 4px 8px; line-height: 1.25; }
+  html body .page-header h2 > span { flex: 1 1 100%; font-size: 13px !important; line-height: 1.4; }
+  html body .page-header h2 > svg { width: 20px; height: 20px; flex-shrink: 0; }
+  html body .page-header .action-btns { width: 100%; display: flex; flex-wrap: wrap; gap: 8px; }
+  /* ── 10. Admin: Create client form stacks its side panel under the form ─ */
+  html body :is(.cc-layout, .cc-two) { grid-template-columns: 1fr !important; }
+  html body .cc-layout > * { min-width: 0; }
+
+  /* ── 11. Any other row of stat tiles (admin pages use many names) ───── */
+  html body :is(.main-content, .admin-main) :is(div, section, ul):has(> :is([class$="-kpi"], [class$="-stat"], .stat-card):not(.cp-stat) + :is([class$="-kpi"], [class$="-stat"], .stat-card):not(.cp-stat)) {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+  html body :is(.main-content, .admin-main) :is([class$="-kpi"], [class$="-stat"], .stat-card):not(.cp-stat) {
+    min-width: 0; margin: 0 !important;
+  }
+  /* ── 6. Comfortable tap targets ─────────────────────────────────────── */
+  html body .main-content :is(.btn, a.btn) { min-height: 38px; }
+}
+
+/* very small phones (≤360px): stat tiles go back to one per row */
+@media (max-width: 360px) {
+  html body :is(.db-kpis, .su-kpis, .cp-kpis, .tp-kpis, .stk-kpis, .sb-kpis, .ph-kpis, .loy-kpis,
+                .la-kpis, .ct-kpis, .cs-kpis, .cg-kpis, .br-kpis, .ads-kpis,
+                .stats-grid, .oc-stats, .zp-stats, .wf-stats, .sp-metrics, .om-stats, .odash-kpi-grid,
+                .ig-stats, .ga-stat-grid, .fe-stats, .dc-stats, .db-stats, .au-stats, .cv-stat-grid) {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   ADMIN PANEL - phones (≤640px)
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+
+  /* page frame: tighter padding, single-line top bar */
+  html body .admin-main { padding: 16px 12px 28px !important; }
+  html body .admin-topbar { padding: 0 10px 0 6px !important; gap: 6px; }
+  html body .admin-topbar .topbar-left { min-width: 0; flex: 1; gap: 6px; }
+  html body .admin-topbar .topbar-left h1 { font-size: 16px !important; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; margin: 0; }
+  html body .admin-topbar .topbar-right { flex: none; gap: 6px; }
+  html body .admin-topbar .topbar-user .user-name,
+  html body .admin-topbar .topbar-user .user-role { display: none !important; }
+
+  /* data tables → stack of cards (labels come from assets/js/table-cards.js) */
+  html body .admin-main table.wm-cards { display: block !important; width: 100% !important; min-width: 0 !important; max-width: 100% !important;
+    white-space: normal !important; overflow: visible !important; border-collapse: separate !important; border: 0 !important; background: transparent !important; }
+  html body .admin-main table.wm-cards thead { display: none !important; }
+  html body .admin-main table.wm-cards tbody { display: block !important; }
+  html body .admin-main table.wm-cards tr { display: block !important; position: relative; margin: 0 0 10px !important; padding: 4px 14px 6px !important;
+    border-radius: 14px !important; background: #F7FAF9 !important; border: 0 !important; box-shadow: none !important; height: auto !important; }
+  html body .admin-main table.wm-cards tr:last-child { margin-bottom: 0 !important; }
+  html body .admin-main table.wm-cards td { display: flex !important; align-items: center; justify-content: space-between; gap: 12px;
+    width: auto !important; min-width: 0 !important; max-width: none !important; padding: 7px 0 !important; border: 0 !important; border-radius: 0 !important;
+    background: transparent !important; text-align: right !important; white-space: normal !important; overflow-wrap: anywhere; font-size: 13.5px; height: auto !important; }
+  html body .admin-main table.wm-cards td + td { box-shadow: inset 0 1px 0 rgba(15, 23, 42, .05); }
+  html body .admin-main table.wm-cards td::before { content: attr(data-label); flex: none; max-width: 42%; text-align: left; font-size: 12px; font-weight: 600;
+    color: #64748b; text-transform: none; letter-spacing: 0; white-space: normal; }
+  html body .admin-main table.wm-cards td[data-label=""]::before,
+  html body .admin-main table.wm-cards td.wm-head::before,
+  html body .admin-main table.wm-cards td.wm-full::before,
+  html body .admin-main table.wm-cards td.wm-check::before { display: none; }
+  html body .admin-main table.wm-cards td.wm-head { justify-content: flex-start; text-align: left !important; padding: 10px 0 8px !important; font-weight: 600; box-shadow: none; }
+  html body .admin-main table.wm-cards td.wm-head + td { box-shadow: inset 0 1px 0 rgba(15, 23, 42, .07); }
+  html body .admin-main table.wm-cards td.wm-check { position: absolute; top: 10px; right: 12px; padding: 0 !important; box-shadow: none; }
+  html body .admin-main table.wm-cards tr:has(td.wm-check) td.wm-head { padding-right: 34px !important; }
+  html body .admin-main table.wm-cards td.wm-empty { display: none !important; }
+  html body .admin-main table.wm-cards td.wm-full { display: block !important; text-align: center !important; padding: 18px 0 !important; box-shadow: none; }
+  html body .admin-main table.wm-cards td > * { max-width: 100%; }
+  html body .admin-main table.wm-cards td:last-child:has(> a, > button, > form, > div > a, > div > button) { justify-content: flex-end; }
+  html body .admin-main table.wm-cards td:last-child:has(> a, > button, > form, > div > a, > div > button)::before { margin-right: auto; }
+  html body .admin-main :is(.data-table-wrapper, [class*="tbl-wrap"], [class*="table-wrap"], .table-responsive):has(> table.wm-cards) {
+    overflow: visible !important; margin-left: 0 !important; margin-right: 0 !important; min-width: 0 !important; }
+  /* rows the page hides (search filters, empty-state rows) stay hidden */
+  html body .admin-main table.wm-cards tr:is([hidden], [style*="display: none"], [style*="display:none"]) { display: none !important; }
+
+  /* stat tiles: icon above the text, long values wrap instead of spilling or "…" */
+  html body .admin-main :is([class$="-kpi"], [class$="-stat"], .stat-card):not(.cp-stat) { flex-direction: column; align-items: flex-start !important; gap: 8px !important; padding: 14px !important; }
+  html body .admin-main :is([class$="-kpi"], [class$="-stat"], .stat-card):not(.cp-stat) :is(b, strong, .stat-value, [class*="-v"], [class*="value"]) {
+    white-space: normal !important; overflow: visible !important; text-overflow: clip !important; overflow-wrap: anywhere; }
+  html body .admin-main .stat-value { font-size: 20px !important; line-height: 1.2 !important; }
+
+  /* two-column layouts stack (inline-style grids and the shared dashboard grid) */
+  html body .admin-main [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+  html body .admin-main :is([style*="repeat(4, 1fr)"], [style*="repeat(4,1fr)"]) { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  html body .admin-main .dashboard-grid { grid-template-columns: 1fr !important; }
+  html body .admin-main .plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  html body .admin-main [style*="grid-template-columns"] > * { min-width: 0; }
+
+  /* forms */
+  html body .admin-main :is(.form-card, .card) { max-width: 100% !important; }
+  html body .admin-main :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]) { max-width: 100%; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   PHONE MENU (client + admin): app-style drawer
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  html.wm-nav-open, html.wm-nav-open body { overflow: hidden !important; overscroll-behavior: none; }
+
+  /* drawer */
+  html body :is(#sidebar.sidebar, #sidebar.admin-sidebar) {
+    width: min(86vw, 320px) !important; height: 100dvh !important; top: 0 !important; bottom: 0 !important;
+    left: calc(-1 * min(86vw, 320px) - 24px) !important;
+    border-radius: 0 24px 24px 0; overflow: hidden !important;
+    display: flex !important; flex-direction: column;
+    box-shadow: none; transition: left .28s cubic-bezier(.22, .61, .36, 1), box-shadow .28s !important;
+    z-index: 10001 !important;
+  }
+  html body :is(#sidebar.sidebar, #sidebar.admin-sidebar).open {
+    left: 0 !important; box-shadow: 0 0 0 1px rgba(15, 38, 34, .04), 24px 0 60px -12px rgba(15, 38, 34, .45);
+  }
+  html body #sidebar .sidebar-nav { flex: 1; min-height: 0; overflow-y: auto !important; overscroll-behavior: contain;
+    padding: 6px 12px calc(20px + env(safe-area-inset-bottom)) !important; -webkit-overflow-scrolling: touch; }
+
+  /* header: brand + close button, stays on top while the list scrolls */
+  html body #sidebar :is(.sidebar-header, .sidebar-brand) { flex: none; min-height: 64px; padding: 0 64px 0 18px !important; margin: 0 !important; display: flex !important; align-items: center; }
+  html body #sidebar .company-badge { flex: none; margin: 4px 12px 8px !important; }
+  html body #sidebar .sb-search, html body #sidebar [class*="quick-find"], html body #sidebar .sidebar-search { flex: none; }
+  html body #sidebar .wm-nav-close { position: absolute; top: 12px; right: 12px; z-index: 3; width: 40px; height: 40px; border: 0; border-radius: 12px;
+    display: grid; place-items: center; background: rgba(18, 140, 126, .10); color: #0B3D36; cursor: pointer; }
+  html body #sidebar .wm-nav-close:active { transform: scale(.94); }
+
+  /* items: comfortable 46px rows, clear active pill */
+  html body #sidebar .nav-section-title { padding: 18px 12px 6px !important; font-size: 11px !important; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; opacity: .8; }
+  html body #sidebar .nav-section-title:first-child { padding-top: 8px !important; }
+  html body #sidebar .nav-item { min-height: 46px; padding: 10px 14px !important; margin: 0 0 2px !important; border-radius: 12px !important;
+    font-size: 15px !important; gap: 12px !important; display: flex !important; align-items: center; }
+  html body #sidebar .nav-item:active { transform: scale(.985); }
+  html body #sidebar .nav-item.active { font-weight: 700 !important; box-shadow: inset 3px 0 0 #128C7E; }
+  html body #sidebar .nav-item.nav-sub { min-height: 40px; padding-left: 50px !important; font-size: 14px !important; position: relative; }
+  html body #sidebar .nav-item.nav-sub::before { content: ""; position: absolute; left: 26px; top: 50%; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: currentColor; opacity: .45; }
+  html body #sidebar .submenu .nav-item { min-height: 40px; font-size: 14px !important; }
+
+  /* backdrop: darker + soft blur so the menu stands out */
+  html body :is(.sidebar-overlay.show, .admin-sidebar-backdrop) { background: rgba(9, 30, 26, .48) !important; -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); z-index: 10000 !important; }
+  html body .sidebar-overlay.show { display: block !important; position: fixed; inset: 0; }
+}
+
+/* the menu close button exists only for the phone drawer */
+.wm-nav-close { display: none; }
+
+/* sub-items on desktop too: indented with a dot instead of "└" text */
+.nav-item.nav-sub { padding-left: 46px !important; position: relative; font-size: 14px; }
+.nav-item.nav-sub::before { content: ""; position: absolute; left: 24px; top: 50%; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: currentColor; opacity: .45; }
+body.sb-collapsed .nav-item.nav-sub { display: none; }
+
+/* ════════════════════════════════════════════════════════════════════
+   BOTTOM TAB BAR (phones): Home · tab · [More] · tab · tab
+   ════════════════════════════════════════════════════════════════════ */
+.wm-tabbar { display: none; }
+@media (max-width: 900px) {
+  .wm-tabbar {
+    display: grid; grid-template-columns: repeat(5, 1fr); align-items: end;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 9990;
+    height: calc(64px + env(safe-area-inset-bottom)); padding: 0 6px env(safe-area-inset-bottom);
+    background: rgba(255, 255, 255, .97); -webkit-backdrop-filter: saturate(160%) blur(12px); backdrop-filter: saturate(160%) blur(12px);
+    box-shadow: 0 -1px 0 rgba(15, 38, 34, .06), 0 -8px 24px -12px rgba(15, 38, 34, .18);
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .wm-tab {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    height: 64px; padding: 0; border: 0; background: none; cursor: pointer; text-decoration: none;
+    color: #64748B; -webkit-tap-highlight-color: transparent; min-width: 0;
+  }
+  .wm-tab__ic { display: grid; place-items: center; width: 52px; height: 30px; border-radius: 15px; transition: background .2s, color .2s; }
+  .wm-tab__l { font-size: 11.5px; font-weight: 600; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .wm-tab.is-on { color: #0B6B5E; }
+  .wm-tab.is-on .wm-tab__ic { background: #DFF5EC; }
+  .wm-tab.is-on .wm-tab__l { font-weight: 800; }
+  .wm-tab:active .wm-tab__ic { transform: scale(.92); }
+  /* centre "More" button, raised like the reference */
+  .wm-tab--more { justify-content: flex-end; padding-bottom: 9px; gap: 4px; }
+  .wm-tab__fab {
+    display: grid; place-items: center; width: 50px; height: 50px; margin-top: -22px; border-radius: 50%;
+    background: linear-gradient(135deg, #25D366, #128C7E); color: #fff;
+    box-shadow: 0 0 0 5px #fff, 0 10px 22px -6px rgba(18, 140, 126, .65); transition: transform .15s;
+  }
+  .wm-tab--more:active .wm-tab__fab { transform: scale(.92); }
+  html.wm-nav-open .wm-tab--more .wm-tab__fab { background: #0F2622; }
+
+  /* leave room under the page content for the bar */
+  html body :is(.main-content, .admin-main) { padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important; }
+  html body .fb-toast, html body #waToast { bottom: calc(84px + env(safe-area-inset-bottom)) !important; }
+
+  /* WhatsApp chat: the list sits above the bar; inside an open chat the bar hides (the message box is there) */
+  body:has(.wa-app.has-chat) .wm-tabbar, body:has(.wa-inp) .wm-tabbar { display: none; }
+  body:has(.wa-inp) .admin-main { padding-bottom: 0 !important; }
+  html body .wa-app.no-chat { bottom: calc(64px + env(safe-area-inset-bottom)) !important; }
+  html body .wa-app.no-chat .wa-side-h .acts a.wa-ib { bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
+}

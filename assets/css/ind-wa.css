@@ -50,3 +50,6 @@
 .ind-mockup-notif.iw-hide{opacity:.25}
 
 @media (max-width:600px){.ind-hero-visual .ind-mockup{max-width:100%}}
+/* Waamini profile picture in the phone header (wins over the green dot above) */
+.ind-mockup .ind-mockup-dot.wm-av{background:#fff!important}
+.ind-mockup .ind-mockup-dot.wm-av .wm-av-img{width:72%;height:auto}

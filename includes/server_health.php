@@ -59,8 +59,16 @@ function getServerHealth($conn)
 
     // RAM & CPU (Linux Only natively, fallback for Windows)
     if (PHP_OS_FAMILY === 'Linux') {
-        // RAM
-        $free = @shell_exec('free -m');
+        // RAM: read /proc/meminfo (works on shared hosting, where shell_exec is disabled and calling it is a fatal error)
+        $free = '';
+        $meminfo = @file_get_contents('/proc/meminfo');
+        if (is_string($meminfo) && preg_match('/^MemTotal:\s+(\d+)/m', $meminfo, $mt) && preg_match('/^MemAvailable:\s+(\d+)/m', $meminfo, $ma)) {
+            $totalMb = (int)round((int)$mt[1] / 1024);
+            $usedMb  = $totalMb - (int)round((int)$ma[1] / 1024);
+            $free = "header\nMem: {$totalMb} {$usedMb}";
+        } elseif (function_exists('shell_exec')) {
+            $free = (string)@shell_exec('free -m');
+        }
         if ($free) {
             $free_arr = explode("\n", trim($free));
             $mem = array_values(array_filter(explode(" ", $free_arr[1])));

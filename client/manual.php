@@ -26,7 +26,7 @@ $plain = static fn($h) => trim(preg_replace('/\s+/', ' ', html_entity_decode(str
 
 include '../includes/client_header.php';
 ?>
-<link rel="stylesheet" href="<?php echo app_url('assets/css/section-ui.css?v=2'); ?>">
+<link rel="stylesheet" href="<?php echo app_url('assets/css/section-ui.css?v=3'); ?>">
 <style>
 .mu-grid{display:grid;grid-template-columns:270px minmax(0,1fr);gap:18px;align-items:start}
 .mu-toc{position:sticky;top:16px;background:#fff;border-radius:18px;padding:18px;box-shadow:0 12px 30px -22px rgba(15,38,34,.45)}

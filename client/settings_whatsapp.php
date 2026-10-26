@@ -6,6 +6,30 @@ $currentPage = 'settings_whatsapp';
 
 require_once __DIR__ . '/../services/EncryptionService.php';
 
+/**
+ * Verify token webhook.php accepts for any company: Admin > WhatsApp "webhook verify token" (system_settings),
+ * else WHATSAPP_VERIFY_TOKEN / WA_WEBHOOK_VERIFY_TOKEN from .env. If none is set, one is generated and saved
+ * as the platform token, so a new client always sees a working token before their first save.
+ */
+if (!function_exists('waamini_platform_verify_token')) {
+    function waamini_platform_verify_token(mysqli $conn): string
+    {
+        $st = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'wa_webhook_verify_token' LIMIT 1");
+        if ($st) {
+            $st->execute();
+            $v = trim((string)($st->get_result()->fetch_assoc()['setting_value'] ?? ''));
+            $st->close();
+            if ($v !== '') return $v;
+        }
+        $v = trim((string)(getenv('WHATSAPP_VERIFY_TOKEN') ?: getenv('WA_WEBHOOK_VERIFY_TOKEN') ?: ''));
+        if ($v !== '') return $v;
+        $v = 'waamini_' . bin2hex(random_bytes(12));
+        $st = $conn->prepare("INSERT INTO system_settings (setting_key, setting_value, setting_group) VALUES ('wa_webhook_verify_token', ?, 'whatsapp') ON DUPLICATE KEY UPDATE setting_value = IF(setting_value = '' OR setting_value IS NULL, VALUES(setting_value), setting_value)");
+        if ($st) { $st->bind_param('s', $v); $st->execute(); $st->close(); }
+        return $v;
+    }
+}
+
 $allowedApiVersions = ['v24.0', 'v23.0', 'v22.0', 'v21.0', 'v20.0', 'v19.0', 'v18.0'];
 $defaultApiVersion = 'v24.0';
 
@@ -142,7 +166,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_wa'])) {
             exit();
         }
     } else {
-        $verifyToken = 'waamini_' . bin2hex(random_bytes(8));
+        // Same token the page showed before the first save, so the one already pasted into Meta keeps working
+        $verifyToken = waamini_platform_verify_token($conn);
         $status = 'pending';
         $stmt = $conn->prepare(
             'INSERT INTO whatsapp_config (company_id, fb_app_id, phone_number_id, waba_id, access_token, callback_url, verify_token, api_version, status) VALUES (?,?,?,?,?,?,?,?,?)'
@@ -192,6 +217,17 @@ $host = (string)($_SERVER['HTTP_HOST'] ?? 'localhost');
 $callbackUrl = $protocol . '://' . $host . app_url('webhook.php')
     . '?company_id=' . rawurlencode((string)$companyId);
 $verifyToken = is_array($waRow) ? (string)($waRow['verify_token'] ?? '') : '';
+// Always show a verify token that webhook.php accepts, also before the first save (new clients):
+// a saved company row without a token gets one; otherwise the platform token is shown.
+if ($verifyToken === '') {
+    if (is_array($waRow)) {
+        $verifyToken = 'waamini_' . bin2hex(random_bytes(8));
+        $stVt = $conn->prepare("UPDATE whatsapp_config SET verify_token = ? WHERE company_id = ? AND (verify_token IS NULL OR verify_token = '')");
+        if ($stVt) { $stVt->bind_param('si', $verifyToken, $companyId); $stVt->execute(); $stVt->close(); }
+    } else {
+        $verifyToken = waamini_platform_verify_token($conn);
+    }
+}
 
 $hasWaRow = is_array($waRow);
 

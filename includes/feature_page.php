@@ -38,8 +38,16 @@ $registry = require __DIR__ . '/feature_pages_registry.php';
 $page_title    = $fp['title'];
 $meta_desc     = $fp['meta_desc'];
 $meta_keywords = $fp['meta_keywords'];
-$asyncStylesheets = ['assets/css/landing-neo.css?v=15x', 'assets/css/feature-pages.css?v=2.0'];
-if (!empty($fp['hub'])) { $asyncStylesheets[] = 'assets/css/wm-hub.css?v=1'; if ($fp['hub'] === 'automation') { $asyncStylesheets[] = 'assets/css/wm-automation.css?v=1'; } }
+$asyncStylesheets = ['assets/css/landing-neo.css?v=16x', 'assets/css/feature-pages.css?v=2.2'];
+// Interactive feature hub instead of the static feature grid: 'hub' => true (broadcast), 'automation', 'crm', or the name of a file in includes/hub_data/
+$__hubs = ['automation' => ['automation_hub.php', 'wm-automation.css?v=1'], 'crm' => ['crm_hub.php', 'wm-crm.css?v=2']];
+$__hubFile = '';
+if (!empty($fp['hub'])) {
+    $asyncStylesheets[] = 'assets/css/wm-hub.css?v=1';
+    if (is_string($fp['hub']) && isset($__hubs[$fp['hub']])) { $__hubFile = $__hubs[$fp['hub']][0]; $asyncStylesheets[] = 'assets/css/' . $__hubs[$fp['hub']][1]; }
+    elseif (is_string($fp['hub']) && is_file(__DIR__ . '/hub_data/' . basename($fp['hub']) . '.php')) { $__hubFile = 'feature_hub.php'; $asyncStylesheets[] = 'assets/css/wm-feat.css?v=3'; }
+    else { $__hubFile = 'broadcast_hub.php'; }
+}
 $bodyClass = 'lp-neo';
 include __DIR__ . '/header.php';
 
@@ -79,7 +87,7 @@ $check  = '<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>';
         <div class="fp-phone fp-wa" id="fpWa">
           <div class="fp-phone-top">
             <span class="fp-wa-back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-            <span class="av"><svg viewBox="0 0 24 24" fill="#128C7E"><path d="<?php echo $waPath; ?>"/></svg></span>
+            <span class="av wm-av"><img class="wm-av-img" src="assets/img/waamini-mark.png" alt="" width="36" height="19"></span>
             <div class="fp-wa-info"><b><?php echo $esc($fp['chat_name']); ?></b><span>online</span></div>
             <div class="fp-wa-icons" aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
@@ -139,7 +147,7 @@ $check  = '<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>';
 </section>
 
 <!-- FEATURES -->
-<?php if (!empty($fp['hub'])): include __DIR__ . ($fp['hub'] === 'automation' ? '/automation_hub.php' : '/broadcast_hub.php'); else: ?>
+<?php if ($__hubFile !== ''): include __DIR__ . '/' . $__hubFile; else: ?>
 <section class="fp-section">
   <div class="fp-wrap">
     <div class="fp-head">
