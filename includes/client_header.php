@@ -168,11 +168,8 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
     <link rel="stylesheet" href="<?php echo app_url('assets/css/settings-ui.css?v=1'); ?>">
     <?php endif; ?>
     <style>
-    /* No-flicker page loads: no transitions while the page is being built, main area held
-       until the motion layer is ready (released by assets/js/waamini-motion.js or after 1.5 s),
-       and a short cross-fade between pages that keeps the sidebar in place. */
+    /* No-flicker page loads: no transitions while the page is being built, and a short cross-fade between pages that keeps the sidebar in place. */
     html.wm-preload *,html.wm-preload *::before,html.wm-preload *::after{transition:none!important}
-    html.wm-pre main.main-content,html.wm-pre main.admin-main{opacity:0}
     @view-transition{navigation:auto}
     ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}
     #sidebar{view-transition-name:wm-sidebar}
@@ -187,10 +184,6 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
   d.classList.add('wm-preload');
   // Remembered collapsed sidebar is applied before the first paint (no expand-then-collapse jump)
   try { if (localStorage.getItem('wmn_sidebar_collapsed') === '1' && window.matchMedia('(min-width: 1025px)').matches) document.body.classList.add('sb-collapsed'); } catch (e) {}
-  if (!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
-    d.classList.add('wm-pre');
-    setTimeout(function () { d.classList.remove('wm-pre'); }, 1500); // never stay hidden
-  }
   window.addEventListener('load', function () {
     requestAnimationFrame(function () { requestAnimationFrame(function () { d.classList.remove('wm-preload'); }); });
   });
