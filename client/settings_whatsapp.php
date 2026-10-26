@@ -7,6 +7,13 @@ $currentPage = 'settings_whatsapp';
 
 require_once __DIR__ . '/../services/EncryptionService.php';
 
+// App Secret of the client's own Meta app. Meta signs every webhook with it, and webhook.php checks that
+// signature, so without it incoming messages from the client's app are rejected. Stored encrypted.
+try {
+    $__col = $conn->query("SHOW COLUMNS FROM whatsapp_config LIKE 'app_secret'");
+    if ($__col && $__col->num_rows === 0) $conn->query('ALTER TABLE whatsapp_config ADD COLUMN app_secret TEXT NULL');
+} catch (\Throwable $e) { error_log('[settings_whatsapp] app_secret column: ' . $e->getMessage()); }
+
 /**
  * Verify token webhook.php accepts for any company: Admin > WhatsApp "webhook verify token" (system_settings),
  * else WHATSAPP_VERIFY_TOKEN / WA_WEBHOOK_VERIFY_TOKEN from .env. If none is set, one is generated and saved
@@ -195,6 +202,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_wa'])) {
             header('Location: settings_whatsapp.php?error=' . rawurlencode('Could not save configuration.'));
             exit();
         }
+    }
+
+    $appSecretPlain = trim((string)($_POST['app_secret'] ?? ''));
+    if ($appSecretPlain !== '') {
+        if (!preg_match('/^[a-f0-9]{32}$/i', $appSecretPlain)) {
+            header('Location: ' . app_url('client/settings_whatsapp.php?error=' . rawurlencode('The App Secret should be the 32-character code from Meta: your app > App settings > Basic > App secret. Your other settings were saved.')));
+            exit();
+        }
+        $encSecret = encrypt_secret(strtolower($appSecretPlain));
+        $stSec = $conn->prepare('UPDATE whatsapp_config SET app_secret=? WHERE company_id=?');
+        if ($stSec) { $stSec->bind_param('si', $encSecret, $companyId); $stSec->execute(); $stSec->close(); }
     }
 
     header('Location: ' . app_url('client/settings_whatsapp.php?msg=saved'));
@@ -420,6 +438,21 @@ if ($gRes && ($gRow = $gRes->fetch_assoc())) $waGuideOn = (string)$gRow['setting
                 <input type="text" name="fb_app_id" class="form-control" maxlength="32" inputmode="numeric" autocomplete="off"
                        value="<?php echo htmlspecialchars((string)($waConfig['fb_app_id'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
                        placeholder="e.g. 1234567890123456">
+            </div>
+
+            <?php
+            $__hasSecret = !empty($waConfig['app_secret']);
+            $__platformAppId = defined('META_APP_ID') ? (string)META_APP_ID : (string)(getenv('META_APP_ID') ?: '');
+            $__ownApp = (string)($waConfig['fb_app_id'] ?? '') !== '' && (string)($waConfig['fb_app_id'] ?? '') !== $__platformAppId;
+            ?>
+            <div class="form-group">
+                <label for="waAppSecret">App Secret <?php if ($__hasSecret): ?><span style="font-size:11px;font-weight:700;color:#059669;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:99px;padding:1px 8px;margin-left:4px;">Saved</span><?php endif; ?></label>
+                <input type="password" id="waAppSecret" name="app_secret" class="form-control" maxlength="64" autocomplete="new-password" spellcheck="false"
+                       placeholder="<?php echo $__hasSecret ? 'Saved (leave empty to keep it)' : '32-character code from your Meta app'; ?>">
+                <small style="color:var(--text-muted);">Meta for Developers &rarr; your app &rarr; App settings &rarr; Basic &rarr; App secret (click Show). WAAMINI uses it to check that incoming messages really come from your app. Stored encrypted, never shown again.</small>
+                <?php if (!$__hasSecret && $__ownApp): ?>
+                <div style="margin-top:8px;padding:9px 12px;border-radius:10px;background:#fffbeb;border:1px solid #fde68a;color:#92400e;font-size:12.5px;line-height:1.5;"><strong>Add your App Secret.</strong> Without it, customer replies and delivery updates sent by your Meta app are rejected.</div>
+                <?php endif; ?>
             </div>
 
             <div class="form-group">

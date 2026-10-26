@@ -160,15 +160,22 @@ class WebhookHandler {
         $isProduction = (strtolower((string)(getenv('APP_ENV') ?: '')) === 'production');
         $strictVerify = filter_var(getenv('WEBHOOK_STRICT_VERIFY') ?: 'false', FILTER_VALIDATE_BOOLEAN);
         
-        // Enforce signature check ONLY in production or if explicitly enabled in local .env
+        // Enforce signature check ONLY in production or if explicitly enabled in local .env.
+        // Clients connect their own Meta apps, and Meta signs each webhook with that app's secret, so the
+        // signature may match the platform secret OR the App Secret the client saved in WhatsApp Setup.
         if ($isProduction || $strictVerify) {
-            if ($appSecret === '') {
+            $secrets = $this->candidateSecrets($data, $appSecret);
+            if (!$secrets) {
                 error_log('[WAAMINI WEBHOOK] CRITICAL: Signature verification is enabled but no Meta app secret is configured.');
                 http_response_code(403);
                 exit('Security configuration missing');
             }
-            if (!$this->validateSignature($payload, $appSecret)) {
-                error_log('[WAAMINI WEBHOOK] Signature verification failed for payload of length ' . strlen($payload));
+            $signed = false;
+            foreach ($secrets as $secret) {
+                if ($this->validateSignature($payload, $secret)) { $signed = true; break; }
+            }
+            if (!$signed) {
+                error_log('[WAAMINI WEBHOOK] Signature verification failed for payload of length ' . strlen($payload) . ' (checked ' . count($secrets) . ' secret(s); a client using its own Meta app must save its App Secret in WhatsApp Setup)');
                 http_response_code(403);
                 exit('Invalid signature');
             }
@@ -190,6 +197,45 @@ class WebhookHandler {
         }
     }
     
+    /**
+     * Secrets that may have signed this webhook: the platform app secret, plus the App Secret saved by the
+     * company in the callback URL (?company_id=) and by the company that owns the phone number in the payload.
+     * @return string[]
+     */
+    private function candidateSecrets(array $data, string $platformSecret): array {
+        global $conn;
+        $secrets = $platformSecret !== '' ? [$platformSecret] : [];
+        if (!($conn instanceof mysqli)) return $secrets;
+        try {
+            $col = $conn->query("SHOW COLUMNS FROM whatsapp_config LIKE 'app_secret'");
+            if (!$col || $col->num_rows === 0) return $secrets;
+            $rows = [];
+            $cid = (int)($_GET['company_id'] ?? 0);
+            if ($cid > 0) {
+                $st = $conn->prepare("SELECT app_secret FROM whatsapp_config WHERE company_id=? AND app_secret IS NOT NULL AND app_secret<>'' LIMIT 1");
+                if ($st) { $st->bind_param('i', $cid); $st->execute(); if ($r = $st->get_result()->fetch_row()) $rows[] = $r[0]; $st->close(); }
+            }
+            $phoneIds = [];
+            foreach (($data['entry'] ?? []) as $entry) {
+                foreach (($entry['changes'] ?? []) as $change) {
+                    $pid = (string)($change['value']['metadata']['phone_number_id'] ?? '');
+                    if ($pid !== '' && ctype_digit($pid)) $phoneIds[$pid] = true;
+                }
+            }
+            foreach (array_slice(array_keys($phoneIds), 0, 5) as $pid) {
+                $st = $conn->prepare("SELECT app_secret FROM whatsapp_config WHERE phone_number_id=? AND app_secret IS NOT NULL AND app_secret<>'' LIMIT 3");
+                if ($st) { $st->bind_param('s', $pid); $st->execute(); $res = $st->get_result(); while ($r = $res->fetch_row()) $rows[] = $r[0]; $st->close(); }
+            }
+            foreach (array_unique($rows) as $cipher) {
+                $plain = function_exists('decrypt_secret') ? decrypt_secret((string)$cipher) : null;
+                if (is_string($plain) && $plain !== '') $secrets[] = $plain;
+            }
+        } catch (\Throwable $e) {
+            error_log('[WAAMINI WEBHOOK] candidateSecrets: ' . $e->getMessage());
+        }
+        return array_values(array_unique($secrets));
+    }
+
     /**
      * Validate Meta HMAC Signature
      */
