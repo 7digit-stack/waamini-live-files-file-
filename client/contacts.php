@@ -219,6 +219,10 @@ $qs = static function (array $over = []) use ($search, $statusF, $sourceF, $grou
 };
 $filtersOn = ($search !== '' || $statusF !== '' || $sourceF !== '' || $groupF > 0 || $leadF !== '' || $adF !== '');
 
+require_once __DIR__ . '/../includes/contact_fields.php';
+$cfFields = cf_enabled() ? cf_list($conn, (int)$companyId) : [];
+$cfVals = $cfFields ? cf_values($conn, (int)$companyId, array_column($contactRows ?? [], 'id')) : [];
+
 include '../includes/client_header.php';
 ?>
 
@@ -314,6 +318,10 @@ include '../includes/client_header.php';
   .ct-row>.c-src,.ct-row>.c-score{display:none}
 }
 @media (max-width:560px){.ct-hero{padding:18px}.ct-hero h1{font-size:21px}.ct-kpis{grid-template-columns:1fr}.ct-search{min-width:0;max-width:none}.ct-acts,.ct-acts .ct-btn{width:100%}}
+.ct-cf{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.ct-cf span{display:inline-flex;gap:4px;max-width:100%;padding:1px 8px;border-radius:6px;background:#F3F6F9;border:1px solid #E3E8EE;font-size:11.5px;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ct-cf em{font-style:normal;color:#6B7A8C}
+.ct-cf a{font-size:11.5px;font-weight:600;color:#128C7E}
 </style>
 
 <div class="ct">
@@ -452,7 +460,10 @@ include '../includes/client_header.php';
             <div class="c-chk"><input type="checkbox" name="selected_ids[]" value="<?php echo $cid; ?>" class="row-checkbox" onchange="updateBulkActions()" aria-label="Select <?php echo htmlspecialchars($disp, ENT_QUOTES); ?>"></div>
             <div class="c-who ct-who">
                 <div class="ct-av" style="background:<?php echo $avBg; ?>"><?php echo htmlspecialchars($init); ?></div>
-                <div style="min-width:0"><div class="ct-name"><?php echo htmlspecialchars($disp); ?></div><div class="ct-sub"><?php echo htmlspecialchars($name !== '' ? $phone : ((string)($c['email'] ?? ''))); ?></div></div>
+                <div style="min-width:0"><div class="ct-name"><?php echo htmlspecialchars($disp); ?></div><div class="ct-sub"><?php echo htmlspecialchars($name !== '' ? $phone : ((string)($c['email'] ?? ''))); ?></div><?php
+                    $cfShown = [];
+                    foreach ($cfFields as $f) { $val = (string)($cfVals[$cid][(int)$f['id']] ?? ''); if ($val !== '') { $cfShown[] = [$f['name'], cf_display((string)$f['field_type'], $val)]; } }
+                    if ($cfShown): ?><div class="ct-cf"><?php foreach (array_slice($cfShown, 0, 3) as [$fn, $fv]): ?><span title="<?php echo htmlspecialchars($fn . ': ' . $fv, ENT_QUOTES); ?>"><em><?php echo htmlspecialchars($fn); ?></em> <?php echo htmlspecialchars(mb_strimwidth($fv, 0, 28, '…')); ?></span><?php endforeach; ?><?php if (count($cfShown) > 3): ?><a href="contact_edit.php?id=<?php echo $cid; ?>">+<?php echo count($cfShown) - 3; ?> more</a><?php endif; ?></div><?php endif; ?></div>
             </div>
             <div class="c-st">
                 <?php if (!$hasCrm): ?><span class="ct-lock"><?php echo cn_lock_icon(); ?> Premium</span>

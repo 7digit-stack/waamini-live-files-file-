@@ -3,6 +3,8 @@ include '../includes/client_auth_check.php';
 require_once __DIR__ . '/../includes/drip_engine.php';
 require_once __DIR__ . '/../includes/phone_helper.php';
 require_once __DIR__ . '/../includes/chat_contact_sync.php';
+require_once __DIR__ . '/../includes/contact_fields.php';
+$cfFields = cf_enabled() ? cf_list($conn, (int)$companyId) : [];
 
 if (!has_feature('contacts')) {
     header("Location: dashboard.php");
@@ -20,9 +22,12 @@ if (isset($_GET['download_template'])) {
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="contacts_template.csv"');
     echo "\xEF\xBB\xBF";   // UTF-8 BOM: Excel shows Tamil names correctly
-    echo "name,phone_number,email,group_name,custom_field\n";
-    echo "John Kumar,+91 98765 43210,john@example.com,VIP Customers,Premium\n";   // spaced: Excel keeps it as text
-    echo "Priya Sharma,+91 87654 32109,priya@example.com,Leads,\n";
+    $cfCsv = static fn($s) => preg_match('/[",\r\n]/', (string)$s) ? '"' . str_replace('"', '""', (string)$s) . '"' : (string)$s;
+    $cfHead = ''; $cfEx1 = ''; $cfEx2 = '';
+    foreach ($cfFields as $f) { $ex = cf_types()[$f['field_type']][2] ?? ''; $cfHead .= ',' . $cfCsv($f['name']); $cfEx1 .= ',' . $cfCsv($ex); $cfEx2 .= ','; }
+    echo "name,phone_number,email,group_name,custom_field" . $cfHead . "\n";
+    echo "John Kumar,+91 98765 43210,john@example.com,VIP Customers,Premium" . $cfEx1 . "\n";   // spaced: Excel keeps it as text
+    echo "Priya Sharma,+91 87654 32109,priya@example.com,Leads," . $cfEx2 . "\n";
     exit();
 }
 
@@ -97,7 +102,20 @@ if (isset($_POST['import'])) {
                         elseif (in_array($h, ['group', 'group_name', 'list'])) $colMap['group_name'] = $i;
                         elseif (in_array($h, ['custom', 'custom_field', 'notes', 'note', 'tag', 'tags'])) $colMap['custom_field'] = $i;
                     }
+                    // A real header row (it names the phone column): use only the columns it names, so a file
+                    // without "email" does not read another column (e.g. group_name) as the email address
+                    $named = array_map(static fn($h) => strtolower(trim(preg_replace("/^\x{FEFF}/u", '', (string)$h))), $header);
+                    if (array_intersect($named, ['phone', 'phone_number', 'mobile', 'mobile_number'])) {
+                        if (!array_intersect($named, ['name'])) $colMap['name'] = -1;
+                        if (!array_intersect($named, ['email', 'email_address'])) $colMap['email'] = -1;
+                        if (!array_intersect($named, ['group', 'group_name', 'list'])) $colMap['group_name'] = -1;
+                    }
                 }
+
+                // Columns named like a custom field (e.g. "Birthday") fill that field
+                $cfCols = ($cfFields && is_array($header)) ? cf_header_map($cfFields, $header) : [];
+                $cfBad = 0;
+                $cfRow = static function (array $row) use ($cfCols): array { $o = []; foreach ($cfCols as $i => $f) { $o[(int)$f['id']] = (string)($row[$i] ?? ''); } return $o; };
 
                 $stmt      = $conn->prepare("INSERT INTO contacts (company_id, name, phone, email, tags, group_id) VALUES (?, ?, ?, ?, ?, ?)");
                 $defaultCc = preg_replace('/\D+/', '', (string)($_POST['country_code'] ?? '91')) ?: '91';
@@ -161,6 +179,7 @@ if (isset($_POST['import'])) {
                             $up = $conn->prepare('UPDATE contacts SET ' . implode(', ', $set) . ' WHERE id=? AND company_id=?');
                             if ($up) { $up->bind_param($types, ...$vals); $up->execute(); $up->close(); }
                         }
+                        if ($cfCols) { $cfBad += count(cf_save($conn, (int)$companyId, (int)$existing['id'], array_values($cfCols), $cfRow($row), true)); }
                         $linked++;
                         if (!empty($existing['has_chat'])) { $linkedChat++; }
                         continue;
@@ -175,6 +194,7 @@ if (isset($_POST['import'])) {
                     if ($stmt->execute()) {
                         $imported++;
                         $newId = $stmt->insert_id;
+                        if ($cfCols && $newId > 0) { $cfBad += count(cf_save($conn, (int)$companyId, (int)$newId, array_values($cfCols), $cfRow($row), true)); }
                         if ($newId > 0) {
                             // Trigger drips for imported contact using custom/tags string
                             trigger_drip_campaigns($conn, (int)$companyId, (int)$newId, (string)$custom);
@@ -187,7 +207,8 @@ if (isset($_POST['import'])) {
 
                 if (empty($error)) {
                     $redirectGroup = ($selectedGroupId > 0) ? "&group=$selectedGroupId" : '';
-                    header("Location: contact_import.php?msg=imported&count=$imported&skipped=$skipped&linked=$linked&chat=$linkedChat$redirectGroup");
+                    $cfInfo = $cfCols ? '&cf=' . count($cfCols) . '&cfbad=' . (int)$cfBad : '';
+                    header("Location: contact_import.php?msg=imported&count=$imported&skipped=$skipped&linked=$linked&chat=$linkedChat$redirectGroup$cfInfo");
                     exit();
                 }
             } else {
@@ -263,6 +284,7 @@ include '../includes/client_header.php';
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;flex-shrink:0"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg> Import complete! <strong><?php echo intval($_GET['count'] ?? 0); ?></strong> new contacts,
         <strong><?php echo intval($_GET['linked'] ?? 0); ?></strong> matched existing contacts and were updated<?php if (intval($_GET['chat'] ?? 0) > 0): ?> (<strong><?php echo intval($_GET['chat']); ?></strong> already chatting on WhatsApp, now linked to their chat)<?php endif; ?>,
         <strong><?php echo intval($_GET['skipped'] ?? 0); ?></strong> skipped (missing or invalid phone).
+        <?php if (intval($_GET['cf'] ?? 0) > 0): ?><br><?php echo intval($_GET['cf']); ?> custom field column<?php echo intval($_GET['cf']) === 1 ? '' : 's'; ?> imported<?php if (intval($_GET['cfbad'] ?? 0) > 0): ?> — <strong><?php echo intval($_GET['cfbad']); ?></strong> value<?php echo intval($_GET['cfbad']) === 1 ? ' was' : 's were'; ?> skipped because the format did not match the field type (for example text in a Date column)<?php endif; ?>. <a href="contact_fields.php" style="color:inherit;font-weight:700;">Custom fields →</a><?php endif; ?>
         <?php if (!empty($_GET['group'])): ?>
             — <a href="contact_groups.php" style="color:inherit;font-weight:700;">View Groups →</a>
         <?php endif; ?>
@@ -313,7 +335,8 @@ include '../includes/client_header.php';
             ['email',        false, 'rahul@example.com', ''],
             ['group_name',   false, 'Diwali offer',      'New groups are created for you'],
             ['custom_field', false, 'VIP',               'Also read as: tags, notes'],
-        ]; ?>
+        ];
+        foreach ($cfFields as $f) { $ciCols[] = [$f['name'], false, cf_types()[$f['field_type']][2] ?? '', 'Your custom field (' . (cf_types()[$f['field_type']][0] ?? 'Text') . ')']; } ?>
         <div class="ci-fmt">
             <div class="ci-fmt-h">
                 <div>

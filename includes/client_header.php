@@ -297,6 +297,12 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
             <?php if (!has_feature('contacts')) echo cn_lock_icon(); ?>
         </a>
         <?php endif; ?>
+        <?php if (cn_on('contact_fields')): ?>
+        <a href="<?php echo has_feature('contacts') ? app_url('client/contact_fields.php') : '#'; ?>" class="nav-item <?php echo $cp==='contact_fields'?'active':''; ?> <?php echo has_feature('contacts')?'':'locked'; ?>" style="padding-left:32px;font-size:12.5px;"<?php echo cn_locked_attrs(!has_feature('contacts')); ?>>
+            <span class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h16"/></svg></span> Custom Fields
+            <?php if (!has_feature('contacts')) echo cn_lock_icon(); ?>
+        </a>
+        <?php endif; ?>
 
         <a href="<?php echo has_feature('templates') ? app_url('client/templates.php') : '#'; ?>" class="nav-item <?php echo $cp==='templates'?'active':''; ?> <?php echo has_feature('templates')?'':'locked'; ?>"<?php echo cn_locked_attrs(!has_feature('templates')); ?>>
             <span class="icon"><?php echo cn_svg('templates'); ?></span> Templates

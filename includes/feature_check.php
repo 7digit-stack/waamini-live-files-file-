@@ -278,6 +278,7 @@ function has_feature($feature)
         // Client sidebar pages that used to share another feature's switch (each needs its main feature on too)
         'menu_integrations' => 'feat_menu_integrations',
         'contact_groups' => 'feat_contact_groups',
+        'contact_fields' => 'feat_contact_fields',
         'demo_bookings' => 'feat_demo_bookings',
         'bot_knowledge' => 'feat_bot_knowledge',
         'bot_settings' => 'feat_bot_settings',
@@ -298,7 +299,7 @@ function has_feature($feature)
     }
     // Settings-menu switches were added later: a plan saved before they existed (no column yet) keeps the page on
     $defaultOn = ['feat_set_general', 'feat_set_whatsapp', 'feat_google_calendar', 'feat_sales_tracker', 'feat_set_support', 'feat_set_manual',
-        'feat_menu_integrations', 'feat_contact_groups', 'feat_demo_bookings', 'feat_bot_knowledge', 'feat_bot_settings',
+        'feat_menu_integrations', 'feat_contact_groups', 'feat_contact_fields', 'feat_demo_bookings', 'feat_bot_knowledge', 'feat_bot_settings',
         'feat_ec_analytics', 'feat_ec_orders', 'feat_ec_catalog', 'feat_ec_reports', 'feat_ec_checkout', 'feat_billing', 'feat_discover'];
     if (!$result && in_array($col, $defaultOn, true) && is_array($_featureCache) && !empty($_featureCache) && !array_key_exists($col, $_featureCache)) {
         $result = true;

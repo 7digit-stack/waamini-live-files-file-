@@ -1,6 +1,7 @@
 <?php
 include '../includes/client_auth_check.php';
 require_once __DIR__ . '/../includes/drip_engine.php';
+require_once __DIR__ . '/../includes/contact_fields.php';
 
 if (!has_feature('contacts')) {
     header("Location: dashboard.php");
@@ -75,6 +76,17 @@ if (isset($_POST['add'])) {
         }
     }
 
+    // Custom fields: check every value before the contact is created
+    $cfFields = cf_enabled() ? cf_list($conn, (int)$companyId) : [];
+    $cfPosted = cf_from_post($cfFields);
+    if ($formError === '') {
+        foreach ($cfFields as $f) {
+            if (!isset($cfPosted[(int)$f['id']])) continue;
+            [$cfOk, , $cfErr] = cf_normalize((string)$f['field_type'], $cfPosted[(int)$f['id']]);
+            if (!$cfOk) { $formError = $f['name'] . ' ' . $cfErr . '.'; break; }
+        }
+    }
+
     if ($formError === '') {
         // IDOR protection: group must belong to this company
         if ($groupId !== null) {
@@ -95,6 +107,9 @@ if (isset($_POST['add'])) {
             $stmt->bind_param("issssssi", $companyId, $name, $phone, $email, $address, $clientCompany, $tags, $groupId);
             $stmt->execute();
             $newContactId = $conn->insert_id;
+            if ($newContactId > 0 && $cfFields) {
+                cf_save($conn, (int)$companyId, (int)$newContactId, $cfFields, $cfPosted);
+            }
             if ($newContactId > 0) {
                 // Trigger any matching drip campaigns based on tags
                 trigger_drip_campaigns($conn, (int)$companyId, (int)$newContactId, (string)$tags);
@@ -208,6 +223,15 @@ $countries = ['91' => 'India +91', '1' => 'US / Canada +1', '44' => 'UK +44', '9
             <p class="ca-err" id="eEmail"></p>
           </div>
         </section>
+
+        <?php $cfFormFields = cf_enabled() ? cf_list($conn, (int)$companyId) : []; if ($cfFormFields): ?>
+        <section class="db-card ca-card">
+          <div class="ca-ch"><span class="ca-ci"><?php echo $__ic($I['build'], 20); ?></span><div><h2>More details</h2><p>Your custom fields. <a href="contact_fields.php">Manage fields</a></p></div></div>
+          <?php echo cf_render_inputs($cfFormFields, (array)($_POST['cf'] ?? []), $esc); ?>
+        </section>
+        <?php elseif (cf_enabled()): ?>
+        <p class="ca-hint" style="margin:0">Need more details on contacts, like Birthday or Policy number? <a href="contact_fields.php">Create custom fields</a>.</p>
+        <?php endif; ?>
 
         <section class="db-card ca-card">
           <div class="ca-ch"><span class="ca-ci"><?php echo $__ic($I['groups'], 20); ?></span><div><h2>Organise</h2><p>Groups and tags make campaigns and filters easy.</p></div></div>

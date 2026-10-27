@@ -51,6 +51,7 @@ $_newCols = [
     'feat_set_manual'        => "TINYINT(1) NOT NULL DEFAULT 1",
     'feat_menu_integrations' => "TINYINT(1) NOT NULL DEFAULT 1",
     'feat_contact_groups'    => "TINYINT(1) NOT NULL DEFAULT 1",
+    'feat_contact_fields'    => "TINYINT(1) NOT NULL DEFAULT 1",
     'feat_demo_bookings'     => "TINYINT(1) NOT NULL DEFAULT 1",
     'feat_bot_knowledge'     => "TINYINT(1) NOT NULL DEFAULT 1",
     'feat_bot_settings'      => "TINYINT(1) NOT NULL DEFAULT 1",
@@ -168,7 +169,7 @@ if (isset($_POST['save'])) {
     $featNotifications = intval($_POST['feat_notifications'] ?? 0);
     $feat2fa = intval($_POST['feat_2fa'] ?? 0);
     $adsFlags = [];
-    foreach (['feat_ads_attribution', 'feat_ads_capi', 'feat_ads_insights', 'feat_ads_builder', 'feat_shopify', 'feat_sales_tracker', 'feat_google_calendar', 'feat_set_general', 'feat_set_whatsapp', 'feat_set_support', 'feat_set_manual', 'feat_menu_integrations', 'feat_contact_groups', 'feat_demo_bookings', 'feat_bot_knowledge', 'feat_bot_settings', 'feat_ec_analytics', 'feat_ec_orders', 'feat_ec_catalog', 'feat_ec_reports', 'feat_ec_checkout', 'feat_billing', 'feat_discover'] as $_af) { $adsFlags[$_af] = intval($_POST[$_af] ?? 0) ? 1 : 0; }
+    foreach (['feat_ads_attribution', 'feat_ads_capi', 'feat_ads_insights', 'feat_ads_builder', 'feat_shopify', 'feat_sales_tracker', 'feat_google_calendar', 'feat_set_general', 'feat_set_whatsapp', 'feat_set_support', 'feat_set_manual', 'feat_menu_integrations', 'feat_contact_groups', 'feat_contact_fields', 'feat_demo_bookings', 'feat_bot_knowledge', 'feat_bot_settings', 'feat_ec_analytics', 'feat_ec_orders', 'feat_ec_catalog', 'feat_ec_reports', 'feat_ec_checkout', 'feat_billing', 'feat_discover'] as $_af) { $adsFlags[$_af] = intval($_POST[$_af] ?? 0) ? 1 : 0; }
     $saveAdsFlags = static function (int $planId) use ($conn, $adsFlags): void {
         $set = implode(', ', array_map(static fn($c) => $c . '=?', array_keys($adsFlags)));
         $st = $conn->prepare("UPDATE subscription_plans SET $set WHERE id=?");
@@ -294,6 +295,7 @@ if (!$plan) {
         'feat_set_manual' => 1,
         'feat_menu_integrations' => 1,
         'feat_contact_groups' => 1,
+        'feat_contact_fields' => 1,
         'feat_demo_bookings' => 1,
         'feat_bot_knowledge' => 1,
         'feat_bot_settings' => 1,
@@ -564,6 +566,7 @@ endforeach; ?>
 $menuFeatures = [
     ['feat_menu_integrations', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0zM12 17v5"/></svg>', 'Integrations page', '#0ea5e9'],
     ['feat_contact_groups', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.1.7 3.5 2.7 3.5 6"/></svg>', 'Contact Groups', '#00b894'],
+    ['feat_contact_fields', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h4M7 13h10M7 17h6"/><path d="M15 8.5h2"/></svg>', 'Contact Custom Fields', '#0984e3'],
     ['feat_demo_bookings', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M8.5 15l2.2 2.2 4.5-4.5"/></svg>', 'Demo Bookings', '#6c5ce7'],
     ['feat_bot_knowledge', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>', 'Bot Knowledge', '#8b5cf6'],
     ['feat_bot_settings', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4M9 13h.01M15 13h.01M9 17h6"/></svg>', 'Bot Settings', '#8b5cf6'],

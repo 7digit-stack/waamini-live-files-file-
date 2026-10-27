@@ -1,6 +1,7 @@
 <?php
 include '../includes/client_auth_check.php';
 require_once __DIR__ . '/../includes/drip_engine.php';
+require_once __DIR__ . '/../includes/contact_fields.php';
 
 if (!has_feature('contacts')) {
     header("Location: dashboard.php");
@@ -20,8 +21,20 @@ if (!$contact) {
     exit();
 }
 
+$cfFields = cf_enabled() ? cf_list($conn, (int)$companyId) : [];
+$cfError = '';
+
 if (isset($_POST['update'])) {
     csrf_verify();
+    // Custom fields: reject the whole update if a value has the wrong format
+    $cfPosted = cf_from_post($cfFields);
+    foreach ($cfFields as $f) {
+        if (!isset($cfPosted[(int)$f['id']])) continue;
+        [$cfOk, , $cfErr] = cf_normalize((string)$f['field_type'], $cfPosted[(int)$f['id']]);
+        if (!$cfOk) { $cfError = $f['name'] . ' ' . $cfErr . '.'; break; }
+    }
+}
+if (isset($_POST['update']) && $cfError === '') {
     $name = sanitize($_POST['name']);
     $phone = sanitize_phone($_POST['phone']);
     $email = sanitize_email($_POST['email'] ?? '');
@@ -46,6 +59,7 @@ if (isset($_POST['update'])) {
 
     // Trigger drips based on updated tags (drip engine handles duplicate/already-running checks)
     trigger_drip_campaigns($conn, (int)$companyId, (int)$id, (string)$tags_plain);
+    if ($cfFields) { cf_save($conn, (int)$companyId, (int)$id, $cfFields, $cfPosted); }
 
     header("Location: contacts.php?msg=updated");
     exit();
@@ -102,6 +116,15 @@ include '../includes/client_header.php';
             <input type="text" name="tags" class="form-control" placeholder="e.g. leads, vip, offer" value="<?php echo htmlspecialchars($existing_tags); ?>">
         </div>
         
+        <?php if ($cfFields):
+            $cfVals = isset($_POST['cf']) ? (array)$_POST['cf'] : (cf_values($conn, (int)$companyId, [(int)$id])[(int)$id] ?? []);
+            $cfTypes = cf_types(); ?>
+        <div style="margin:18px 0 8px;padding-top:14px;border-top:1px solid #E3E8EE;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><b style="font-size:15px">More details</b><a href="contact_fields.php" style="font-size:13px">Manage custom fields</a></div>
+        <?php if ($cfError !== ''): ?><div style="padding:10px 14px;border-radius:10px;background:#FCECEE;color:#B4344A;font-weight:600;margin-bottom:12px" role="alert"><?php echo htmlspecialchars($cfError); ?></div><?php endif; ?>
+        <?php foreach ($cfFields as $f): $fid = (int)$f['id']; $t = $cfTypes[$f['field_type']] ?? $cfTypes['text']; ?>
+        <div class="form-group"><label for="cf_<?php echo $fid; ?>"><?php echo htmlspecialchars($f['name']); ?> <small style="color:#6B7A8C">(<?php echo htmlspecialchars($t[0]); ?>)</small></label><input id="cf_<?php echo $fid; ?>" type="<?php echo $t[1]; ?>" name="cf[<?php echo $fid; ?>]" class="form-control" value="<?php echo htmlspecialchars(cf_input_value((string)$f['field_type'], (string)($cfVals[$fid] ?? ''))); ?>" placeholder="<?php echo htmlspecialchars($t[2]); ?>"<?php echo $f['field_type'] === 'number' ? ' step="any"' : ''; ?> maxlength="1000"></div>
+        <?php endforeach; endif; ?>
+
         <button type="submit" name="update" class="btn btn-primary" style="margin-top:10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;flex-shrink:0"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg> Update Contact</button>
     </form>
 </div>
