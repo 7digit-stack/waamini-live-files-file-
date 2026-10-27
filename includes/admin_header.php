@@ -16,7 +16,7 @@ if (!isset($currentPage))
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $pageTitle; ?> &ndash; WAAMINI Admin</title>
     <link rel="stylesheet" href="../assets/css/admin.css?v=11">
-    <link rel="stylesheet" href="../assets/css/sidebar-pro.css?v=4">
+    <link rel="stylesheet" href="../assets/css/sidebar-pro.css?v=5">
     <style>
     /* Real-time registration toasts */
     #wmn-toast-stack{position:fixed;bottom:24px;right:24px;z-index:99999;display:flex;flex-direction:column-reverse;gap:10px;pointer-events:none;}

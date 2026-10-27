@@ -284,7 +284,7 @@ include '../includes/client_header.php';
 .ct-sel:focus{box-shadow:0 0 0 2px var(--g);background:#fff}
 .ct-meta{font-size:13px;color:var(--mu);font-weight:600;margin:0 2px 12px}
 
-.ct-list{display:flex;flex-direction:column;gap:8px}
+.ct-list{display:flex;flex-direction:column;gap:8px;container-type:inline-size;container-name:ctlist}
 .ct-row{display:grid;grid-template-columns:36px minmax(200px,2fr) 124px 108px minmax(110px,1fr) 74px 98px 124px;gap:12px;align-items:center;padding:11px 14px;border-radius:13px;background:var(--soft);transition:background .15s}
 .ct-row:not(.ct-head):hover{background:#E7F7F1}
 .ct-head{background:transparent;padding-top:2px;padding-bottom:2px;font-size:12px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px}
@@ -323,7 +323,10 @@ include '../includes/client_header.php';
 .ct-pages b{background:var(--g);color:#fff}
 .ct-pages .gap{background:transparent;color:var(--mu)}
 
-@media (max-width:1180px){.ct-row{grid-template-columns:36px minmax(180px,2fr) 118px 100px 74px 124px}.ct-row>.c-assign,.ct-row>.c-date,.ct-head>.c-assign,.ct-head>.c-date{display:none}.ct-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Row columns follow the width the list really has (sidebar open or closed), not the screen */
+@container ctlist (max-width:990px){.ct-row{grid-template-columns:36px minmax(160px,2fr) 118px 100px 74px 124px}.ct-row>.c-assign,.ct-row>.c-date,.ct-head>.c-assign,.ct-head>.c-date{display:none}}
+@container ctlist (max-width:760px){.ct-row{grid-template-columns:36px minmax(140px,1fr) 112px 124px}.ct-row>.c-src,.ct-row>.c-score,.ct-head>.c-src,.ct-head>.c-score{display:none}}
+@media (max-width:1180px){.ct-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:760px){
   .ct-head{display:none}
   .ct-row{grid-template-columns:30px 1fr auto;grid-template-areas:"chk who acts" "st st st";row-gap:8px}

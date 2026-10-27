@@ -157,7 +157,7 @@ if (isset($conn) && isset($companyId) && $companyId > 0) {
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="<?php echo app_url('assets/css/client.css?v=4.5'); ?>">
-    <link rel="stylesheet" href="<?php echo app_url('assets/css/sidebar-pro.css?v=4'); ?>">
+    <link rel="stylesheet" href="<?php echo app_url('assets/css/sidebar-pro.css?v=5'); ?>">
     <?php
     // E-Commerce section pages share one dashboard skin
     $__ecomPages = ['order_dashboard', 'orders', 'catalog', 'catalog_reports', 'premium_abandoned_cart', 'ecommerce', 'pdf_settings'];
