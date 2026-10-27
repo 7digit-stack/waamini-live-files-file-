@@ -147,6 +147,11 @@ include '../includes/client_header.php';
 .cf-step b{display:flex;align-items:center;gap:10px;font-size:15px;margin-bottom:6px}
 .cf-step b span{width:26px;height:26px;border-radius:50%;background:var(--g);color:#fff;font-size:13px;display:grid;place-items:center;flex:none}
 .cf-step p{margin:0;color:var(--mu);font-size:13.5px;line-height:1.55}
+.cf-step{display:flex;flex-direction:column}
+.cf-btn--dl{margin-top:14px;align-self:flex-start;height:40px;padding:0 16px;background:var(--tint);color:var(--gd) !important;border-color:#BFE3D4}
+.cf-btn--dl:hover{background:var(--g);color:#fff !important;border-color:var(--g)}
+.cf-btn--dl:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+@media (max-width:520px){.cf-btn--dl{align-self:stretch}}
 .cf-step code{font:500 12.5px ui-monospace,Menlo,monospace;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--ink)}
 .cf-lock{padding:40px 24px;text-align:center}
 /* modal (matches the "Input Name / Input Type" design) */
@@ -229,7 +234,8 @@ include '../includes/client_header.php';
   <div class="cf-help">
     <div class="cf-card cf-step"><b><span>1</span> Create the field</b><p>Give it a name and pick a type: text, number, email, URL, date, time or date and time.</p></div>
     <div class="cf-card cf-step"><b><span>2</span> Fill it in</b><p>It shows on <a href="contact_add.php" style="color:var(--g);font-weight:600">Add contact</a> and when you edit a contact. Values show under each name in the <a href="contacts.php" style="color:var(--g);font-weight:600">Contacts list</a>.</p></div>
-    <div class="cf-card cf-step"><b><span>3</span> Import from Excel</b><p>Add a column named exactly like the field (e.g. <code><?php echo $esc($fields[0]['name'] ?? 'Birthday'); ?></code>) next to <code>phone_number</code> and <code>group_name</code>. <a href="contact_import.php?download_template=1" style="color:var(--g);font-weight:600">Download the sample CSV</a> — it already has your columns.</p></div>
+    <div class="cf-card cf-step"><b><span>3</span> Import from Excel</b><p>Add a column named exactly like the field (e.g. <code><?php echo $esc($fields[0]['name'] ?? 'Birthday'); ?></code>) next to <code>phone_number</code> and <code>group_name</code>. The sample file already has your columns.</p>
+      <a class="cf-btn cf-btn--dl" href="contact_import.php?download_template=1" download><?php echo $ic('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>', 16); ?> Download sample CSV</a></div>
   </div>
   <?php endif; ?>
 </div>
