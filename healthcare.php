@@ -6,6 +6,9 @@ $asyncStylesheets = [
   'assets/css/industries.css?v=5.0',
   'assets/css/landing-neo.css?v=16',
   'assets/css/ind-wa.css?v=2',
+  'assets/css/feature-pages.css?v=2.2',
+  'assets/css/wm-hub.css?v=1',
+  'assets/css/wm-feat.css?v=4',
 ];
 $bodyClass = 'lp-neo';
 include 'includes/header.php';
@@ -175,51 +178,8 @@ include 'includes/header.php';
             <h2 class="ind-section-title">Built for Clinics, Hospitals & Diagnostics</h2>
             <p class="ind-section-sub">Improve patient outcomes by staying connected throughout their entire care journey — automatically.</p>
         </div>
-        <div class="ind-feature-grid">
-            <div class="ind-feat-card hc-feat">
-                <div class="ind-feat-icon fi-hc">
-                    <svg viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
-                </div>
-                <h4>Appointment Booking</h4>
-                <p>Let patients book, reschedule, or cancel appointments 24/7 without calling the front desk. Syncs with your practice management software.</p>
-            </div>
-            <div class="ind-feat-card hc-feat">
-                <div class="ind-feat-icon fi-hc">
-                    <svg viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-                </div>
-                <h4>Digital Lab Reports</h4>
-                <p>Deliver lab results and prescriptions instantly via WhatsApp. Secure, fast, and highly convenient for patients and their families.</p>
-            </div>
-            <div class="ind-feat-card hc-feat">
-                <div class="ind-feat-icon fi-hc">
-                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                </div>
-                <h4>Medicine Reminders</h4>
-                <p>Automatically send medication schedules and follow-up reminders to ensure treatment adherence and complete patient recovery.</p>
-            </div>
-            <div class="ind-feat-card hc-feat">
-                <div class="ind-feat-icon fi-hc">
-                    <svg viewBox="0 0 24 24"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>
-                </div>
-                <h4>Vaccination Alerts</h4>
-                <p>Automate immunization schedules for pediatric or travel clinics. Send timely alerts to parents when the next dose is due.</p>
-            </div>
-            <div class="ind-feat-card hc-feat">
-                <div class="ind-feat-icon fi-hc">
-                    <svg viewBox="0 0 24 24"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
-                </div>
-                <h4>Teleconsultation Links</h4>
-                <p>Automatically send video consultation links before each appointment. Enable remote care without patients downloading extra apps.</p>
-            </div>
-            <div class="ind-feat-card hc-feat">
-                <div class="ind-feat-icon fi-hc">
-                    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                </div>
-                <h4>Patient Feedback</h4>
-                <p>Collect CSAT ratings and reviews automatically after every visit. Build your online reputation while catching issues before they escalate.</p>
-            </div>
-        </div>
     </div>
+    <div class="fp"><?php $fp = ['hub' => 'healthcare', 'hub_head' => false]; include __DIR__ . '/includes/feature_hub.php'; ?></div>
 </section>
 
 <!-- ═══════ HOW IT WORKS ═══════ -->
