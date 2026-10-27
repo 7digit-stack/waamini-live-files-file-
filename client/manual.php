@@ -3,9 +3,10 @@ include '../includes/client_auth_check.php';
 if (function_exists('waamini_plan_switches') && !has_feature('set_manual')) { header('Location: dashboard.php'); exit(); }  // plan switch: Admin > Plans > Edit > Client Settings menu
 require_once __DIR__ . '/guide_catalog.php';
 
-// ── Language: English, Tanglish, Hindi (remembered in a cookie) ──
-$langs = ['en' => 'English', 'tl' => 'Tanglish', 'hi' => 'हिंदी'];
+// ── Language: English, Tamil, Hindi (remembered in a cookie) ──
+$langs = ['en' => 'English', 'ta' => 'தமிழ்', 'hi' => 'हिंदी'];
 $lang = (string)($_GET['lang'] ?? ($_COOKIE['guide_lang'] ?? 'en'));
+if ($lang === 'tl') { $lang = 'ta'; }   // Tanglish was replaced by Tamil
 if (!isset($langs[$lang])) { $lang = 'en'; }
 if (isset($_GET['lang'])) { setcookie('guide_lang', $lang, time() + 31536000, '/', '', !empty($_SERVER['HTTPS']), true); }
 
@@ -241,7 +242,7 @@ include '../includes/client_header.php';
       <span class="ug-crumb" id="ugCrumb"><?php echo $esc($t('guide')); ?></span>
       <nav class="ug-lang" aria-label="Language">
         <?php foreach ($langs as $code => $name): ?>
-          <a href="?lang=<?php echo $code; ?>" class="<?php echo $lang === $code ? 'on' : ''; ?>" data-lang="<?php echo $code; ?>" lang="<?php echo $code === 'tl' ? 'ta-Latn' : $code; ?>"<?php echo $lang === $code ? ' aria-current="true"' : ''; ?>><?php echo $esc($name); ?></a>
+          <a href="?lang=<?php echo $code; ?>" class="<?php echo $lang === $code ? 'on' : ''; ?>" data-lang="<?php echo $code; ?>" lang="<?php echo $code; ?>"<?php echo $lang === $code ? ' aria-current="true"' : ''; ?>><?php echo $esc($name); ?></a>
         <?php endforeach; ?>
       </nav>
     </div>
