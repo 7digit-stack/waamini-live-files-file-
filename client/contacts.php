@@ -219,9 +219,22 @@ $qs = static function (array $over = []) use ($search, $statusF, $sourceF, $grou
 };
 $filtersOn = ($search !== '' || $statusF !== '' || $sourceF !== '' || $groupF > 0 || $leadF !== '' || $adF !== '');
 
-require_once __DIR__ . '/../includes/contact_fields.php';
-$cfFields = cf_enabled() ? cf_list($conn, (int)$companyId) : [];
-$cfVals = $cfFields ? cf_values($conn, (int)$companyId, array_column($contactRows ?? [], 'id')) : [];
+// Custom field values under each name. Optional: if anything here fails, the list still loads without them.
+$cfFields = [];
+$cfVals = [];
+try {
+    if (is_file(__DIR__ . '/../includes/contact_fields.php')) {
+        require_once __DIR__ . '/../includes/contact_fields.php';
+        if (function_exists('cf_enabled') && cf_enabled()) {
+            $cfFields = cf_list($conn, (int)$companyId);
+            $cfVals = $cfFields ? cf_values($conn, (int)$companyId, array_column($contactRows ?? [], 'id')) : [];
+        }
+    }
+} catch (\Throwable $e) {
+    error_log('[contacts.php] custom fields skipped: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+    $cfFields = [];
+    $cfVals = [];
+}
 
 include '../includes/client_header.php';
 ?>

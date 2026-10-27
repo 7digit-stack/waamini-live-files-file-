@@ -56,7 +56,7 @@ function cf_ensure_tables(mysqli $conn): void
             contact_id INT NOT NULL,
             field_id INT NOT NULL,
             company_id INT NOT NULL,
-            value VARCHAR(1000) NOT NULL,
+            `value` VARCHAR(1000) NOT NULL,
             updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (contact_id, field_id),
             KEY idx_field (company_id, field_id)
@@ -95,7 +95,7 @@ function cf_values(mysqli $conn, int $companyId, array $contactIds): array
     try {
         foreach (array_chunk($ids, 500) as $chunk) {
             $in = implode(',', $chunk);   // integers only
-            $st = $conn->prepare("SELECT contact_id, field_id, value FROM contact_field_values WHERE company_id=? AND contact_id IN ($in)");
+            $st = $conn->prepare("SELECT contact_id, field_id, `value` FROM contact_field_values WHERE company_id=? AND contact_id IN ($in)");
             if (!$st) continue;
             $st->bind_param('i', $companyId);
             $st->execute();
@@ -193,7 +193,7 @@ function cf_save(mysqli $conn, int $companyId, int $contactId, array $fields, ar
     if ($contactId <= 0 || !$fields) return [];
     cf_ensure_tables($conn);
     $errors = [];
-    $up = $conn->prepare('INSERT INTO contact_field_values (contact_id, field_id, company_id, value) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value)');
+    $up = $conn->prepare('INSERT INTO contact_field_values (contact_id, field_id, company_id, `value`) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)');
     $del = $conn->prepare('DELETE FROM contact_field_values WHERE contact_id=? AND field_id=? AND company_id=?');
     foreach ($fields as $f) {
         $fid = (int)$f['id'];
