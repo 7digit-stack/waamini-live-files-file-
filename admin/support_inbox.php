@@ -26,11 +26,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ticket_status_change'
     exit();
 }
 
+// Website enquiries (public support form): mark new / read / replied
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['enquiry_status'])) {
+    csrf_verify();
+    $eid = (int)($_POST['enquiry_id'] ?? 0);
+    $est = (string)($_POST['status'] ?? '');
+    if ($eid > 0 && in_array($est, ['new', 'read', 'replied'], true)) {
+        try {
+            $u = $conn->prepare('UPDATE website_enquiries SET status=? WHERE id=?');
+            if ($u) { $u->bind_param('si', $est, $eid); $u->execute(); }
+        } catch (Throwable $e) { error_log('[support_inbox] enquiry status: ' . $e->getMessage()); }
+    }
+    $ef = (string)($_GET['ef'] ?? '');
+    header('Location: support_inbox.php?view=enquiries' . (in_array($ef, ['new', 'read', 'replied', 'all'], true) ? '&ef=' . $ef : ''));
+    exit();
+}
+
 // Handle sending reply
 if (isset($_POST['send_reply']) && isset($_GET['ticket'])) {
     csrf_verify();
     $ticketId = intval($_GET['ticket']);
-    $message = sanitize($_POST['message']);
+    $message = mb_substr(trim((string)($_POST['message'] ?? '')), 0, 65535);   // stored as typed; escaped when shown
 
     $checkStmt = $conn->prepare("SELECT id FROM support_tickets WHERE id=?");
     $exists = false;
@@ -101,9 +117,24 @@ if ($activeTicketId > 0) {
     $tr = $rowsOf($conn, "SELECT t.*, c.name AS company_name FROM support_tickets t LEFT JOIN companies c ON t.company_id = c.id WHERE t.id = " . (int)$activeTicketId);
     $ticket = $tr[0] ?? null;
     if ($ticket) {
-        $msgs = $rowsOf($conn, "SELECT m.*, u.name AS user_name FROM support_messages m LEFT JOIN users u ON m.sender_id = u.id AND m.sender_type = 'user' WHERE m.ticket_id = " . (int)$activeTicketId . " ORDER BY m.created_at ASC, m.id ASC");
+        $msgs = $rowsOf($conn, "SELECT m.*, u.name AS user_name FROM support_messages m LEFT JOIN users u ON m.sender_id = u.id AND m.sender_type = 'client' WHERE m.ticket_id = " . (int)$activeTicketId . " ORDER BY m.created_at ASC, m.id ASC");
     }
 }
+
+// Website enquiries (table is created by api/support_contact.php on the first message)
+$view = ((string)($_GET['view'] ?? '') === 'enquiries') ? 'enquiries' : 'tickets';
+$enqFilter = in_array((string)($_GET['ef'] ?? ''), ['new', 'read', 'replied', 'all'], true) ? (string)$_GET['ef'] : 'all';
+$enqHas = (bool)$rowsOf($conn, "SHOW TABLES LIKE 'website_enquiries'");
+$enqCounts = ['new' => 0, 'read' => 0, 'replied' => 0];
+$enquiries = [];
+if ($enqHas) {
+    foreach ($rowsOf($conn, 'SELECT status, COUNT(*) AS n FROM website_enquiries GROUP BY status') as $r) { $enqCounts[(string)$r['status']] = (int)$r['n']; }
+    if ($view === 'enquiries') {
+        $ew = $enqFilter === 'all' ? '1=1' : "status = '" . $enqFilter . "'";
+        $enquiries = $rowsOf($conn, "SELECT * FROM website_enquiries WHERE $ew ORDER BY id DESC LIMIT 300");
+    }
+}
+$enqNew = $enqCounts['new'];
 
 include '../includes/admin_header.php';
 ?>
@@ -143,9 +174,61 @@ $fq = static fn(string $f, ?int $t = null) => 'support_inbox.php?f=' . $f . ($t 
   <div class="db-head">
     <div>
       <h1>Support Inbox</h1>
-      <p>Answer client tickets and keep response times low.</p>
+      <p>Answer client tickets and website enquiries, and keep response times low.</p>
     </div>
+    <nav class="si-views" aria-label="Inbox">
+      <a href="support_inbox.php" class="<?php echo $view === 'tickets' ? 'is-on' : ''; ?>">Client tickets <em><?php echo $activeN; ?></em></a>
+      <a href="support_inbox.php?view=enquiries" class="<?php echo $view === 'enquiries' ? 'is-on' : ''; ?>">Website enquiries <em class="<?php echo $enqNew ? 'is-new' : ''; ?>"><?php echo $enqNew ? $enqNew . ' new' : array_sum($enqCounts); ?></em></a>
+    </nav>
   </div>
+
+<?php if ($view === 'enquiries'): ?>
+  <section class="si-stats">
+    <div class="si-stat"><span class="db-kpi__ic is-amber"><?php echo $__ic($P['inbox'], 20); ?></span><div><span>New</span><b><?php echo number_format($enqCounts['new']); ?></b></div></div>
+    <div class="si-stat"><span class="db-kpi__ic is-blue"><?php echo $__ic($P['chat'], 20); ?></span><div><span>Read</span><b><?php echo number_format($enqCounts['read']); ?></b></div></div>
+    <div class="si-stat"><span class="db-kpi__ic is-green"><?php echo $__ic($P['check'], 20); ?></span><div><span>Replied</span><b><?php echo number_format($enqCounts['replied']); ?></b></div></div>
+    <div class="si-stat"><span class="db-kpi__ic is-purple"><?php echo $__ic($P['clock'], 20); ?></span><div><span>Total</span><b><?php echo number_format(array_sum($enqCounts)); ?></b></div></div>
+  </section>
+  <section class="db-card si-enq">
+    <div class="si-list__hd"><h2>Messages from the website support form</h2>
+      <label class="si-search"><?php echo $__ic($P['search'], 16); ?><input type="search" id="siEnqSearch" placeholder="Search enquiries" aria-label="Search enquiries"></label></div>
+    <div class="si-chips">
+      <?php foreach (['all' => 'All', 'new' => 'New', 'read' => 'Read', 'replied' => 'Replied'] as $k => $lbl): ?>
+      <a href="support_inbox.php?view=enquiries&amp;ef=<?php echo $k; ?>" class="si-chip<?php echo $enqFilter === $k ? ' is-active' : ''; ?>"><?php echo $lbl; ?> <em><?php echo $k === 'all' ? array_sum($enqCounts) : $enqCounts[$k]; ?></em></a>
+      <?php endforeach; ?>
+    </div>
+    <div class="si-enq__rows" id="siEnqRows">
+      <?php foreach ($enquiries as $q):
+          $qs = (string)$q['status'];
+          $ph = preg_replace('/\D/', '', (string)($q['phone'] ?? ''));
+          if ($ph !== '' && strlen($ph) === 10) { $ph = '91' . $ph; } ?>
+      <article class="si-enq__row<?php echo $qs === 'new' ? ' is-new' : ''; ?>" data-q="<?php echo $esc(strtolower($q['name'] . ' ' . $q['email'] . ' ' . $q['phone'] . ' ' . $q['topic'] . ' ' . $q['message'])); ?>">
+        <header>
+          <span class="si-av"><?php echo $esc(strtoupper(mb_substr((string)$q['name'], 0, 1))); ?></span>
+          <div class="si-enq__who"><b><?php echo $esc($q['name']); ?></b><span><?php echo $esc($q['email']); ?><?php echo !empty($q['phone']) ? ' &middot; ' . $esc($q['phone']) : ''; ?></span></div>
+          <span class="si-enq__topic"><?php echo $esc($q['topic']); ?></span>
+          <span class="db-pill <?php echo $qs === 'new' ? 'is-warn' : ($qs === 'replied' ? 'is-ok' : 'is-info'); ?>"><?php echo $esc(ucfirst($qs)); ?></span>
+          <time>#<?php echo (int)$q['id']; ?> &middot; <?php echo $esc(date('d M Y, h:i A', strtotime((string)$q['created_at']))); ?></time>
+        </header>
+        <p><?php echo nl2br($esc($q['message'])); ?></p>
+        <footer>
+          <a class="db-btn db-btn--primary" href="mailto:<?php echo $esc($q['email']); ?>?subject=<?php echo rawurlencode('Re: ' . $q['topic'] . ' (Waamini enquiry #' . $q['id'] . ')'); ?>"><?php echo $__ic($P['send'], 15); ?> Reply by email</a>
+          <?php if ($ph !== ''): ?><a class="db-btn" href="https://wa.me/<?php echo $esc($ph); ?>" target="_blank" rel="noopener"><?php echo $__ic($P['chat'], 15); ?> WhatsApp</a><?php endif; ?>
+          <form method="POST" action="support_inbox.php?view=enquiries&amp;ef=<?php echo $esc($enqFilter); ?>" class="si-enq__st">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="enquiry_id" value="<?php echo (int)$q['id']; ?>">
+            <input type="hidden" name="enquiry_status" value="1">
+            <?php foreach (['read' => 'Mark read', 'replied' => 'Mark replied', 'new' => 'Mark new'] as $sk => $sl): if ($sk === $qs) continue; ?>
+            <button type="submit" name="status" value="<?php echo $sk; ?>" class="db-btn"><?php echo $sl; ?></button>
+            <?php endforeach; ?>
+          </form>
+        </footer>
+      </article>
+      <?php endforeach; ?>
+      <div class="db-empty" id="siEnqNone" style="<?php echo $enquiries ? 'display:none' : ''; ?>"><?php echo $enqHas ? 'No enquiries here.' : 'No website enquiries yet. Messages sent from the Support page on the website appear here.'; ?></div>
+    </div>
+  </section>
+<?php else: ?>
 
   <section class="si-stats">
     <div class="si-stat"><span class="db-kpi__ic is-green"><?php echo $__ic($P['inbox'], 20); ?></span><div><span>Active tickets</span><b><?php echo number_format($activeN); ?></b></div></div>
@@ -180,7 +263,7 @@ $fq = static fn(string $f, ?int $t = null) => 'support_inbox.php?f=' . $f . ($t 
             <div class="si-row__t"><b><?php echo $esc($company); ?></b><span><?php echo $esc($ago($when)); ?></span></div>
             <div class="si-row__s"><?php echo $esc($t['subject'] ?? ''); ?></div>
             <div class="si-row__m">
-              <span class="si-prev"><?php echo $t['last_msg'] !== null ? ($t['last_sender'] === 'admin' ? 'You: ' : '') . $esc(mb_substr(preg_replace('/\s+/', ' ', (string)$t['last_msg']), 0, 60)) : 'No messages yet'; ?></span>
+              <span class="si-prev"><?php echo $t['last_msg'] !== null ? ($t['last_sender'] === 'admin' ? 'You: ' : '') . $esc(mb_substr(preg_replace('/\s+/', ' ', $t['last_sender'] === 'admin' ? html_entity_decode((string)$t['last_msg'], ENT_QUOTES, 'UTF-8') : (string)$t['last_msg']), 0, 60)) : 'No messages yet'; ?></span>
               <span class="db-pill <?php echo $pill[$t['status']] ?? 'is-off'; ?>"><?php echo $esc(ucfirst((string)$t['status'])); ?></span>
             </div>
             <?php if ($needs): ?><span class="si-need">Needs reply</span><?php endif; ?>
@@ -223,7 +306,7 @@ $fq = static fn(string $f, ?int $t = null) => 'support_inbox.php?f=' . $f . ($t 
                 <?php endif; ?>
           <div class="si-m <?php echo $isAdmin ? 'is-admin' : 'is-client'; ?>">
             <div class="si-m__who"><?php echo $isAdmin ? 'You (Admin)' : $esc($m['user_name'] ?? $company); ?> <small><?php echo $esc(date('h:i A', strtotime((string)$m['created_at']))); ?></small></div>
-            <div class="si-bubble"><?php echo nl2br($esc($m['message'])); ?></div>
+            <div class="si-bubble"><?php echo nl2br($esc($isAdmin ? html_entity_decode((string)$m['message'], ENT_QUOTES, 'UTF-8') : $m['message'])); ?></div>
           </div>
         <?php endforeach; else: ?>
           <div class="db-empty">No messages in this ticket yet. Send the first reply below.</div>
@@ -244,6 +327,7 @@ $fq = static fn(string $f, ?int $t = null) => 'support_inbox.php?f=' . $f . ($t 
     <?php endif; ?>
     </section>
   </div>
+<?php endif; ?>
 </div>
 
 <style>
@@ -307,6 +391,25 @@ $fq = static fn(string $f, ?int $t = null) => 'support_inbox.php?f=' . $f . ($t 
 .si-empty>span{width:92px;height:92px;border-radius:50%;background:#E3F7EE;color:#128C7E;display:grid;place-items:center;margin-bottom:8px}
 .si-empty h2{margin:0;font-size:22px;font-weight:800;color:var(--ink)}
 .si-empty p{margin:0;max-width:340px;font-size:14.5px;color:var(--mu);line-height:1.55}
+.db-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.si-views{display:inline-flex;padding:4px;border-radius:12px;background:var(--soft);border:1px solid var(--line)}
+.si-views a{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border-radius:9px;font-size:14px;font-weight:700;color:var(--tx);text-decoration:none}
+.si-views a.is-on{background:#fff;color:var(--gd);box-shadow:0 1px 3px rgba(15,38,34,.12)}
+.si-views em{font-style:normal;font-size:12px;padding:1px 8px;border-radius:999px;background:#fff;color:var(--mu)}
+.si-views em.is-new{background:#FEF3DC;color:#92580a}
+.si-enq{display:flex;flex-direction:column}
+.si-enq__rows{display:flex;flex-direction:column;gap:12px;padding:6px 18px 20px}
+.si-enq__row{border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:#fff}
+.si-enq__row.is-new{border-color:#F3D9A4;background:#FFFCF5}
+.si-enq__row header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.si-enq__who{flex:1;min-width:180px;display:flex;flex-direction:column}
+.si-enq__who b{font-size:15px;color:var(--ink)}
+.si-enq__who span{font-size:13px;color:var(--mu);word-break:break-all}
+.si-enq__topic{font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:7px;background:var(--soft);color:var(--tx)}
+.si-enq__row time{width:100%;font-size:12.5px;color:var(--mu);padding-left:54px}
+.si-enq__row p{margin:10px 0 12px;padding:12px 14px;border-radius:12px;background:var(--soft);font-size:14.5px;line-height:1.6;color:var(--ink);word-break:break-word}
+.si-enq__row footer{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.si-enq__st{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 0 auto}
 @media (max-width:1000px){
   .si-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .si-layout{grid-template-columns:1fr}
@@ -335,6 +438,12 @@ $fq = static fn(string $f, ?int $t = null) => 'support_inbox.php?f=' . $f . ($t 
     });
     var no = document.getElementById('siNone');
     if (no) { no.style.display = (rows.length && !n) ? 'block' : 'none'; no.textContent = 'No tickets match your search.'; }
+  }); }
+  var es = document.getElementById('siEnqSearch');
+  if (es) { es.addEventListener('input', function () {
+    var q = this.value.toLowerCase().trim(), n = 0, rows = document.querySelectorAll('#siEnqRows .si-enq__row');
+    rows.forEach(function (r) { var ok = !q || (r.getAttribute('data-q') || '').indexOf(q) !== -1; r.style.display = ok ? '' : 'none'; if (ok) { n++; } });
+    var no = document.getElementById('siEnqNone'); if (no) { no.style.display = n ? 'none' : 'block'; }
   }); }
   var ta = document.querySelector('.si-reply textarea');
   if (ta) { ta.addEventListener('keydown', function (e) {
